@@ -1,0 +1,43 @@
+name: Setup workspace
+description: >
+  Node + npm ci + Prisma client generation + shared package build.
+  Single source of truth for workspace bootstrap — keep every CI job's
+  setup identical so "works in one job, fails in another" can't happen.
+
+inputs:
+  node-version:
+    description: Node.js version
+    default: '24'
+  generate-prisma:
+    description: Generate Prisma clients for all services
+    default: 'true'
+  build-shared:
+    description: Build the @rlgl/shared package
+    default: 'true'
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+        cache: npm
+
+    - name: Install dependencies
+      shell: bash
+      run: npm ci
+
+    - name: Generate Prisma clients
+      if: inputs.generate-prisma == 'true'
+      shell: bash
+      run: |
+        for svc in auth project testcase testrun; do
+          if [ -f "services/$svc/prisma/schema.prisma" ]; then
+            npx prisma generate --schema=services/$svc/prisma/schema.prisma
+          fi
+        done
+
+    - name: Build shared package
+      if: inputs.build-shared == 'true'
+      shell: bash
+      run: npm run build --workspace=@rlgl/shared

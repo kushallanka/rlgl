@@ -1,0 +1,532 @@
+@import "tailwindcss";
+
+/* Force dark: utilities to respond to the .dark CLASS on <html>, not OS preference */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ════════════════════════════════════════════════════════════════════
+   DESIGN TOKENS — single source of truth for both themes.
+   Light = minimal & elegant (solid surfaces, hairline borders, soft shadows)
+   Dark  = glassmorphism (translucent surfaces, backdrop blur, subtle glow)
+   ════════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* Canvas & surfaces */
+  --canvas: #f4f4f5;
+  --surface: #ffffff;
+  --surface-2: #fafafa;
+  --overlay: #ffffff;
+
+  /* Text */
+  --fg: #18181b;
+  --fg-secondary: #3f3f46;
+  --fg-muted: #71717a;
+  --fg-subtle: #a1a1aa;
+
+  /* Borders */
+  --edge: #e4e4e7;
+  --edge-strong: #d4d4d8;
+
+  /* Accent — single brand accent (indigo) */
+  --accent: #6366f1;
+  --accent-hover: #4f46e5;
+  --accent-fg: #ffffff;
+  --accent-soft: rgba(99, 102, 241, 0.10);
+
+  /* Status — the product's semantic language (pass / fail / blocked / info) */
+  --success: #059669;
+  --danger: #e11d48;
+  --warning: #d97706;
+  --info: #0284c7;
+
+  /* Glass surface recipe (solid in light mode) */
+  --glass-bg: #ffffff;
+  --glass-bg-strong: #ffffff;
+  --glass-border: #e4e4e7;
+  --glass-blur: 0px;
+
+  /* Shadows */
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.04), 0 2px 4px rgba(0, 0, 0, 0.03);
+  --shadow-raised: 0 1px 4px rgba(0, 0, 0, 0.06), 0 4px 12px rgba(0, 0, 0, 0.05);
+  --shadow-raised-hover: 0 4px 16px rgba(0, 0, 0, 0.10), 0 8px 24px rgba(0, 0, 0, 0.06);
+  --shadow-overlay: 0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06), 0 0 0 1px rgba(0, 0, 0, 0.02);
+  --shadow-accent: 0 4px 14px rgba(99, 102, 241, 0.30);
+}
+
+.dark {
+  --canvas: #09090b;
+  --surface: rgba(255, 255, 255, 0.05);
+  --surface-2: rgba(255, 255, 255, 0.04);
+  --overlay: rgba(18, 18, 22, 0.96);
+
+  --fg: #fafafa;
+  --fg-secondary: rgba(255, 255, 255, 0.78);
+  --fg-muted: rgba(255, 255, 255, 0.55);
+  --fg-subtle: rgba(255, 255, 255, 0.35);
+
+  --edge: rgba(255, 255, 255, 0.09);
+  --edge-strong: rgba(255, 255, 255, 0.16);
+
+  --accent: #818cf8;
+  --accent-hover: #a5b4fc;
+  --accent-fg: #ffffff;
+  --accent-soft: rgba(129, 140, 248, 0.15);
+
+  --success: #34d399;
+  --danger: #fb7185;
+  --warning: #fbbf24;
+  --info: #38bdf8;
+
+  --glass-bg: rgba(255, 255, 255, 0.05);
+  --glass-bg-strong: rgba(255, 255, 255, 0.09);
+  --glass-border: rgba(255, 255, 255, 0.09);
+  --glass-blur: 20px;
+
+  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.25);
+  --shadow-raised: 0 8px 32px rgba(0, 0, 0, 0.35), 0 2px 8px rgba(0, 0, 0, 0.2);
+  --shadow-raised-hover: 0 12px 40px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.25);
+  --shadow-overlay: 0 24px 56px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.05);
+  --shadow-accent: 0 4px 20px rgba(129, 140, 248, 0.35);
+}
+
+/* Expose tokens as Tailwind utilities: bg-surface, text-fg-muted, border-edge,
+   bg-accent, text-success, shadow-raised, … — all theme-aware automatically. */
+@theme inline {
+  --font-heading: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-body: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-overlay: var(--overlay);
+
+  --color-fg: var(--fg);
+  --color-fg-secondary: var(--fg-secondary);
+  --color-fg-muted: var(--fg-muted);
+  --color-fg-subtle: var(--fg-subtle);
+
+  --color-edge: var(--edge);
+  --color-edge-strong: var(--edge-strong);
+
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-fg: var(--accent-fg);
+
+  --color-success: var(--success);
+  --color-danger: var(--danger);
+  --color-warning: var(--warning);
+  --color-info: var(--info);
+
+  --shadow-card: var(--shadow-card);
+  --shadow-raised: var(--shadow-raised);
+  --shadow-overlay: var(--shadow-overlay);
+  --shadow-accent: var(--shadow-accent);
+
+  --ease-out-soft: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+@layer base {
+  html {
+    background-color: var(--canvas);
+    min-height: 100%;
+    color-scheme: light;
+  }
+
+  html.dark {
+    color-scheme: dark;
+  }
+
+  body {
+    @apply antialiased;
+    background-color: var(--canvas);
+    color: var(--fg);
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    min-height: 100vh;
+    /* iOS safe area support for notch/home indicator */
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  /* Dark mode atmosphere — restrained indigo/violet only */
+  .dark body {
+    background-image:
+      radial-gradient(ellipse at 20% 0%, rgba(124, 58, 237, 0.10) 0%, transparent 55%),
+      radial-gradient(ellipse at 80% 100%, rgba(79, 70, 229, 0.08) 0%, transparent 55%);
+    /* background-attachment: fixed is intentionally omitted — broken on iOS Safari */
+  }
+
+  * {
+    -webkit-tap-highlight-color: transparent;
+    /* Prevent double-tap zoom on touch targets (Chrome/Edge on Android) */
+    touch-action: manipulation;
+  }
+
+  ::selection {
+    background: var(--accent-soft);
+    color: var(--fg);
+  }
+
+  /* Global focus-visible for keyboard accessibility (WCAG 2.4.7) */
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+@layer components {
+
+  /* ── Navigation bar ─────────────────────────────────────────── */
+
+  .glass-nav {
+    background: rgba(255, 255, 255, 0.88);
+    border-bottom: 1px solid var(--edge);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+  }
+
+  .dark .glass-nav {
+    background: rgba(9, 9, 11, 0.72);
+    backdrop-filter: blur(24px) saturate(160%);
+    -webkit-backdrop-filter: blur(24px) saturate(160%);
+  }
+
+  /* ── Nav active pill ────────────────────────────────────────── */
+
+  /* Light: charcoal pill — crisp, legible, Linear-style */
+  .nav-pill-active {
+    background: #18181b;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.20), 0 0 0 1px rgba(0, 0, 0, 0.08);
+  }
+
+  /* Dark: indigo-violet glow */
+  .dark .nav-pill-active {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.42) 0%, rgba(139, 92, 246, 0.42) 100%);
+    box-shadow: 0 0 12px rgba(129, 140, 248, 0.25);
+  }
+
+  /* ── Cards & glass surfaces ─────────────────────────────────── */
+
+  .glass-card {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 22px;
+    box-shadow: var(--shadow-card);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    transition: box-shadow 0.2s ease, border-color 0.2s ease;
+  }
+
+  /* NOTE: never put `transform` in these transition lists — framer-motion
+     drives transform per-frame on many of these elements, and a CSS
+     transition on the same property re-interpolates every frame, which
+     reads as lag/stutter. */
+  .liquid-glass {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    box-shadow: var(--shadow-raised);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    transition: box-shadow 0.2s ease, border-color 0.2s ease;
+  }
+
+  .liquid-glass:hover {
+    box-shadow: var(--shadow-raised-hover);
+    border-color: var(--edge-strong);
+  }
+
+  .liquid-glass-strong {
+    background: var(--glass-bg-strong);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    box-shadow: var(--shadow-raised);
+    backdrop-filter: blur(calc(var(--glass-blur) + 8px));
+    -webkit-backdrop-filter: blur(calc(var(--glass-blur) + 8px));
+    transition: box-shadow 0.3s ease;
+  }
+
+  .liquid-glass-strong:hover {
+    box-shadow: var(--shadow-raised-hover);
+  }
+
+  .dark .liquid-glass-strong {
+    border-color: rgba(255, 255, 255, 0.14);
+  }
+
+  /* ── Modal/dialog surface ───────────────────────────────────────
+     Near-opaque (token --overlay) instead of backdrop-filter glass:
+     dialogs animate in over a dimmed scrim where blur is invisible
+     anyway, and animating a backdrop-filtered layer forces the
+     browser to re-blur the viewport every frame. This keeps the
+     open/close animation 100% on the compositor. */
+  .glass-modal {
+    background: var(--overlay);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    box-shadow: var(--shadow-overlay);
+  }
+
+  .dark .glass-modal {
+    border-color: rgba(255, 255, 255, 0.14);
+  }
+
+  /* ── Inputs ─────────────────────────────────────────────────── */
+
+  .glass-input {
+    background: var(--surface-2);
+    border: 1px solid var(--edge-strong);
+    border-radius: 12px;
+    color: var(--fg);
+    transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .glass-input::placeholder {
+    color: var(--fg-subtle);
+  }
+
+  .glass-input:hover {
+    background: var(--surface);
+    border-color: var(--fg-subtle);
+  }
+
+  .glass-input:focus {
+    background: var(--surface);
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+    outline: none;
+  }
+
+  .dark .glass-input {
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .dark .glass-input:hover {
+    background: rgba(255, 255, 255, 0.07);
+    border-color: rgba(255, 255, 255, 0.18);
+  }
+
+  .dark .glass-input:focus {
+    background: rgba(255, 255, 255, 0.07);
+  }
+
+  /* ── Overlay surfaces (dropdowns, popovers, dialogs, palette) ── */
+
+  .dropdown-surface {
+    background: var(--overlay);
+    border: 1px solid var(--edge);
+    box-shadow: var(--shadow-overlay);
+  }
+
+  .dark .dropdown-surface {
+    border-color: rgba(255, 255, 255, 0.10);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+
+  /* ── Glass shadow utility ───────────────────────────────────── */
+
+  .glass-shadow {
+    box-shadow: var(--shadow-raised);
+    transition: box-shadow 0.3s ease;
+  }
+
+  /* ── UI transition utility ──────────────────────────────────────
+     Drop-in replacement for Tailwind's `transition-all` on elements
+     whose transform/opacity are animated by framer-motion. It covers
+     the hover feedback props (colors, borders, shadows) but leaves
+     transform and opacity alone so JS-driven animation stays at full
+     frame rate. */
+  .transition-ui {
+    transition-property: color, background-color, border-color, fill, stroke, box-shadow;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 200ms;
+  }
+
+  /* ── Typography utilities ───────────────────────────────────── */
+
+  .text-gradient {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .dark .text-gradient {
+    background: linear-gradient(135deg, #a5b4fc 0%, #c4b5fd 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* ── Accent fills (icon squares, stat cards) ─────────────────────
+     Harmonized palette: indigo accent + semantic status hues only. */
+
+  .accent-blue   { background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); }
+  .accent-purple { background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%); }
+  .accent-green  { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
+  .accent-orange { background: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%); }
+  .accent-teal   { background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%); }
+  .accent-pink   { background: linear-gradient(135deg, #a855f7 0%, #8b5cf6 100%); }
+  .accent-cyan   { background: linear-gradient(135deg, #0ea5e9 0%, #6366f1 100%); }
+  .accent-yellow { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
+  .accent-gray   { background: linear-gradient(135deg, #e4e4e7 0%, #d4d4d8 100%); }
+  .dark .accent-gray { background: rgba(255, 255, 255, 0.08); }
+
+  .gradient-orange { background: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%); }
+
+  /* Subtle inner highlight used on project/test-run cards */
+  .accent-shadow {
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.60), 0 1px 3px rgba(0, 0, 0, 0.06), 0 2px 8px rgba(0, 0, 0, 0.04);
+  }
+  .dark .accent-shadow {
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 4px 20px rgba(0, 0, 0, 0.3);
+  }
+
+  /* ── Glow effects — off in light, subtle in dark ────────────── */
+
+  .glow-blue   { box-shadow: 0 4px 12px rgba(99, 102, 241, 0.20); }
+  .glow-green  { box-shadow: 0 4px 12px rgba(16, 185, 129, 0.20); }
+  .glow-orange { box-shadow: 0 4px 12px rgba(245, 158, 11, 0.20); }
+  .glow-teal   { box-shadow: 0 4px 12px rgba(20, 184, 166, 0.22); }
+  .glow-purple { box-shadow: 0 4px 12px rgba(139, 92, 246, 0.20); }
+
+  .dark .glow-blue   { box-shadow: 0 4px 20px rgba(99, 102, 241, 0.40); }
+  .dark .glow-green  { box-shadow: 0 4px 20px rgba(16, 185, 129, 0.40); }
+  .dark .glow-orange { box-shadow: 0 4px 20px rgba(245, 158, 11, 0.40); }
+  .dark .glow-teal   { box-shadow: 0 4px 20px rgba(20, 184, 166, 0.40); }
+  .dark .glow-purple { box-shadow: 0 4px 20px rgba(139, 92, 246, 0.40); }
+
+  /* ── Decorative loops (CSS so they run on the compositor, not JS) ── */
+
+  @keyframes float-y {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-10px); }
+  }
+
+  .animate-float {
+    animation: float-y 3s ease-in-out infinite;
+  }
+
+  @keyframes shimmer-sweep {
+    0%   { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+
+  .animate-shimmer-sweep {
+    animation: shimmer-sweep 2s linear infinite;
+  }
+
+  /* ── Shimmer skeleton ───────────────────────────────────────── */
+
+  @keyframes shimmer {
+    0%   { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+
+  .shimmer {
+    background: linear-gradient(90deg, transparent 0%, rgba(0, 0, 0, 0.04) 50%, transparent 100%);
+    background-size: 200% 100%;
+    animation: shimmer 1.8s ease-in-out infinite;
+  }
+
+  .dark .shimmer {
+    background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.06) 50%, transparent 100%);
+    background-size: 200% 100%;
+  }
+
+  /* ── Status badges (constructed dynamically: status-${key}) ──── */
+
+  .status-passed {
+    background-color: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    color: #15803d;
+  }
+  .dark .status-passed {
+    background-color: rgba(34, 197, 94, 0.15);
+    border: 1px solid rgba(34, 197, 94, 0.25);
+    color: #86efac;
+    box-shadow: 0 2px 8px rgba(34, 197, 94, 0.15);
+  }
+
+  .status-failed {
+    background-color: #fff1f2;
+    border: 1px solid #fecdd3;
+    color: #be123c;
+  }
+  .dark .status-failed {
+    background-color: rgba(239, 68, 68, 0.15);
+    border: 1px solid rgba(239, 68, 68, 0.25);
+    color: #fca5a5;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.15);
+  }
+
+  .status-blocked {
+    background-color: #fff7ed;
+    border: 1px solid #fed7aa;
+    color: #c2410c;
+  }
+  .dark .status-blocked {
+    background-color: rgba(249, 115, 22, 0.15);
+    border: 1px solid rgba(249, 115, 22, 0.25);
+    color: #fdba74;
+    box-shadow: 0 2px 8px rgba(249, 115, 22, 0.15);
+  }
+
+  .status-na {
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    color: #475569;
+  }
+  .dark .status-na {
+    background-color: rgba(100, 116, 139, 0.15);
+    border: 1px solid rgba(100, 116, 139, 0.25);
+    color: #94a3b8;
+    box-shadow: 0 2px 8px rgba(100, 116, 139, 0.12);
+  }
+
+  .status-untested {
+    background-color: #eff6ff;
+    border: 1px solid #bfdbfe;
+    color: #1d4ed8;
+  }
+  .dark .status-untested {
+    background-color: rgba(59, 130, 246, 0.15);
+    border: 1px solid rgba(59, 130, 246, 0.25);
+    color: #93c5fd;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15);
+  }
+}
+
+/* ── Scrollbars ─────────────────────────────────────────────────── */
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.12) transparent;
+}
+.dark * {
+  scrollbar-color: rgba(255, 255, 255, 0.10) transparent;
+}
+
+/* Webkit (Chrome, Safari, Edge) */
+::-webkit-scrollbar              { width: 5px; height: 5px; }
+::-webkit-scrollbar-track        { background: transparent; }
+::-webkit-scrollbar-thumb        { background: rgba(0, 0, 0, 0.12); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover  { background: rgba(0, 0, 0, 0.22); }
+
+.dark ::-webkit-scrollbar-thumb       { background: rgba(255, 255, 255, 0.10); }
+.dark ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.20); }
+
+/* ── Reduced-motion: disable transitions for users who prefer it ── */
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

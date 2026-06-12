@@ -1,0 +1,243 @@
+services:
+  gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE: gateway
+        PORT: 3000
+    container_name: rlgl-gateway
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      AUTH_SERVICE_URL: http://auth-service:3001
+      PROJECT_SERVICE_URL: http://project-service:3002
+      TESTCASE_SERVICE_URL: http://testcase-service:3003
+      TESTRUN_SERVICE_URL: http://testrun-service:3004
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET}
+      GATEWAY_HEALTH_PROBE_UPSTREAMS: "true"
+    depends_on:
+      - redis
+      - auth-service
+      - project-service
+      - testcase-service
+      - testrun-service
+    networks:
+      - rlgl-network
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000/health/ready"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  auth-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE: auth
+        PORT: 3001
+    container_name: auth-service
+    environment:
+      NODE_ENV: development
+      PORT: 3001
+      DATABASE_URL: file:/app/data/auth/auth.db
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET}
+      PROJECT_SERVICE_URL: http://project-service:3002
+      FEATURE_IAM_DUAL_READ: "true"
+      FEATURE_IAM_SHADOW_READ: "true"
+    volumes:
+      - ./data/auth:/app/data/auth
+    networks:
+      - rlgl-network
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  project-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE: project
+        PORT: 3002
+    container_name: project-service
+    environment:
+      NODE_ENV: production
+      PORT: 3002
+      DATABASE_URL: file:/app/data/project/project.db
+      REDIS_URL: redis://redis:6379
+      AUTH_SERVICE_URL: http://auth-service:3001
+      JWT_SECRET: ${JWT_SECRET}
+    volumes:
+      - ./data/project:/app/data/project
+    networks:
+      - rlgl-network
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  testcase-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE: testcase
+        PORT: 3003
+    container_name: testcase-service
+    environment:
+      NODE_ENV: production
+      PORT: 3003
+      DATABASE_URL: file:/app/data/testcase/testcase.db
+      REDIS_URL: redis://redis:6379
+      PROJECT_SERVICE_URL: http://project-service:3002
+      TESTRUN_SERVICE_URL: http://testrun-service:3004
+      JWT_SECRET: ${JWT_SECRET}
+    volumes:
+      - ./data/testcase:/app/data/testcase
+    networks:
+      - rlgl-network
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3003/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  testrun-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE: testrun
+        PORT: 3004
+    container_name: testrun-service
+    environment:
+      NODE_ENV: production
+      PORT: 3004
+      DATABASE_URL: file:/app/data/testrun/testrun.db
+      REDIS_URL: redis://redis:6379
+      PROJECT_SERVICE_URL: http://project-service:3002
+      TESTCASE_SERVICE_URL: http://testcase-service:3003
+      JWT_SECRET: ${JWT_SECRET}
+    volumes:
+      - ./data/testrun:/app/data/testrun
+    networks:
+      - rlgl-network
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3004/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE: worker
+        PORT: 3000
+    container_name: worker-service
+    environment:
+      NODE_ENV: production
+      REDIS_URL: redis://redis:6379
+    networks:
+      - rlgl-network
+    depends_on:
+      - redis
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "pgrep", "-f", "tsx"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  redis:
+    image: redis:alpine
+    container_name: rlgl-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - rlgl-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  # ─── Frontend ───────────────────────────────────────────────────────────────
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend.Dockerfile
+    container_name: rlgl-frontend
+    ports:
+      - "5173:5173"
+    environment:
+      - NODE_ENV=production
+      - VITE_API_URL=http://gateway:3000
+    depends_on:
+      - gateway
+    networks:
+      - rlgl-network
+
+  # ─── Observability Stack ────────────────────────────────────────────────────
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: rlgl-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./alert_rules.yml:/etc/prometheus/alert_rules.yml:ro
+      - ./data/prometheus:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=30d'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    networks:
+      - rlgl-network
+    depends_on:
+      - gateway
+      - auth-service
+      - project-service
+      - testcase-service
+      - testrun-service
+      - worker
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: rlgl-grafana
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - ./data/grafana:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+    depends_on:
+      - prometheus
+    networks:
+      - rlgl-network
+
+networks:
+  rlgl-network:
+    driver: bridge

@@ -1,0 +1,154 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./project.db"
+}
+
+generator client {
+  provider      = "prisma-client-js"
+  output        = "../generated/client"
+  binaryTargets = ["native", "windows", "linux-musl-openssl-3.0.x"]
+}
+
+model Project {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  deletedAt   DateTime? // soft delete
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @default(now())
+
+  // Configuration
+  testCaseTypes TestCaseType[]
+  priorities    Priority[]
+  customFields  CustomField[]
+  auditLogs     AuditLog[]
+  featureFlags  FeatureFlag[]
+  roles         ProjectRole[]
+  userRoles     ProjectUserRole[]
+}
+
+model TestCaseType {
+  id          Int      @id @default(autoincrement())
+  projectId   Int
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  color       String?  @default("blue")
+  createdAt   DateTime @default(now())
+
+  @@unique([projectId, name])
+}
+
+model Priority {
+  id        Int      @id @default(autoincrement())
+  projectId Int
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  name      String
+  level     Int // 1=Critical, 2=High, 3=Medium, 4=Low
+  color     String?  @default("blue")
+  createdAt DateTime @default(now())
+
+  @@unique([projectId, name])
+}
+
+model CustomField {
+  id          Int                 @id @default(autoincrement())
+  projectId   Int
+  project     Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  fieldType   String // text, textarea, select, checkbox, date, number
+  required    Boolean             @default(false)
+  order       Int                 @default(0)
+  options     CustomFieldOption[]
+  createdAt   DateTime            @default(now())
+
+  @@unique([projectId, name])
+}
+
+model CustomFieldOption {
+  id        Int         @id @default(autoincrement())
+  fieldId   Int
+  field     CustomField @relation(fields: [fieldId], references: [id], onDelete: Cascade)
+  label     String
+  value     String
+  order     Int         @default(0)
+  createdAt DateTime    @default(now())
+
+  @@unique([fieldId, value])
+}
+
+model AuditLog {
+  id           Int      @id @default(autoincrement())
+  projectId    Int?
+  project      Project? @relation(fields: [projectId], references: [id])
+  userId       Int
+  userEmail    String
+  firstName    String?
+  lastName     String?
+  action       String // e.g. "role.assign", "config.type.create", "project.delete"
+  resourceType String? // e.g. "ProjectRole", "TestCaseType", "Project"
+  resourceId   String?
+  metadata     String? // JSON: { before, after, extra }
+  requestId    String?
+  createdAt    DateTime @default(now())
+}
+
+model IdempotencyKey {
+  id         Int      @id @default(autoincrement())
+  key        String
+  service    String
+  endpoint   String
+  response   String // JSON stringified response body
+  statusCode Int
+  createdAt  DateTime @default(now())
+
+  @@unique([key, service])
+}
+
+model FeatureFlag {
+  id          Int      @id @default(autoincrement())
+  projectId   Int
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  key         String // e.g. "new_dashboard", "beta_feature"
+  enabled     Boolean  @default(false)
+  description String?
+  createdAt   DateTime @default(now())
+
+  @@unique([projectId, key])
+}
+
+model ProjectRole {
+  id          Int                 @id @default(autoincrement())
+  projectId   Int
+  project     Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  permissions ProjectPermission[]
+  userRoles   ProjectUserRole[]
+  createdAt   DateTime            @default(now())
+
+  @@unique([projectId, name])
+}
+
+model ProjectPermission {
+  id        Int         @id @default(autoincrement())
+  projectId Int
+  roleId    Int
+  role      ProjectRole @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  action    String // e.g. "testcase.view", "config.manage"
+  createdAt DateTime    @default(now())
+
+  @@unique([roleId, action])
+}
+
+model ProjectUserRole {
+  id        Int         @id @default(autoincrement())
+  projectId Int
+  project   Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  userId    Int
+  roleId    Int
+  role      ProjectRole @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, userId, roleId])
+}

@@ -1,0 +1,48 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: []
+
+rule_files:
+  - alert_rules.yml
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'gateway'
+    static_configs:
+      - targets: ['gateway:3000']
+    metrics_path: '/metrics'
+    scrape_interval: 15s
+
+  - job_name: 'auth-service'
+    static_configs:
+      - targets: ['auth-service:3001']
+    metrics_path: '/metrics'
+    scrape_interval: 15s
+
+  - job_name: 'project-service'
+    static_configs:
+      - targets: ['project-service:3002']
+    metrics_path: '/metrics'
+    scrape_interval: 15s
+
+  - job_name: 'testcase-service'
+    static_configs:
+      - targets: ['testcase-service:3003']
+    metrics_path: '/metrics'
+    scrape_interval: 15s
+
+  - job_name: 'testrun-service'
+    static_configs:
+      - targets: ['testrun-service:3004']
+    metrics_path: '/metrics'
+    scrape_interval: 15s
+
+  # Worker is a background worker without HTTP server - metrics collected via other means

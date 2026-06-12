@@ -1,0 +1,385 @@
+rules:
+  # ─── Data Access Boundaries ──────────────────────────────────────────────────
+
+  - id: no-prisma-outside-repositories
+    patterns:
+      - pattern: |
+          import { PrismaClient } from '@prisma/client'
+      - pattern-not-inside: |
+          // services/*/src/repositories/**
+      - pattern-not-inside: |
+          // services/*/prisma/**
+    message: |
+      PrismaClient must only be imported inside repository files.
+      Move data access logic to a *Repository class under services/*/src/repositories/.
+    languages: [typescript]
+    severity: ERROR
+    paths:
+      include:
+        - services/*/src/controllers/**
+        - services/*/src/services/**
+        - services/*/src/middleware/**
+        - src/**
+
+  - id: no-prisma-in-controllers
+    patterns:
+      - pattern: |
+          import { ... , PrismaClient , ... } from '@prisma/client'
+      - pattern: |
+          new PrismaClient(...)
+    message: |
+      PrismaClient must not be used in controllers. Use a service/repository instead.
+    languages: [typescript]
+    severity: ERROR
+    paths:
+      include:
+        - services/*/src/controllers/**
+
+  - id: no-raw-sql-outside-repositories
+    patterns:
+      - pattern: |
+          $DB.$queryRaw`...`
+      - pattern: |
+          $DB.$executeRaw`...`
+      - pattern: |
+          prisma.$queryRawUnsafe(...)
+      - pattern: |
+          prisma.$executeRawUnsafe(...)
+    message: |
+      Raw SQL ($queryRaw / $executeRaw) is only allowed inside repository files.
+      Move this query to services/*/src/repositories/.
+    languages: [typescript]
+    severity: ERROR
+    paths:
+      include:
+        - services/*/src/controllers/**
+        - services/*/src/services/**
+        - services/*/src/middleware/**
+        - src/**
+
+  # ─── Logging / Debug ─────────────────────────────────────────────────────────
+
+  - id: no-console-log
+    patterns:
+      - pattern: console.log(...)
+      - pattern: console.debug(...)
+      - pattern: console.info(...)
+      - pattern: console.warn(...)
+      - pattern: console.error(...)
+    message: |
+      Use the Pino logger (import { createLogger } from '@rlgl/shared') instead of console.*.
+      console.* bypasses structured logging and is stripped in production builds.
+    languages: [typescript, javascript]
+    severity: ERROR
+    paths:
+      include:
+        - services/**
+        - packages/**
+      exclude:
+        - "**/*.test.ts"
+        - "**/*.spec.ts"
+        - "**/seed*.ts"
+        - "**/seed*.mjs"
+        - "**/smoke-*.mts"
+        - "**/scripts/**"
+
+  # ─── Promise Safety ──────────────────────────────────────────────────────────
+
+  - id: no-floating-promises
+    patterns:
+      - pattern: |
+          $PROMISE.then(...)
+      - pattern-not: |
+          return $PROMISE.then(...)
+      - pattern-not: |
+          void $PROMISE.then(...)
+      - pattern-not: |
+          await $PROMISE.then(...)
+    message: |
+      Unhandled promise detected. Floating promises swallow errors silently.
+      Either await, return, or explicitly void them (void somePromise()).
+    languages: [typescript]
+    severity: WARNING
+    paths:
+      include:
+        - services/**
+        - packages/**
+      exclude:
+        - "**/*.test.ts"
+        - "**/*.spec.ts"
+
+  - id: no-unawaited-async-in-event-handlers
+    pattern: |
+      $OBJ.on($EVENT, async (...) => { ... })
+    message: |
+      Async event handlers can produce floating promises when the EventEmitter
+      does not await them. Wrap the handler body in a try/catch and catch errors explicitly.
+    languages: [typescript]
+    severity: WARNING
+    paths:
+      include:
+        - services/**
+
+  # ─── Type Safety ─────────────────────────────────────────────────────────────
+
+  - id: no-any-type-annotation
+    patterns:
+      - pattern: |
+          let $VAR: any
+      - pattern: |
+          const $VAR: any
+      - pattern: |
+          $PARAM: any
+      - pattern: |
+          ): any
+      - pattern: |
+          => any
+    message: |
+      Explicit `any` type annotation detected. Use `unknown` and narrow the type,
+      or define a proper interface. `any` defeats TypeScript's guarantees.
+    languages: [typescript]
+    severity: WARNING
+    paths:
+      include:
+        - services/**
+        - packages/**
+      exclude:
+        - "**/*.test.ts"
+        - "**/*.spec.ts"
+
+  - id: no-unsafe-type-assertions
+    patterns:
+      - pattern: |
+          $EXPR as any
+    message: |
+      Casting to `any` removes all type safety. Use `as unknown as Target`
+      only when absolutely necessary and document why.
+    languages: [typescript]
+    severity: ERROR
+    paths:
+      include:
+        - services/**
+        - packages/**
+      exclude:
+        - "**/*.test.ts"
+        - "**/*.spec.ts"
+
+  # ─── Zod Boundary Validation ──────────────────────────────────────────────────
+
+  - id: mandatory-zod-parse-at-controller-boundary
+    patterns:
+      - pattern: |
+          export const $HANDLER = async (req: Request, res: Response, ...) => {
+            ...
+            const $DATA = req.body;
+            ...
+          }
+      - pattern-not: |
+          export const $HANDLER = async (req: Request, res: Response, ...) => {
+            ...
+            $SCHEMA.parse(req.body)
+            ...
+          }
+      - pattern-not: |
+          export const $HANDLER = async (req: Request, res: Response, ...) => {
+            ...
+            $SCHEMA.safeParse(req.body)
+            ...
+          }
+    message: |
+      Controller handlers must validate req.body with a Zod schema before use.
+      Add: const data = YourSchema.parse(req.body);
+    languages: [typescript]
+    severity: WARNING
+    paths:
+      include:
+        - services/*/src/controllers/**
+
+  # ─── Request ID Propagation ───────────────────────────────────────────────────
+
+  - id: missing-request-id-in-outgoing-calls
+    patterns:
+      - pattern: |
+          axios.post($URL, $BODY)
+      - pattern: |
+          axios.get($URL)
+      - pattern-not: |
+          axios.post($URL, $BODY, { headers: { ..., 'x-request-id': ... } })
+      - pattern-not: |
+          axios.get($URL, { headers: { ..., 'x-request-id': ... } })
+    message: |
+      Outgoing HTTP requests should propagate the x-request-id header for
+      distributed tracing. Pass headers: { 'x-request-id': requestId }.
+    languages: [typescript]
+    severity: WARNING
+    paths:
+      include:
+        - services/**
+
+  # ─── Audit Logging ────────────────────────────────────────────────────────────
+
+  - id: sensitive-mutation-missing-audit-log
+    patterns:
+      - pattern: |
+          async $METHOD(...) {
+            ...
+            await $REPO.delete(...)
+            ...
+          }
+      - pattern-not: |
+          async $METHOD(...) {
+            ...
+            await $REPO.delete(...)
+            ...
+            $LOGGER.$LEVEL({ ... }, ...)
+            ...
+          }
+    message: |
+      Delete operations must be followed by an audit log entry.
+      Add: logger.info({ action: 'DELETE', ... }, 'Audit: record deleted');
+    languages: [typescript]
+    severity: WARNING
+    paths:
+      include:
+        - services/*/src/services/**
+        - services/*/src/repositories/**
+
+  # ─── Cross-Service Boundary Enforcement ──────────────────────────────────────
+
+  - id: no-cross-service-direct-import
+    patterns:
+      - pattern: |
+          import { ... } from '../../$SERVICE/...'
+      - pattern: |
+          import { ... } from '../../../$SERVICE/...'
+    message: |
+      Direct cross-service imports are forbidden. Services must communicate via
+      HTTP API calls (through the gateway) or shared packages only.
+      Use packages/contracts or packages/shared for shared types.
+    languages: [typescript]
+    severity: ERROR
+    paths:
+      include:
+        - services/**
+
+  - id: no-direct-db-cross-service
+    patterns:
+      - pattern: |
+          const $CLIENT = new PrismaClient({ datasources: { db: { url: $URL } } })
+    message: |
+      Never construct a PrismaClient pointing to another service's database.
+      Cross-service data access must go through that service's HTTP API.
+    languages: [typescript]
+    severity: ERROR
+
+  # ─── Security ─────────────────────────────────────────────────────────────────
+
+  - id: no-hardcoded-secrets
+    patterns:
+      - pattern: |
+          const $VAR = "...secret..."
+      - pattern: |
+          const $JWT_SECRET = "..."
+      - pattern: |
+          jwt.sign($PAYLOAD, "...")
+      - pattern: |
+          jwt.verify($TOKEN, "...")
+    message: |
+      Hardcoded secrets detected. Use environment variables via loadConfig()
+      from @rlgl/shared and never commit credential strings.
+    languages: [typescript, javascript]
+    severity: ERROR
+    paths:
+      include:
+        - services/**
+        - packages/**
+      exclude:
+        - "**/*.test.ts"
+        - "**/*.spec.ts"
+
+  - id: no-sql-injection-via-string-concat
+    patterns:
+      - pattern: |
+          `SELECT ... ${$PARAM} ...`
+      - pattern: |
+          "SELECT ... " + $PARAM + " ..."
+      - pattern: |
+          'SELECT ' + $PARAM
+    message: |
+      Possible SQL injection via string concatenation.
+      Use Prisma's parameterized queries or $queryRaw template literals.
+    languages: [typescript, javascript]
+    severity: ERROR
+
+  - id: no-eval
+    patterns:
+      - pattern: eval(...)
+      - pattern: new Function(...)
+    message: >
+      eval() and new Function() are forbidden — they open remote-code-execution
+      vulnerabilities. Use a safe alternative.
+    languages: [typescript, javascript]
+    severity: ERROR
+
+  # ─── Version / CAS Enforcement ───────────────────────────────────────────────
+
+  - id: mutable-entity-update-must-check-version
+    patterns:
+      - pattern: |
+          $REPO.update({
+            where: { id: $ID },
+            data: { ..., version: { increment: 1 } }
+          })
+      - pattern-not: |
+          $REPO.update({
+            where: { id: $ID, version: $VER },
+            data: { ..., version: { increment: 1 } }
+          })
+    message: |
+      Updates to versioned entities must include version in the WHERE clause for
+      optimistic concurrency control. Add: where: { id, version: expectedVersion }.
+    languages: [typescript]
+    severity: WARNING
+    paths:
+      include:
+        - services/*/src/repositories/**
+
+  # ─── Frontend ─────────────────────────────────────────────────────────────────
+
+  - id: no-direct-fetch-in-components
+    patterns:
+      - pattern: |
+          fetch($URL, ...)
+      - pattern: |
+          axios.$METHOD($URL, ...)
+    message: |
+      Components must not call APIs directly. Use a React Query hook from
+      src/features/*/hooks/ or src/features/*/api/ instead.
+    languages: [typescript]
+    severity: ERROR
+    paths:
+      include:
+        - src/features/*/components/**
+        - src/features/*/pages/**
+
+  - id: no-useeffect-setstate-without-cleanup
+    patterns:
+      - pattern: |
+          useEffect(() => {
+            ...
+            $SET_STATE(...)
+            ...
+          }, [...])
+      - pattern-not: |
+          useEffect(() => {
+            ...
+            return () => { ... }
+          }, [...])
+    message: |
+      useEffect with setState but no cleanup may cause memory leaks on unmount.
+      Return a cleanup function that cancels async work or aborts fetches.
+    languages: [typescript]
+    severity: WARNING
+    paths:
+      include:
+        - src/**

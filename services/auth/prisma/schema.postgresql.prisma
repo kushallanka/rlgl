@@ -1,0 +1,123 @@
+generator client {
+  provider      = "prisma-client-js"
+  output        = "../generated/client"
+  binaryTargets = ["native", "windows", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Organization {
+  id          Int                  @id @default(autoincrement())
+  name        String
+  slug        String               @unique
+  plan        String               @default("free")
+  version     Int                  @default(1)
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @default(now()) @updatedAt
+  deletedAt   DateTime?
+  members     OrganizationMember[]
+  auditLogs   OrgAuditLog[]
+}
+
+model OrganizationMember {
+  id             Int          @id @default(autoincrement())
+  orgId          Int
+  userId         Int
+  role           String       @default("member")
+  invitedAt      DateTime     @default(now())
+  acceptedAt     DateTime?
+  Organization   Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  User           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([orgId, userId])
+  @@index([userId])
+}
+
+model OrgAuditLog {
+  id           Int          @id @default(autoincrement())
+  orgId        Int
+  actorId      Int?
+  action       String
+  targetType   String?
+  targetId     String?
+  metadata     String?
+  createdAt    DateTime     @default(now())
+  Organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@index([orgId])
+  @@index([actorId])
+  @@index([action])
+}
+
+model IdempotencyKey {
+  id         Int      @id @default(autoincrement())
+  key        String
+  service    String
+  endpoint   String
+  response   String
+  statusCode Int
+  createdAt  DateTime @default(now())
+
+  @@unique([key, service])
+}
+
+model ProjectPermission {
+  id          Int         @id @default(autoincrement())
+  projectId   Int
+  roleId      Int
+  action      String
+  ProjectRole ProjectRole @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, action])
+}
+
+model ProjectRole {
+  id                Int                 @id @default(autoincrement())
+  projectId         Int
+  name              String
+  description       String?
+  createdAt         DateTime            @default(now())
+  ProjectPermission ProjectPermission[]
+  ProjectUserRole   ProjectUserRole[]
+
+  @@unique([projectId, name])
+}
+
+model ProjectUserRole {
+  id          Int         @id @default(autoincrement())
+  projectId   Int
+  userId      Int
+  roleId      Int
+  User        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ProjectRole ProjectRole @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, userId, roleId])
+}
+
+model RefreshToken {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  hash      String   @unique
+  revoked   Boolean  @default(false)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  User      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id                 Int                  @id @default(autoincrement())
+  email              String               @unique
+  password           String
+  firstName          String?
+  lastName           String?
+  role               String               @default("TESTER")
+  systemPermissions  String               @default("")
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @default(now()) @updatedAt
+  ProjectUserRole    ProjectUserRole[]
+  RefreshToken       RefreshToken[]
+  OrganizationMember OrganizationMember[]
+}

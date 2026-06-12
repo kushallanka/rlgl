@@ -1,0 +1,47 @@
+groups:
+  - name: 'app'
+    rules:
+      - alert: HighErrorRate
+        expr: rate(http_errors_total[5m]) > 0.001
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High error rate detected on {{ $labels.service }}"
+          description: "Error rate is above 0.1% for 5 minutes"
+
+      - alert: ServiceDown
+        expr: up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Service {{ $labels.job }} is down"
+          description: "Service has been down for more than 1 minute"
+
+      - alert: HighLatency
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High latency detected on {{ $labels.service }}"
+          description: "95th percentile latency is above 500ms for 5 minutes"
+
+      - alert: High5xxRate
+        expr: rate(http_5xx_total[5m]) > 0.001
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High 5xx error rate on {{ $labels.service }}"
+          description: "5xx error rate is above 0.1% for 5 minutes"
+
+      - alert: SlowDatabase
+        expr: db_query_duration_ms{quantile="0.95"} > 100
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Slow database queries on {{ $labels.service }}"
+          description: "95th percentile DB query time is above 100ms"

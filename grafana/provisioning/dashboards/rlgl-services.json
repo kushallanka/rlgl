@@ -1,0 +1,83 @@
+{
+  "uid": "rlgl-services-overview",
+  "title": "RLGL Services Overview",
+  "tags": ["microservices", "observability"],
+  "timezone": "browser",
+  "schemaVersion": 36,
+  "refresh": "30s",
+  "panels": [
+    {
+      "id": 1,
+      "title": "Service Status",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "up{job=~\"gateway|auth-service|project-service|testcase-service|testrun-service|worker\"}",
+          "legendFormat": "{{ job }}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {
+              "options": {
+                "0": { "text": "DOWN", "color": "red" },
+                "1": { "text": "UP", "color": "green" }
+              },
+              "type": "value"
+            }
+          ]
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 }
+    },
+    {
+      "id": 2,
+      "title": "Request Rate (req/s)",
+      "type": "graph",
+      "targets": [
+        {
+          "expr": "rate(http_requests_total[5m])",
+          "legendFormat": "{{ service }}"
+        }
+      ],
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 }
+    },
+    {
+      "id": 3,
+      "title": "Error Rate (%)",
+      "type": "graph",
+      "targets": [
+        {
+          "expr": "rate(http_errors_total[5m]) / rate(http_requests_total[5m]) * 100",
+          "legendFormat": "{{ service }}"
+        }
+      ],
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 }
+    },
+    {
+      "id": 4,
+      "title": "P95 Latency (ms)",
+      "type": "graph",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, rate(http_request_duration_ms_bucket[5m]))",
+          "legendFormat": "{{ service }}"
+        }
+      ],
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 }
+    },
+    {
+      "id": 5,
+      "title": "Active Requests",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "http_requests_active",
+          "legendFormat": "{{ service }}"
+        }
+      ],
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 16 }
+    }
+  ]
+}

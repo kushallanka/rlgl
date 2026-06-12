@@ -1,0 +1,165 @@
+name: E2E Tests (Playwright)
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'services/**'
+      - 'packages/**'
+      - 'tests/e2e/**'
+      - 'playwright.config.ts'
+
+concurrency:
+  group: e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '24'
+
+jobs:
+  e2e:
+    name: Playwright E2E
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: rlgl
+          POSTGRES_PASSWORD: rlgl
+          POSTGRES_DB: rlgl_e2e
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports: ['6379:6379']
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup-workspace
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Build frontend
+        env:
+          VITE_API_URL: http://localhost:3000
+        run: npm run build
+
+      - name: Run database migrations (all services)
+        env:
+          AUTH_DATABASE_URL: postgresql://rlgl:rlgl@localhost:5432/rlgl_e2e_auth
+          PROJECT_DATABASE_URL: postgresql://rlgl:rlgl@localhost:5432/rlgl_e2e_project
+          TESTCASE_DATABASE_URL: postgresql://rlgl:rlgl@localhost:5432/rlgl_e2e_testcase
+          TESTRUN_DATABASE_URL: postgresql://rlgl:rlgl@localhost:5432/rlgl_e2e_testrun
+        run: |
+          # Create schemas
+          PGPASSWORD=rlgl psql -h localhost -U rlgl -d rlgl_e2e -c "
+            CREATE DATABASE rlgl_e2e_auth;
+            CREATE DATABASE rlgl_e2e_project;
+            CREATE DATABASE rlgl_e2e_testcase;
+            CREATE DATABASE rlgl_e2e_testrun;
+          " 2>/dev/null || true
+
+          for svc in auth project testcase testrun; do
+            if [ -d "services/$svc/prisma" ]; then
+              echo "Migrating $svc..."
+              DATABASE_URL="postgresql://rlgl:rlgl@localhost:5432/rlgl_e2e_$svc" \
+                npx prisma migrate deploy --schema=services/$svc/prisma/schema.postgresql.prisma 2>/dev/null || \
+              DATABASE_URL="postgresql://rlgl:rlgl@localhost:5432/rlgl_e2e_$svc" \
+                npx prisma migrate deploy --schema=services/$svc/prisma/schema.prisma
+            fi
+          done
+
+      - name: Start all services
+        env:
+          NODE_ENV: test
+          JWT_SECRET: e2e-test-jwt-secret
+          REDIS_URL: redis://localhost:6379
+          AUTH_DATABASE_URL: postgresql://rlgl:rlgl@localhost:5432/rlgl_e2e_auth
+          PROJECT_DATABASE_URL: postgresql://rlgl:rlgl@localhost:5432/rlgl_e2e_project
+          TESTCASE_DATABASE_URL: postgresql://rlgl:rlgl@localhost:5432/rlgl_e2e_testcase
+          TESTRUN_DATABASE_URL: postgresql://rlgl:rlgl@localhost:5432/rlgl_e2e_testrun
+        run: |
+          npm run start &
+          npx wait-on http://localhost:3000/health http://localhost:3001/health \
+                      http://localhost:3002/health http://localhost:3003/health \
+                      http://localhost:3004/health \
+                      --timeout 60000
+          echo "All services ready"
+
+      - name: Run Playwright tests
+        env:
+          PLAYWRIGHT_BASE_URL: http://localhost:5173
+          API_BASE_URL: http://localhost:3000
+        run: |
+          if [ -d "tests/e2e" ]; then
+            npx playwright test tests/e2e/
+          else
+            echo "::warning::No E2E tests found at tests/e2e/"
+          fi
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 14
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-test-results
+          path: test-results/
+          retention-days: 14
+
+  # ─── Permission Flow Tests ────────────────────────────────────────────────────
+  e2e-permissions:
+    name: Permission flows (cross-org isolation)
+    runs-on: ubuntu-latest
+    needs: e2e
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup-workspace
+        with:
+          generate-prisma: 'false'
+          build-shared: 'false'
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run permission E2E tests
+        run: |
+          if [ -d "tests/e2e/permissions" ]; then
+            npx playwright test tests/e2e/permissions/
+          else
+            echo "::warning::No permission E2E tests at tests/e2e/permissions/"
+          fi
+
+      - name: Upload permission test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: permission-e2e-results
+          path: test-results/
+          retention-days: 14

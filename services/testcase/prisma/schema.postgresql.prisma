@@ -1,0 +1,92 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider      = "prisma-client-js"
+  output        = "../generated/client"
+  binaryTargets = ["native", "windows", "linux-musl-openssl-3.0.x"]
+}
+
+model Project {
+  id          Int         @id
+  name        String
+  suites      Suite[]
+  sections    Section[]
+  testCases   TestCase[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @default(now()) @updatedAt
+}
+
+model Suite {
+  id          Int         @id @default(autoincrement())
+  projectId   Int
+  name        String
+  description String?
+  project     Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  sections    Section[]
+  testCases   TestCase[]
+  version     Int         @default(1)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @default(now()) @updatedAt
+
+  @@index([projectId])
+}
+
+model Section {
+  id        Int      @id @default(autoincrement())
+  suiteId   Int
+  projectId Int
+  suite     Suite    @relation(fields: [suiteId], references: [id], onDelete: Cascade)
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  name      String
+  testCases TestCase[]
+  version   Int        @default(1)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @default(now())
+
+  @@index([suiteId])
+  @@index([projectId])
+}
+
+model TestCase {
+  id                Int       @id @default(autoincrement())
+  projectId         Int
+  suiteId           Int
+  suite             Suite     @relation(fields: [suiteId], references: [id], onDelete: Cascade)
+  sectionId         Int
+  section           Section   @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  project           Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  title             String
+  description       String?
+  status            String    @default("Draft")
+  priority          String    @default("Medium")
+  type              String    @default("Functional")
+  preconditions     String?
+  steps             String?
+  expectedResult    String?
+  customFieldValues String?
+  createdBy         String?
+  updatedBy         String?
+  version           Int       @default(1)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @default(now()) @updatedAt
+  deletedAt         DateTime?
+
+  @@index([projectId])
+  @@index([suiteId])
+  @@index([sectionId])
+}
+
+model IdempotencyKey {
+  id         Int      @id @default(autoincrement())
+  key        String
+  service    String
+  endpoint   String
+  response   String
+  statusCode Int
+  createdAt  DateTime @default(now())
+
+  @@unique([key, service])
+}

@@ -1,0 +1,434 @@
+name: Nightly Governance
+
+on:
+  schedule:
+    # 03:00 UTC every night
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '24'
+
+jobs:
+  # ─── 1. Architecture Drift Scan ───────────────────────────────────────────────
+  architecture-scan:
+    name: Architecture drift (full dep-cruiser)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - run: npm ci
+
+      - name: Generate architecture graph (SVG)
+        run: |
+          npx depcruise --config .dependency-cruiser.cjs \
+            --output-type dot src services packages \
+            | dot -T svg -o arch-graph.svg 2>/dev/null || \
+          npx depcruise --config .dependency-cruiser.cjs \
+            --output-type err-html src services packages \
+            > arch-report.html 2>&1 || true
+
+      - name: Check for violations
+        run: |
+          RESULT=$(npx depcruise --config .dependency-cruiser.cjs src services packages 2>&1 || true)
+          VIOLATIONS=$(echo "$RESULT" | grep -c 'error' || true)
+
+          echo "## Architecture Scan Results" >> $GITHUB_STEP_SUMMARY
+          echo "- Violations found: **$VIOLATIONS**" >> $GITHUB_STEP_SUMMARY
+
+          if [ "$VIOLATIONS" -gt 0 ]; then
+            echo "::warning::Architecture boundary violations: $VIOLATIONS"
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            echo "$RESULT" | head -50 >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          else
+            echo "No architecture violations detected. ✓" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Upload architecture report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: architecture-report
+          path: |
+            arch-report.html
+            arch-graph.svg
+          retention-days: 30
+
+  # ─── 2. Dead Code Detection ───────────────────────────────────────────────────
+  dead-code:
+    name: Dead code detection (ts-prune)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - run: npm ci
+
+      - name: Install ts-prune
+        run: npm install -g ts-prune 2>/dev/null || npm install ts-prune --save-dev
+
+      - name: Run ts-prune on services
+        run: |
+          echo "## Dead Code Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          TOTAL_DEAD=0
+          for svc in auth project testcase testrun gateway; do
+            if [ -f "services/$svc/tsconfig.json" ]; then
+              DEAD=$(npx ts-prune -p services/$svc/tsconfig.json 2>/dev/null | grep -v '(used in module)' | wc -l || echo "0")
+              TOTAL_DEAD=$((TOTAL_DEAD + DEAD))
+              echo "- **$svc**: $DEAD unused exports" >> $GITHUB_STEP_SUMMARY
+            fi
+          done
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Total unused exports: $TOTAL_DEAD**" >> $GITHUB_STEP_SUMMARY
+
+          if [ "$TOTAL_DEAD" -gt 50 ]; then
+            echo "::warning::High dead code count ($TOTAL_DEAD unused exports) — schedule cleanup sprint"
+          fi
+
+  # ─── 3. Dependency Drift / Outdated Packages ──────────────────────────────────
+  dependency-drift:
+    name: Dependency drift (outdated packages)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - run: npm ci
+
+      - name: Check outdated dependencies
+        run: |
+          echo "## Dependency Drift Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          OUTDATED=$(npm outdated --json 2>/dev/null || echo '{}')
+
+          MAJOR_OUTDATED=$(echo "$OUTDATED" | node -e "
+            const d = JSON.parse(require('fs').readFileSync('/dev/stdin','utf-8'));
+            const major = Object.entries(d).filter(([,v]) => {
+              const cur = parseInt((v.current||'0').split('.')[0]);
+              const lat = parseInt((v.latest||'0').split('.')[0]);
+              return lat > cur;
+            });
+            console.log(major.length);
+          " 2>/dev/null || echo "0")
+
+          echo "- Major version updates available: **$MAJOR_OUTDATED**" >> $GITHUB_STEP_SUMMARY
+
+          if [ "$MAJOR_OUTDATED" -gt 5 ]; then
+            echo "::warning::$MAJOR_OUTDATED packages have major updates — review for security and breaking changes"
+          fi
+
+      - name: Run npm audit full report
+        run: |
+          npm audit --json > audit-report.json 2>/dev/null || true
+          VULNS=$(cat audit-report.json | node -e "
+            const d = JSON.parse(require('fs').readFileSync('/dev/stdin','utf-8'));
+            const meta = d.metadata || {};
+            console.log(JSON.stringify({
+              critical: meta.vulnerabilities?.critical || 0,
+              high: meta.vulnerabilities?.high || 0,
+              moderate: meta.vulnerabilities?.moderate || 0,
+            }));
+          " 2>/dev/null || echo '{"critical":0,"high":0,"moderate":0}')
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Security Vulnerabilities" >> $GITHUB_STEP_SUMMARY
+          echo "$VULNS" | node -e "
+            const v = JSON.parse(require('fs').readFileSync('/dev/stdin','utf-8'));
+            console.log('- Critical: ' + v.critical);
+            console.log('- High: ' + v.high);
+            console.log('- Moderate: ' + v.moderate);
+          " >> $GITHUB_STEP_SUMMARY 2>/dev/null || true
+
+      - name: Upload audit report
+        uses: actions/upload-artifact@v4
+        with:
+          name: audit-report
+          path: audit-report.json
+          retention-days: 30
+
+  # ─── 4. Backend Performance Analysis (Clinic.js) ─────────────────────────────
+  backend-performance:
+    name: Backend performance (Clinic.js bubbleprof)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      redis:
+        image: redis:7-alpine
+        ports: ['6379:6379']
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - run: npm ci
+
+      - name: Install Clinic.js
+        run: npm install -g clinic
+
+      - name: Build shared package
+        run: npm run build --workspace=@rlgl/shared
+
+      - name: Run Clinic.js doctor on gateway
+        env:
+          DATABASE_URL: file:./test.db
+          JWT_SECRET: nightly-test-secret
+          REDIS_URL: redis://localhost:6379
+          PORT: 3000
+        run: |
+          if [ -f "services/gateway/src/main.ts" ]; then
+            timeout 30 clinic doctor -- node -r tsx/esm services/gateway/src/main.ts \
+              2>&1 > clinic-gateway.txt || true
+          fi
+
+          echo "## Clinic.js Report" >> $GITHUB_STEP_SUMMARY
+          if [ -f "clinic-gateway.txt" ]; then
+            cat clinic-gateway.txt | tail -20 >> $GITHUB_STEP_SUMMARY
+          else
+            echo "Clinic.js run skipped (gateway startup check)." >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Upload Clinic.js results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: clinic-results
+          path: |
+            .clinic/
+            clinic-*.txt
+          retention-days: 14
+
+  # ─── 5. Frontend Memory Leak Detection (MemLab) ──────────────────────────────
+  memlab:
+    name: Frontend memory leak detection (MemLab)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - run: npm ci
+
+      - name: Install MemLab
+        run: npm install -g memlab
+
+      - name: Build frontend
+        run: npm run build
+
+      - name: Install Playwright for MemLab
+        run: npx playwright install --with-deps chromium
+
+      - name: Start preview server
+        run: |
+          npx vite preview --port 4173 &
+          npx wait-on http://localhost:4173 --timeout 30000
+
+      - name: Run MemLab scenario (if exists)
+        run: |
+          if [ -f "tests/memlab/scenarios/navigation.cjs" ]; then
+            memlab run --scenario tests/memlab/scenarios/navigation.cjs \
+              --out memlab-results/ 2>&1 | tee memlab-output.txt || true
+
+            echo "## MemLab Memory Leak Report" >> $GITHUB_STEP_SUMMARY
+
+            LEAKS=$(grep -c 'leak' memlab-output.txt 2>/dev/null || echo "0")
+            echo "- Potential leaks detected: **$LEAKS**" >> $GITHUB_STEP_SUMMARY
+
+            if [ "$LEAKS" -gt 0 ]; then
+              echo "::warning::MemLab detected $LEAKS potential memory leaks — review memlab-results/"
+              cat memlab-output.txt | tail -30 >> $GITHUB_STEP_SUMMARY
+            else
+              echo "No memory leaks detected. ✓" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "::notice::No MemLab scenarios found at tests/memlab/scenarios/. Add navigation.cjs to enable memory leak detection."
+          fi
+
+      - name: Upload MemLab results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: memlab-results
+          path: |
+            memlab-results/
+            memlab-output.txt
+          retention-days: 14
+
+  # ─── 6. Flaky Test Detection ──────────────────────────────────────────────────
+  flaky-test-detection:
+    name: Flaky test detection (repeat runs)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build shared package
+        run: npm run build --workspace=@rlgl/shared
+
+      - name: Run tests 3× and detect inconsistency
+        run: |
+          echo "## Flaky Test Detection" >> $GITHUB_STEP_SUMMARY
+          PASS=0
+          FAIL=0
+
+          for i in 1 2 3; do
+            echo "Run $i..."
+            if npm test --workspaces 2>&1 | tail -5; then
+              PASS=$((PASS + 1))
+            else
+              FAIL=$((FAIL + 1))
+            fi
+          done
+
+          echo "- Passed runs: $PASS/3" >> $GITHUB_STEP_SUMMARY
+          echo "- Failed runs: $FAIL/3" >> $GITHUB_STEP_SUMMARY
+
+          if [ "$PASS" -gt 0 ] && [ "$FAIL" -gt 0 ]; then
+            echo "::warning::FLAKY TESTS DETECTED — tests passed $PASS/3 and failed $FAIL/3 runs"
+            echo "**⚠️ Flaky tests detected** — investigate and fix before next sprint" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "No flakiness detected. ✓" >> $GITHUB_STEP_SUMMARY
+          fi
+
+  # ─── 7. Semgrep Full Scan ─────────────────────────────────────────────────────
+  semgrep-nightly:
+    name: Semgrep nightly (full rules + OSS ruleset)
+    runs-on: ubuntu-latest
+    container:
+      image: semgrep/semgrep
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run custom engineering rules
+        run: semgrep --config .semgrep.yml --json --output semgrep-custom.json services/ packages/ src/ || true
+
+      - name: Run OWASP top-10 ruleset
+        run: semgrep --config p/owasp-top-ten --json --output semgrep-owasp.json services/ packages/ || true
+
+      - name: Run JavaScript/TypeScript security rules
+        run: semgrep --config p/javascript --json --output semgrep-js.json services/ packages/ src/ || true
+
+      - name: Summarize findings
+        run: |
+          echo "## Semgrep Nightly Scan" >> $GITHUB_STEP_SUMMARY
+          for f in semgrep-*.json; do
+            if [ -f "$f" ]; then
+              COUNT=$(cat "$f" | python3 -c "import json,sys; d=json.load(sys.stdin); print(len(d.get('results',[])))" 2>/dev/null || echo "0")
+              echo "- $f: **$COUNT** findings" >> $GITHUB_STEP_SUMMARY
+            fi
+          done
+
+      - name: Upload Semgrep results
+        uses: actions/upload-artifact@v4
+        with:
+          name: semgrep-nightly
+          path: semgrep-*.json
+          retention-days: 30
+
+  # ─── 8. Self-Improving Engineering Report ─────────────────────────────────────
+  engineering-report:
+    name: Generate engineering health report
+    runs-on: ubuntu-latest
+    needs:
+      - architecture-scan
+      - dead-code
+      - dependency-drift
+      - flaky-test-detection
+    if: always()
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: nightly-artifacts/
+
+      - name: Generate engineering health report
+        run: |
+          REPORT_DATE=$(date -u +"%Y-%m-%d")
+
+          cat > engineering-health-report.md << 'REPORT_EOF'
+          # RLGL Engineering Health Report
+          Date: $(date -u +"%Y-%m-%d %H:%M UTC")
+          Run: ${{ github.run_number }}
+
+          ## Summary
+
+          This automated report is generated nightly by the RLGL governance system.
+          It identifies patterns that require engineering attention.
+
+          ## Sections
+
+          1. Architecture boundary violations (see architecture-report artifact)
+          2. Dead code accumulation (see nightly job logs)
+          3. Dependency drift and security vulnerabilities (see audit-report artifact)
+          4. Memory leaks detected by MemLab (see memlab-results artifact)
+          5. Flaky test patterns (see nightly job logs)
+          6. Semgrep security findings (see semgrep-nightly artifact)
+
+          ## Recommended Actions
+
+          Review each failing/warning section above. Priority order:
+          1. CRITICAL: Any security vulnerabilities (npm audit high/critical)
+          2. HIGH: Architecture boundary violations
+          3. MEDIUM: Memory leaks, flaky tests
+          4. LOW: Dead code, outdated dependencies
+
+          ## AI-Assisted Suggestions
+
+          The following patterns were detected and may warrant attention:
+          - Review architecture-report for any boundary drift
+          - Check memlab-results for retained heap objects
+          - Investigate any flaky tests before they mask real failures
+          - Schedule dead code cleanup if exports > 50 unused
+
+          ---
+          *This report is auto-generated. Changes require human review and approval.*
+          REPORT_EOF
+
+          # Resolve heredoc variable
+          sed -i "s/\$(date -u +\"%Y-%m-%d %H:%M UTC\")/$(date -u +"%Y-%m-%d %H:%M UTC")/" engineering-health-report.md
+          sed -i "s/\${{ github.run_number }}/${{ github.run_number }}/" engineering-health-report.md
+
+          cat engineering-health-report.md >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload engineering health report
+        uses: actions/upload-artifact@v4
+        with:
+          name: engineering-health-report-${{ github.run_number }}
+          path: engineering-health-report.md
+          retention-days: 90

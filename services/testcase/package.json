@@ -1,0 +1,19 @@
+{
+  "name": "@rlgl/testcase",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx src/main.ts",
+    "start": "node dist/main.js",
+    "prisma:generate": "prisma generate"
+  },
+  "dependencies": {
+    "@rlgl/shared": "*",
+    "@prisma/client": "^5.22.0",
+    "express": "^4.21.2"
+  },
+  "devDependencies": {
+    "prisma": "^5.22.0"
+  }
+}

@@ -1,0 +1,102 @@
+{
+  "uid": "database-metrics",
+  "title": "Service Performance Metrics",
+  "tags": ["performance", "http", "services"],
+  "timezone": "browser",
+  "schemaVersion": 36,
+  "refresh": "30s",
+  "panels": [
+    {
+      "id": 1,
+      "title": "HTTP Request Rate (req/s)",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "rate(http_requests_total[5m])",
+          "legendFormat": "{{ job }}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 }
+    },
+    {
+      "id": 2,
+      "title": "HTTP Error Rate (%)",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "rate(http_requests_total{status=~\"4xx|5xx\"}[5m]) / rate(http_requests_total[5m]) * 100",
+          "legendFormat": "{{ job }}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 }
+    },
+    {
+      "id": 3,
+      "title": "P95 Response Time (ms)",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) * 1000",
+          "legendFormat": "{{ job }}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 }
+    },
+    {
+      "id": 4,
+      "title": "In-Flight Requests",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "http_requests_in_flight",
+          "legendFormat": "{{ job }}"
+        }
+      ],
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 }
+    },
+    {
+      "id": 5,
+      "title": "Response Status Distribution",
+      "type": "piechart",
+      "targets": [
+        {
+          "expr": "sum by (status) (http_requests_total)",
+          "legendFormat": "{{ status }}"
+        }
+      ],
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 }
+    },
+    {
+      "id": 6,
+      "title": "Service Memory (bytes)",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "process_resident_memory_bytes{job=~\"gateway|auth-service|project-service|testcase-service|testrun-service\"}",
+          "legendFormat": "{{ job }}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 }
+    }
+  ]
+}

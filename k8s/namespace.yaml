@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: rlgl
+  labels:
+    name: rlgl
+    app.kubernetes.io/name: rlgl
+    app.kubernetes.io/component: namespace

@@ -1,0 +1,27 @@
+{
+  "name": "@rlgl/auth",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx src/main.ts",
+    "start": "node dist/main.js",
+    "prisma:generate": "prisma generate"
+  },
+  "prisma": {
+    "seed": "node prisma/seed.mjs"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.22.0",
+    "@rlgl/shared": "*",
+    "bcryptjs": "^3.0.3",
+    "better-sqlite3": "^12.9.0",
+    "cookie-parser": "^1.4.7",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.3",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "prisma": "^5.22.0"
+  }
+}

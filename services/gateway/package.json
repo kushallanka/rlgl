@@ -1,0 +1,20 @@
+{
+  "name": "@rlgl/gateway",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx src/main.ts",
+    "start": "node dist/main.js"
+  },
+  "dependencies": {
+    "@rlgl/shared": "*",
+    "express": "^4.21.2",
+    "http-proxy-middleware": "^3.0.5",
+    "cookie-parser": "^1.4.7",
+    "jsonwebtoken": "^9.0.3"
+  },
+  "devDependencies": {
+    "@types/jsonwebtoken": "^9.0.10"
+  }
+}

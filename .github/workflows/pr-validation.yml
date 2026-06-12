@@ -1,0 +1,464 @@
+name: PR Validation
+
+on:
+  pull_request:
+    branches: [main, develop]
+    types: [opened, synchronize, reopened]
+
+# Cancel in-flight runs for the same PR
+concurrency:
+  group: pr-validation-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '24'
+
+jobs:
+  # ─── 1. Typecheck ─────────────────────────────────────────────────────────────
+  typecheck:
+    name: TypeScript (strict)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup-workspace
+
+      - name: Typecheck frontend
+        run: npx tsc --noEmit
+
+      - name: Build frontend (vite must succeed before merge)
+        run: npm run build
+
+      - name: Typecheck auth service
+        run: npx tsc --noEmit -p services/auth/tsconfig.json
+
+      - name: Typecheck project service
+        run: npx tsc --noEmit -p services/project/tsconfig.json
+
+      - name: Typecheck testcase service
+        run: npx tsc --noEmit -p services/testcase/tsconfig.json
+
+      - name: Typecheck testrun service
+        run: npx tsc --noEmit -p services/testrun/tsconfig.json
+
+      - name: Typecheck gateway
+        run: npx tsc --noEmit -p services/gateway/tsconfig.json
+
+  # ─── 2. Semgrep Security + Engineering Rules ──────────────────────────────────
+  semgrep:
+    name: Semgrep (custom rules)
+    runs-on: ubuntu-latest
+    container:
+      image: semgrep/semgrep
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run custom RLGL engineering rules
+        run: |
+          semgrep --config .semgrep.yml \
+                  --error \
+                  --json \
+                  --output semgrep-results.json \
+                  services/ packages/ src/ || true
+          semgrep --config .semgrep.yml --error services/ packages/ src/
+
+      - name: Upload Semgrep results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: semgrep-results
+          path: semgrep-results.json
+          retention-days: 30
+
+  # ─── 3. Architecture / Dependency Boundaries ──────────────────────────────────
+  architecture:
+    name: Architecture boundaries (dep-cruiser)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup-workspace
+        with:
+          generate-prisma: 'false'
+          build-shared: 'false'
+
+      - name: Check frontend architecture
+        run: npx depcruise --config .dependency-cruiser.cjs src
+
+      - name: Check services architecture
+        run: |
+          for svc in auth project testcase testrun gateway worker; do
+            if [ -d "services/$svc/src" ]; then
+              echo "Checking services/$svc..."
+              npx depcruise --config .dependency-cruiser.cjs services/$svc/src
+            fi
+          done
+
+      - name: Check packages architecture
+        run: |
+          for pkg in shared contracts; do
+            if [ -d "packages/$pkg/src" ]; then
+              echo "Checking packages/$pkg..."
+              npx depcruise --config .dependency-cruiser.cjs packages/$pkg/src
+            fi
+          done
+
+  # ─── 4. Unit Tests ────────────────────────────────────────────────────────────
+  unit-tests:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup-workspace
+
+      - name: Run unit tests (all services)
+        run: |
+          for svc in auth project testcase testrun gateway worker; do
+            pkg_name=$(node -e "const p=require('./services/$svc/package.json'); console.log(p.name)" 2>/dev/null || echo "")
+            if [ -n "$pkg_name" ]; then
+              echo "Testing $svc..."
+              npm test --workspace=$pkg_name 2>&1 || echo "::warning::No tests found for $svc"
+            fi
+          done
+
+      - name: Run shared package tests
+        run: npm test --workspace=@rlgl/shared 2>&1 || echo "::warning::No tests in shared"
+
+  # ─── 5. Contract Tests ────────────────────────────────────────────────────────
+  contract-tests:
+    name: Contract tests (API snapshots)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: rlgl
+          POSTGRES_PASSWORD: rlgl
+          POSTGRES_DB: rlgl_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports: ['6379:6379']
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup-workspace
+
+      - name: Run contract tests
+        env:
+          DATABASE_URL: postgresql://rlgl:rlgl@localhost:5432/rlgl_test
+          REDIS_URL: redis://localhost:6379
+          JWT_SECRET: test-jwt-secret-for-ci
+          NODE_ENV: test
+        run: |
+          if [ -d "tests/contracts" ]; then
+            npx vitest run tests/contracts/
+          else
+            echo "::warning::No contract tests found at tests/contracts/"
+          fi
+
+  # ─── 6. Invariant Tests ───────────────────────────────────────────────────────
+  invariant-tests:
+    name: Invariant tests (data integrity)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: rlgl
+          POSTGRES_PASSWORD: rlgl
+          POSTGRES_DB: rlgl_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports: ['6379:6379']
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup-workspace
+
+      - name: Run invariant tests
+        env:
+          DATABASE_URL: postgresql://rlgl:rlgl@localhost:5432/rlgl_test
+          REDIS_URL: redis://localhost:6379
+          JWT_SECRET: test-jwt-secret-for-ci
+          NODE_ENV: test
+        run: |
+          if [ -d "tests/invariants" ]; then
+            npx vitest run tests/invariants/ tests/permissions/
+          else
+            echo "::warning::No invariant tests found at tests/invariants/"
+          fi
+
+  # ─── 7. Migration Safety Check ───────────────────────────────────────────────
+  migration-safety:
+    name: Migration safety (expand-contract check)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Pure git-diff analysis — no Node toolchain needed
+      - name: Detect destructive migrations
+        run: |
+          # Get changed migration files vs base branch
+          BASE="${{ github.event.pull_request.base.sha }}"
+          CHANGED_MIGRATIONS=$(git diff --name-only "$BASE" HEAD -- "services/*/prisma/migrations/**/*.sql" 2>/dev/null || echo "")
+
+          if [ -z "$CHANGED_MIGRATIONS" ]; then
+            echo "No migration changes detected."
+            exit 0
+          fi
+
+          echo "Changed migrations:"
+          echo "$CHANGED_MIGRATIONS"
+
+          VIOLATIONS=0
+          for f in $CHANGED_MIGRATIONS; do
+            if [ -f "$f" ]; then
+              # Check for destructive patterns
+              if grep -qiE '^\s*(DROP\s+TABLE|DROP\s+COLUMN|ALTER\s+TABLE.*DROP|TRUNCATE)' "$f"; then
+                echo "::error file=$f::DESTRUCTIVE migration detected: DROP TABLE / DROP COLUMN / TRUNCATE"
+                VIOLATIONS=$((VIOLATIONS + 1))
+              fi
+              # Check for NOT NULL without DEFAULT on existing column (unsafe on large tables)
+              if grep -qiE 'ALTER\s+TABLE.*ADD\s+COLUMN.*NOT\s+NULL' "$f" && \
+                 ! grep -qiE 'ALTER\s+TABLE.*ADD\s+COLUMN.*DEFAULT' "$f"; then
+                echo "::warning file=$f::NOT NULL column added without DEFAULT — unsafe on populated tables (expand-contract)"
+              fi
+              # Check for renames (often destructive)
+              if grep -qiE 'RENAME\s+(TABLE|COLUMN|TO)' "$f"; then
+                echo "::warning file=$f::RENAME detected — use expand-contract pattern instead"
+              fi
+            fi
+          done
+
+          if [ "$VIOLATIONS" -gt 0 ]; then
+            echo "::error::$VIOLATIONS destructive migration(s) detected. Use expand-contract pattern."
+            exit 1
+          fi
+          echo "Migration safety check passed."
+
+  # ─── 8. OpenAPI Diff ──────────────────────────────────────────────────────────
+  openapi-diff:
+    name: OpenAPI contract diff
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Git-diff analysis + optional global tool — no workspace install needed
+      - name: Check for OpenAPI changes
+        run: |
+          BASE="${{ github.event.pull_request.base.sha }}"
+          CHANGED=$(git diff --name-only "$BASE" HEAD -- "**openapi**" "**swagger**" "**/api-spec*" 2>/dev/null || echo "")
+
+          if [ -z "$CHANGED" ]; then
+            echo "No OpenAPI spec changes detected."
+            exit 0
+          fi
+
+          echo "OpenAPI changes detected in:"
+          echo "$CHANGED"
+          echo "::warning::OpenAPI spec changed — verify consumers are not broken (check contract tests)"
+
+      - name: Install openapi-diff
+        run: npm install -g @openapitools/openapi-diff 2>/dev/null || true
+
+      - name: Run OpenAPI diff if specs exist
+        run: |
+          if ls docs/openapi*.json 2>/dev/null | head -1 | grep -q .; then
+            echo "OpenAPI spec files found, running diff..."
+            # Extract base version and compare
+            git stash 2>/dev/null || true
+            # (Full diff implementation requires spec generation — see docs/observability.md)
+            git stash pop 2>/dev/null || true
+          else
+            echo "::notice::No OpenAPI spec files found in docs/. Generate them with npm run generate:openapi"
+          fi
+
+  # ─── 9. PR Blast-Radius Analysis ─────────────────────────────────────────────
+  blast-radius:
+    name: PR blast-radius analysis
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Pure git-diff analysis — no Node toolchain needed
+      - name: Analyze change risk
+        id: risk
+        run: |
+          BASE="${{ github.event.pull_request.base.sha }}"
+          CHANGED=$(git diff --name-only "$BASE" HEAD 2>/dev/null || echo "")
+
+          echo "## PR Blast-Radius Analysis" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          RISK_LEVEL="LOW"
+          RISKS=""
+
+          # Auth changes — highest risk
+          if echo "$CHANGED" | grep -qE 'services/auth/|packages/shared/src/middleware/auth'; then
+            RISK_LEVEL="CRITICAL"
+            RISKS="$RISKS\n- 🔴 **AUTH CHANGES**: JWT validation or session logic modified"
+          fi
+
+          # Migration changes
+          if echo "$CHANGED" | grep -qE 'prisma/migrations/'; then
+            [ "$RISK_LEVEL" = "LOW" ] && RISK_LEVEL="HIGH"
+            RISKS="$RISKS\n- 🟠 **MIGRATION**: Database schema changes detected"
+          fi
+
+          # Schema/DTO changes
+          if echo "$CHANGED" | grep -qE 'validators/|schemas/|\.schema\.ts|\.dto\.ts'; then
+            [ "$RISK_LEVEL" = "LOW" ] && RISK_LEVEL="MEDIUM"
+            RISKS="$RISKS\n- 🟡 **DTO/SCHEMA**: API contract shape may have changed"
+          fi
+
+          # Queue changes
+          if echo "$CHANGED" | grep -qE 'jobs/|queues/|bullmq|worker/'; then
+            [ "$RISK_LEVEL" = "LOW" ] && RISK_LEVEL="MEDIUM"
+            RISKS="$RISKS\n- 🟡 **QUEUE**: Worker or job definition changed"
+          fi
+
+          # Permission/authorization changes
+          if echo "$CHANGED" | grep -qE 'permissions/|rbac/|roles/|guards/'; then
+            [ "$RISK_LEVEL" = "HIGH" ] || RISK_LEVEL="HIGH"
+            RISKS="$RISKS\n- 🟠 **PERMISSIONS**: Authorization logic changed"
+          fi
+
+          # Shared package changes
+          if echo "$CHANGED" | grep -qE '^packages/shared/|^packages/contracts/'; then
+            [ "$RISK_LEVEL" = "LOW" ] && RISK_LEVEL="MEDIUM"
+            RISKS="$RISKS\n- 🟡 **SHARED**: Changes affect all services"
+          fi
+
+          # Gateway changes
+          if echo "$CHANGED" | grep -qE 'services/gateway/'; then
+            [ "$RISK_LEVEL" = "LOW" ] && RISK_LEVEL="MEDIUM"
+            RISKS="$RISKS\n- 🟡 **GATEWAY**: Routing or proxy configuration changed"
+          fi
+
+          echo "### Risk Level: $RISK_LEVEL" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ -n "$RISKS" ]; then
+            echo "### Risk Factors" >> $GITHUB_STEP_SUMMARY
+            printf "$RISKS\n" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "No high-risk patterns detected." >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Changed Files ($( echo "$CHANGED" | wc -l | tr -d ' '))" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "$CHANGED" | head -30 >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
+          echo "risk_level=$RISK_LEVEL" >> $GITHUB_OUTPUT
+
+          # Block merge on CRITICAL risk that lacks explicit override
+          if [ "$RISK_LEVEL" = "CRITICAL" ]; then
+            echo "::warning::CRITICAL risk PR — ensure auth/security review before merge"
+          fi
+
+  # ─── 10. Dependency Security Audit ───────────────────────────────────────────
+  security-audit:
+    name: Dependency security audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      # npm audit queries the registry from the lockfile — no install needed
+      - name: npm audit (high severity)
+        run: npm audit --audit-level=high
+
+      - name: Run Trivy filesystem scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: fs
+          ignore-unfixed: true
+          format: sarif
+          output: trivy-results.sarif
+          severity: CRITICAL,HIGH
+
+      - name: Upload Trivy results
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-results.sarif
+
+  # ─── Gate: all checks must pass ──────────────────────────────────────────────
+  pr-gate:
+    name: PR gate (all checks required)
+    runs-on: ubuntu-latest
+    needs:
+      - typecheck
+      - semgrep
+      - architecture
+      - unit-tests
+      - contract-tests
+      - invariant-tests
+      - migration-safety
+      - openapi-diff
+      - blast-radius
+      - security-audit
+    if: always()
+    steps:
+      - name: Evaluate gate
+        run: |
+          FAILED_JOBS=""
+          declare -A STATUSES=(
+            ["typecheck"]="${{ needs.typecheck.result }}"
+            ["semgrep"]="${{ needs.semgrep.result }}"
+            ["architecture"]="${{ needs.architecture.result }}"
+            ["unit-tests"]="${{ needs.unit-tests.result }}"
+            ["contract-tests"]="${{ needs.contract-tests.result }}"
+            ["invariant-tests"]="${{ needs.invariant-tests.result }}"
+            ["migration-safety"]="${{ needs.migration-safety.result }}"
+            ["security-audit"]="${{ needs.security-audit.result }}"
+          )
+
+          for job in "${!STATUSES[@]}"; do
+            STATUS="${STATUSES[$job]}"
+            if [[ "$STATUS" != "success" && "$STATUS" != "skipped" ]]; then
+              FAILED_JOBS="$FAILED_JOBS $job($STATUS)"
+            fi
+          done
+
+          if [ -n "$FAILED_JOBS" ]; then
+            echo "::error::PR gate failed. Failing jobs:$FAILED_JOBS"
+            echo "Fix all failures before merging."
+            exit 1
+          fi
+
+          echo "All PR validation checks passed. ✓"

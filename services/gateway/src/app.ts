@@ -1,0 +1,259 @@
+import express from 'express';
+import cookieParser from 'cookie-parser';
+import jwt from 'jsonwebtoken';
+import { createProxyMiddleware } from 'http-proxy-middleware';
+import type { Config } from '@rlgl/shared';
+import {
+  requestContextMiddleware,
+  createLogger,
+  createMetricsCollector,
+  metricsMiddleware,
+  requestLoggingMiddleware,
+  errorHandlerMiddleware,
+  setupSwagger
+} from '@rlgl/shared';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+import os from 'os';
+
+const logger = createLogger({ service: 'api-gateway' });
+const metrics = createMetricsCollector({ serviceName: 'api-gateway' }, logger);
+
+async function probeUrl(url: string, ms: number): Promise<boolean> {
+  const controller = new AbortController();
+  const t = setTimeout(() => controller.abort(), ms);
+  try {
+    const res = await fetch(`${url.replace(/\/$/, '')}/health`, { signal: controller.signal });
+    return res.ok;
+  } catch {
+    return false;
+  } finally {
+    clearTimeout(t);
+  }
+}
+
+/** Decode access JWT from cookie so downstream services receive x-user-id (browser clients do not send that header). */
+const cookieUserContextMiddleware = (jwtSecret: string) => {
+  return (req: express.Request, _res: express.Response, next: express.NextFunction) => {
+    try {
+      if (req.headers['x-user-id']) return next();
+      const cookies = (req as any).cookies;
+      const token = cookies?.accessToken as string | undefined;
+      
+      // Debug logging for auth issues
+      if (process.env.NODE_ENV === 'development') {
+        logger.debug(`[Gateway Debug] ${req.method} ${req.path} - Cookies: ${Object.keys(cookies || {}).join(', ')}, Token exists: ${!!token}`);
+        logger.debug(`[Gateway Debug] JWT_SECRET hash: ${jwtSecret.slice(0, 5)}...${jwtSecret.slice(-5)}`);
+      }
+      
+      if (!token) return next();
+      
+      try {
+        const payload = jwt.verify(token, jwtSecret) as { userId?: number | string };
+        if (payload?.userId) {
+          req.headers['x-user-id'] = payload.userId.toString();
+          logger.debug(`[Gateway Debug] Token valid for user: ${payload.userId}`);
+        }
+      } catch (jwtErr) {
+        logger.debug({ err: jwtErr }, `[Gateway Debug] JWT verification failed`);
+      }
+    } catch (err) {
+      logger.debug({ err }, `[Gateway Debug] Cookie middleware error`);
+    }
+    next();
+  };
+};
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+export const createApp = (config: Config, redis: import('ioredis').default) => {
+  const app = express();
+
+  // Note: express.json() is NOT used here because it would consume the request body
+  // before http-proxy-middleware can forward it to backend services.
+  // Backend services handle their own JSON parsing.
+  app.use(cookieParser());
+  app.use(cookieUserContextMiddleware(config.JWT_SECRET));
+  app.use(requestContextMiddleware);
+  app.use(metricsMiddleware(metrics));
+  app.use(requestLoggingMiddleware(logger));
+
+  // Initialize Swagger (Gateway version)
+  setupSwagger(app, config, {
+    title: 'API Gateway',
+    version: '1.0.0',
+    description: 'Central API Gateway for Red Light Green Light Platform',
+    swaggerRoute: '/api-docs',
+    apis: [
+      path.join(__dirname, './*.js'),
+      path.join(__dirname, './*.ts'),
+    ],
+  });
+
+  // Only parse JSON for gateway's own routes (not proxied routes)
+  app.use('/health', express.json());
+  app.use('/metrics', express.json());
+
+  // ─── Health ──────────────────────────────────────────────────────────────────
+  app.get('/health', async (_req, res) => {
+    const redisStatus = redis.status === 'ready' ? 'connected' : 'disconnected';
+    res.json({ 
+      status: 'ok', 
+      service: 'api-gateway',
+      dependencies: { redis: redisStatus },
+      timestamp: new Date().toISOString(),
+      host: os.hostname()
+    });
+  });
+
+  /** Liveness: process is up (orchestrator / kube). */
+  app.get('/health/live', (_req, res) => {
+    res.status(200).json({ status: 'live', service: 'api-gateway', timestamp: new Date().toISOString() });
+  });
+
+  /** Readiness: Redis + optional upstream /health (short timeout). */
+  app.get('/health/ready', async (_req, res) => {
+    const checks: Record<string, string> = {};
+    try {
+      await redis.ping();
+      checks.redis = 'ok';
+    } catch (err: any) {
+      checks.redis = `fail:${err?.message || 'error'}`;
+      logger.error({ err }, 'Readiness probe: Redis failed');
+      return res.status(503).json({
+        status: 'not_ready',
+        service: 'api-gateway',
+        checks,
+        timestamp: new Date().toISOString(),
+      });
+    }
+
+    if (config.GATEWAY_HEALTH_PROBE_UPSTREAMS) {
+      const timeoutMs = 2500;
+      const [authOk, projectOk] = await Promise.all([
+        probeUrl(config.AUTH_SERVICE_URL, timeoutMs),
+        probeUrl(config.PROJECT_SERVICE_URL, timeoutMs),
+      ]);
+      checks.auth_service = authOk ? 'ok' : 'unreachable';
+      checks.project_service = projectOk ? 'ok' : 'unreachable';
+      if (!authOk || !projectOk) {
+        logger.warn({ checks }, 'Readiness probe: upstream degraded');
+        return res.status(503).json({
+          status: 'not_ready',
+          service: 'api-gateway',
+          checks,
+          timestamp: new Date().toISOString(),
+        });
+      }
+    }
+
+    return res.json({
+      status: 'ready',
+      service: 'api-gateway',
+      checks,
+      timestamp: new Date().toISOString(),
+      host: os.hostname(),
+    });
+  });
+
+  // ─── Metrics ─────────────────────────────────────────────────────────────────
+  app.get('/metrics', (_req, res) => {
+    res.set('Content-Type', 'text/plain');
+    res.send(metrics.toPrometheus());
+  });
+
+  app.get('/metrics/json', (_req, res) => {
+    res.json(metrics.toJSON());
+  });
+
+  // ─── Rate Limiting ──────────────────────────────────────────────────────────
+  // app.use('/api/v1', tenantRateLimiter(redis, 500, 60)); // 500 req / min / tenant
+
+  // ─── Proxy Middleware ────────────────────────────────────────────────────────
+  const proxyTimeoutMs = config.GATEWAY_PROXY_TIMEOUT_MS;
+  const connectTimeoutMs = config.GATEWAY_PROXY_CONNECT_TIMEOUT_MS;
+
+  const makeProxy = (serviceName: string, target: string, pathRewrite: Record<string, string>) =>
+    createProxyMiddleware({
+      target,
+      pathRewrite,
+      changeOrigin: true,
+      timeout: connectTimeoutMs,
+      proxyTimeout: proxyTimeoutMs,
+      on: {
+        error: (err, req, res) => {
+          const ctx = (req as express.Request & { context?: { requestId?: string } }).context;
+          const out = res as express.Response;
+          logger.error(
+            {
+              err,
+              service: serviceName,
+              url: req.url,
+              method: req.method,
+              requestId: ctx?.requestId,
+              target,
+              proxyTimeoutMs,
+            },
+            'Gateway proxy error (upstream timeout or connection failure)'
+          );
+          if (!out.headersSent) {
+            out.status(504).json({
+              error: 'Gateway Timeout',
+              message: `The ${serviceName} service did not respond in time.`,
+              requestId: ctx?.requestId,
+            });
+          }
+        },
+        proxyReq: (proxyReq, req: any) => {
+          const { requestId, userId, projectId, tenantId } = req.context;
+          proxyReq.setHeader('x-request-id', requestId);
+          if (userId) proxyReq.setHeader('x-user-id', userId);
+          if (projectId) proxyReq.setHeader('x-project-id', projectId);
+          if (tenantId) proxyReq.setHeader('x-tenant-id', tenantId);
+
+          // ✅ Transform cookie-based auth to Bearer token for backend services
+          const accessToken = req.cookies?.accessToken;
+          if (accessToken) {
+            proxyReq.setHeader('Authorization', `Bearer ${accessToken}`);
+            logger.debug(`Forwarding Authorization to ${serviceName}`);
+          }
+
+          // ✅ re-attach cookies (cookie-parser consumes the raw header)
+          if (req.headers.cookie) {
+            proxyReq.setHeader('Cookie', req.headers.cookie);
+          }
+        },
+        proxyRes: (proxyRes, _req, _res) => {
+          // Add transparency headers
+          proxyRes.headers['x-proxied-by'] = 'api-gateway';
+          if (proxyRes.statusCode !== 404) {
+             proxyRes.headers['Sunset'] = '2026-12-31T23:59:59Z';
+             proxyRes.headers['Deprecated'] = 'true';
+          }
+        }
+      },
+    });
+
+  // Services
+  app.use('/api/v1/auth',      makeProxy('auth-service',    config.AUTH_SERVICE_URL,    { '^/api/v1/auth': '' }));
+  app.use('/api/v1/users',     makeProxy('auth-service',    config.AUTH_SERVICE_URL,    { '^/': '/users' }));
+  app.use('/api/v1/projects',  makeProxy('project-service', config.PROJECT_SERVICE_URL, { '^/api/v1/projects': '' }));
+  app.use('/api/v1/testcases', makeProxy('testcase-service', config.TESTCASE_SERVICE_URL, { '^/api/v1/testcases': '' }));
+  app.use('/api/v1/testruns',  makeProxy('testrun-service',  config.TESTRUN_SERVICE_URL,  { '^/api/v1/testruns': '' }));
+
+  // 404 Handler
+  app.use((_req, res) => {
+    res.status(404).json({
+      error: 'Not Found',
+      status: 404,
+      timestamp: new Date().toISOString(),
+    });
+  });
+
+  // Error Handler
+  app.use(errorHandlerMiddleware(logger));
+
+  return app;
+};

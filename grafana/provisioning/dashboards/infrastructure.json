@@ -1,0 +1,102 @@
+{
+  "uid": "infrastructure-overview",
+  "title": "Infrastructure Overview",
+  "tags": ["infrastructure", "services", "health"],
+  "timezone": "browser",
+  "schemaVersion": 36,
+  "refresh": "30s",
+  "panels": [
+    {
+      "id": 1,
+      "title": "Service Health Status",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "up{job=~\"gateway|auth-service|project-service|testcase-service|testrun-service\"}",
+          "legendFormat": "{{ job }}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {
+              "options": {
+                "0": { "text": "DOWN", "color": "red" },
+                "1": { "text": "UP", "color": "green" }
+              },
+              "type": "value"
+            }
+          ]
+        }
+      },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 0 }
+    },
+    {
+      "id": 2,
+      "title": "Services Uptime (seconds)",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "time() - process_start_time_seconds{job=~\"gateway|auth-service|project-service|testcase-service|testrun-service\"}",
+          "legendFormat": "{{ job }}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 }
+    },
+    {
+      "id": 3,
+      "title": "Scrape Duration (ms)",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "scrape_duration_seconds{job=~\"gateway|auth-service|project-service|testcase-service|testrun-service\"} * 1000",
+          "legendFormat": "{{ job }}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 }
+    },
+    {
+      "id": 4,
+      "title": "Prometheus TSDB Stats",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "prometheus_tsdb_head_series",
+          "legendFormat": "Active Series"
+        },
+        {
+          "expr": "prometheus_tsdb_head_chunks",
+          "legendFormat": "Head Chunks"
+        }
+      ],
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 }
+    },
+    {
+      "id": 5,
+      "title": "Scrape Success Rate (%)",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "(prometheus_target_scrapes_exceeded_sample_limit_total / prometheus_target_scrapes_total) * 100",
+          "legendFormat": "Exceeded Limit %"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 }
+    }
+  ]
+}

@@ -1,0 +1,94 @@
+{
+  "uid": "redis-metrics",
+  "title": "Redis & Gateway Metrics",
+  "tags": ["redis", "gateway", "cache"],
+  "timezone": "browser",
+  "schemaVersion": 36,
+  "refresh": "30s",
+  "panels": [
+    {
+      "id": 1,
+      "title": "Gateway Request Latency (P99)",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.99, rate(http_request_duration_seconds_bucket{job=\"gateway\"}[5m])) * 1000",
+          "legendFormat": "P99"
+        },
+        {
+          "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job=\"gateway\"}[5m])) * 1000",
+          "legendFormat": "P95"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 }
+    },
+    {
+      "id": 2,
+      "title": "Gateway Throughput (req/s)",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "rate(http_requests_total{job=\"gateway\"}[5m])",
+          "legendFormat": "{{ method }} {{ handler }}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 }
+    },
+    {
+      "id": 3,
+      "title": "Gateway Error Rate by Status",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "rate(http_requests_total{job=\"gateway\",status=~\"4xx|5xx\"}[5m])",
+          "legendFormat": "{{ status }}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 }
+    },
+    {
+      "id": 4,
+      "title": "Gateway Active Connections",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "http_requests_in_flight{job=\"gateway\"}",
+          "legendFormat": "In-Flight"
+        }
+      ],
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 }
+    },
+    {
+      "id": 5,
+      "title": "Top 5 Slowest Endpoints (P95)",
+      "type": "bargauge",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job=\"gateway\"}[5m]))",
+          "legendFormat": "{{ handler }}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        }
+      },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 16 }
+    }
+  ]
+}

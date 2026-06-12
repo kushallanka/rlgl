@@ -1,0 +1,103 @@
+{
+  "uid": "worker-queue-metrics",
+  "title": "Backend Services Deep Dive",
+  "tags": ["backend", "services", "deep-dive"],
+  "timezone": "browser",
+  "schemaVersion": 36,
+  "refresh": "30s",
+  "panels": [
+    {
+      "id": 1,
+      "title": "Backend Services Health",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "up{job=~\"auth-service|project-service|testcase-service|testrun-service\"}",
+          "legendFormat": "{{ job }}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {
+              "options": {
+                "0": { "text": "DOWN", "color": "red" },
+                "1": { "text": "UP", "color": "green" }
+              },
+              "type": "value"
+            }
+          ]
+        }
+      },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 0 }
+    },
+    {
+      "id": 2,
+      "title": "Request Rate by Service (req/s)",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "rate(http_requests_total{job=~\"auth-service|project-service|testcase-service|testrun-service\"}[5m])",
+          "legendFormat": "{{ job }}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 }
+    },
+    {
+      "id": 3,
+      "title": "P95 Latency by Service (ms)",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job=~\"auth-service|project-service|testcase-service|testrun-service\"}[5m])) * 1000",
+          "legendFormat": "{{ job }}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 }
+    },
+    {
+      "id": 4,
+      "title": "Error Rate by Service (%)",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "rate(http_requests_total{job=~\"auth-service|project-service|testcase-service|testrun-service\",status=~\"4xx|5xx\"}[5m]) / rate(http_requests_total{job=~\"auth-service|project-service|testcase-service|testrun-service\"}[5m]) * 100",
+          "legendFormat": "{{ job }}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 }
+    },
+    {
+      "id": 5,
+      "title": "Service Memory Usage (MB)",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "process_resident_memory_bytes{job=~\"auth-service|project-service|testcase-service|testrun-service\"} / 1024 / 1024",
+          "legendFormat": "{{ job }}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "MB"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 }
+    }
+  ]
+}

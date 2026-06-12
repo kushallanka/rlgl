@@ -1,0 +1,14 @@
+{
+  "name": "@rlgl/worker",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx index.ts",
+    "start": "node --import tsx index.ts"
+  },
+  "dependencies": {
+    "@rlgl/shared": "*",
+    "bullmq": "^5.74.1"
+  }
+}
