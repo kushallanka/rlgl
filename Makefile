@@ -1,6 +1,5 @@
 # RLGL Test Management Platform - Development Commands
-.PHONY: help install build dev docker-up docker-down logs clean test lint migrate \
-        localstack-up localstack-down localstack-status localstack-logs
+.PHONY: help install build dev docker-up docker-down logs clean test lint migrate
 
 # Default target
 help:
@@ -17,11 +16,6 @@ help:
 	@echo "  make migrate          - Run database migrations"
 	@echo "  make seed             - Seed database with initial data"
 	@echo "  make monitoring       - Open monitoring dashboards"
-	@echo ""
-	@echo "  make localstack-up    - Start AWS-parity stack (PostgreSQL + LocalStack)"
-	@echo "  make localstack-down  - Stop LocalStack stack"
-	@echo "  make localstack-status - Check LocalStack service health"
-	@echo "  make localstack-logs  - Tail LocalStack stack logs"
 
 # Install dependencies
 install:
@@ -128,36 +122,3 @@ setup: install docker-up migrate seed
 	@echo "Grafana: http://localhost:3001 (admin/admin)"
 	@echo "Prometheus: http://localhost:9090"
 
-# ─── LocalStack (AWS-parity) targets ─────────────────────────────────────────
-
-# Build images and start the full AWS-parity stack.
-# First-run: images are built from source; subsequent runs reuse the cache.
-localstack-up:
-	docker compose -f docker-compose.localstack.yml --env-file .env.localstack up --build -d
-	@echo ""
-	@echo "LocalStack stack is starting. Services:"
-	@echo "  Frontend:   http://localhost:5173"
-	@echo "  Gateway:    http://localhost:3000"
-	@echo "  LocalStack: http://localhost:4566"
-	@echo "  PostgreSQL: localhost:5432"
-	@echo "  Grafana:    http://localhost:3001 (admin/admin)"
-	@echo "  Prometheus: http://localhost:9090"
-	@echo ""
-	@echo "Credentials: admin@rlgl.com / admin123  (or test@rlgl.com / test123)"
-
-localstack-down:
-	docker compose -f docker-compose.localstack.yml --env-file .env.localstack down
-
-localstack-status:
-	@echo "=== LocalStack health ==="
-	@curl -s http://localhost:4566/_localstack/health | python3 -m json.tool 2>/dev/null || echo "LocalStack not running"
-	@echo ""
-	@echo "=== Service health ==="
-	@curl -s http://localhost:3000/health/ready | python3 -m json.tool 2>/dev/null || echo "Gateway: not ready"
-	@curl -s http://localhost:3001/health | python3 -m json.tool 2>/dev/null || echo "Auth: not ready"
-	@curl -s http://localhost:3002/health | python3 -m json.tool 2>/dev/null || echo "Project: not ready"
-	@curl -s http://localhost:3003/health | python3 -m json.tool 2>/dev/null || echo "TestCase: not ready"
-	@curl -s http://localhost:3004/health | python3 -m json.tool 2>/dev/null || echo "TestRun: not ready"
-
-localstack-logs:
-	docker compose -f docker-compose.localstack.yml --env-file .env.localstack logs -f
