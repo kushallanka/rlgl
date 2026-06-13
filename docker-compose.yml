@@ -194,6 +194,17 @@ services:
     networks:
       - rlgl-network
 
+  # ─── Cloudflare Tunnel ──────────────────────────────────────────────────────
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: rlgl-cloudflared
+    command: tunnel --url http://frontend:5173
+    depends_on:
+      - frontend
+    networks:
+      - rlgl-network
+    restart: unless-stopped
+
   # ─── Observability Stack ────────────────────────────────────────────────────
   prometheus:
     image: prom/prometheus:latest
