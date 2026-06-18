@@ -10,6 +10,7 @@
   "scripts": {
     "dev": "node scripts/ensure-redis.mjs && concurrently \"cross-env SERVICE_NAME=auth-service PORT=3001 npm run dev --workspace=@rlgl/auth\" \"cross-env SERVICE_NAME=project-service PORT=3002 npm run dev --workspace=@rlgl/project\" \"npm run dev --workspace=@rlgl/gateway\" \"cross-env SERVICE_NAME=testcase-service PORT=3003 npm run dev --workspace=@rlgl/testcase\" \"cross-env SERVICE_NAME=testrun-service PORT=3004 npm run dev --workspace=@rlgl/testrun\" \"npm run dev --workspace=@rlgl/worker\" \"vite\"",
     "seed": "tsx seed.ts",
+    "prisma:generate": "npm run prisma:generate --workspaces --if-present",
     "check:services": "tsx scripts/check-services.ts",
     "build": "vite build",
     "start": "concurrently \"npm start --workspace=@rlgl/auth\" \"npm start --workspace=@rlgl/project\" \"npm start --workspace=@rlgl/gateway\" \"npm start --workspace=@rlgl/testcase\" \"npm start --workspace=@rlgl/testrun\" \"npm start --workspace=@rlgl/worker\"",

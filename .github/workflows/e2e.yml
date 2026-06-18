@@ -80,8 +80,6 @@ jobs:
             if [ -d "services/$svc/prisma" ]; then
               echo "Migrating $svc..."
               DATABASE_URL="postgresql://rlgl:rlgl@localhost:5432/rlgl_e2e_$svc" \
-                npx prisma migrate deploy --schema=services/$svc/prisma/schema.postgresql.prisma 2>/dev/null || \
-              DATABASE_URL="postgresql://rlgl:rlgl@localhost:5432/rlgl_e2e_$svc" \
                 npx prisma migrate deploy --schema=services/$svc/prisma/schema.prisma
             fi
           done
