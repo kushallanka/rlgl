@@ -3,7 +3,7 @@ import * as dotenv from 'dotenv';
 import * as path from 'path';
 
 // Load environment variables
-const envPath = path.join(import.meta.dirname, '.env');
+const envPath = path.join(import.meta.dirname, '..', '.env');
 dotenv.config({ path: envPath });
 
 const config = {

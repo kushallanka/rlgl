@@ -147,7 +147,7 @@ docker-compose restart grafana
 
 ## Alerting (Prometheus)
 
-Alert rules are in `alert_rules.yml` and loaded by Prometheus automatically.
+Alert rules are in `monitoring/alert_rules.yml` and loaded by Prometheus automatically.
 
 | Alert | Condition | Severity |
 |-------|-----------|----------|
@@ -164,7 +164,7 @@ open http://localhost:9090/alerts
 open http://localhost:9090/rules
 
 # Inspect alert rule file
-cat alert_rules.yml
+cat monitoring/alert_rules.yml
 ```
 
 ---
@@ -300,7 +300,7 @@ open http://localhost:9090/targets
 If a service is missing:
 1. Check the service is healthy: `curl http://localhost:<port>/health`
 2. Check the metrics endpoint: `curl http://localhost:<port>/metrics`
-3. Verify `prometheus.yml` includes the service scrape config
+3. Verify `monitoring/prometheus.yml` includes the service scrape config
 
 ---
 

@@ -49,12 +49,12 @@ COPY --from=builder /app/services/${SERVICE}   ./services/${SERVICE}
 
 ENV NODE_ENV=production
 ENV PORT=${PORT}
-# SERVICE is read at container start by docker-start.sh to locate entrypoint/main
+# SERVICE is read at container start by scripts/docker-start.sh to locate entrypoint/main
 ENV SERVICE=${SERVICE}
 
 EXPOSE ${PORT}
 
-COPY docker-start.sh /start.sh
+COPY scripts/docker-start.sh /start.sh
 RUN chmod +x /start.sh
 
 CMD ["/start.sh"]
