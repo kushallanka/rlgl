@@ -42,7 +42,7 @@ export const createApp = (controller: MyController, prisma?: PrismaClient, redis
   app.use(metricsMiddleware(metrics));
   app.use(requestLoggingMiddleware(logger));
 
-  // Health endpoints (required for K8s probes)
+  // Health endpoints (liveness / readiness probes)
   app.get('/health', async (_req, res) => {
     const status = await healthChecker.checkHealth();
     res.status(status.status === 'healthy' ? 200 : 503).json(status);

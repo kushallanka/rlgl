@@ -130,18 +130,6 @@ jobs:
     name: Contract tests (API snapshots)
     runs-on: ubuntu-latest
     services:
-      postgres:
-        image: postgres:16-alpine
-        env:
-          POSTGRES_USER: rlgl
-          POSTGRES_PASSWORD: rlgl
-          POSTGRES_DB: rlgl_test
-        ports: ['5432:5432']
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
       redis:
         image: redis:7-alpine
         ports: ['6379:6379']
@@ -157,7 +145,6 @@ jobs:
 
       - name: Run contract tests
         env:
-          DATABASE_URL: postgresql://rlgl:rlgl@localhost:5432/rlgl_test
           REDIS_URL: redis://localhost:6379
           JWT_SECRET: test-jwt-secret-for-ci
           NODE_ENV: test
@@ -173,18 +160,6 @@ jobs:
     name: Invariant tests (data integrity)
     runs-on: ubuntu-latest
     services:
-      postgres:
-        image: postgres:16-alpine
-        env:
-          POSTGRES_USER: rlgl
-          POSTGRES_PASSWORD: rlgl
-          POSTGRES_DB: rlgl_test
-        ports: ['5432:5432']
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
       redis:
         image: redis:7-alpine
         ports: ['6379:6379']
@@ -200,7 +175,6 @@ jobs:
 
       - name: Run invariant tests
         env:
-          DATABASE_URL: postgresql://rlgl:rlgl@localhost:5432/rlgl_test
           REDIS_URL: redis://localhost:6379
           JWT_SECRET: test-jwt-secret-for-ci
           NODE_ENV: test

@@ -8,7 +8,7 @@ RedLight GreenLight (RLGL) is a high-performance, multi-tenant SaaS platform for
 
 **Backend** — Node.js 24, TypeScript 5.8, Express.js, Prisma 5, BullMQ 5, ioredis, Pino, Zod, Helmet  
 **Frontend** — React 19, Vite 6, Tailwind CSS 4, React Router 7, TanStack Query 5, Zustand 5, React Hook Form, Framer Motion  
-**Infrastructure** — Docker / Docker Compose, Kubernetes, Terraform (AWS ECS Fargate + RDS + Elasticache + ALB)  
+**Infrastructure** — Docker / Docker Compose (self-hosted), Redis, optional Cloudflare Tunnel for public exposure  
 **Observability** — Prometheus, Grafana, Redis Streams EventBus, structured JSON logging, distributed tracing headers
 
 ---
@@ -76,10 +76,12 @@ cp .env.example .env
 # Edit .env — at minimum set JWT_SECRET
 
 # 3. Generate Prisma clients for all services
-npm run prisma:generate --workspaces
+npm run prisma:generate
 
-# 4. Apply database migrations
-npm run prisma:migrate --workspaces
+# 4. Apply database migrations (per service, SQLite under ./data)
+for svc in auth project testcase testrun; do
+  (cd services/$svc && npx prisma migrate deploy)
+done
 
 # 5. Start all services + frontend (hot reload)
 npm run dev
@@ -180,46 +182,44 @@ root/
 ├── src/                 # React 19 frontend (feature-based modules)
 │   ├── features/        # auth, project, testcase, testruns, dashboard, admin
 │   └── shared/          # components, hooks, API client, Zustand stores
-├── terraform/           # AWS infrastructure as code (ECS, RDS, ALB, VPC)
-├── k8s/                 # Kubernetes manifests (deployments, ingress, configmap)
 ├── scripts/             # Health check, backup, restore, load test
 ├── grafana/             # Dashboard provisioning
-├── prometheus/          # Prometheus config and alert rules
 ├── docs/                # Extended documentation
-└── .github/workflows/   # CI/CD pipelines
+├── docker-compose.yml   # Full self-hosted stack (services, Redis, Prometheus, Grafana)
+└── .github/workflows/   # CI pipelines (validation, e2e, performance, nightly governance)
 ```
 
 ---
 
-## Infrastructure & Deployment
+## Deployment (Self-Hosted)
 
-### Terraform (AWS)
-
-```bash
-terraform apply -var-file=terraform/production.tfvars
-```
-
-Provisions: VPC, ECS Fargate, PostgreSQL RDS (multi-AZ), Redis Elasticache, ALB.
-
-### Kubernetes
+RLGL runs anywhere Docker Compose runs — no cloud lock-in. The full stack
+(services, Redis, Prometheus, Grafana, frontend) is defined in
+[`docker-compose.yml`](docker-compose.yml).
 
 ```bash
-kubectl apply -f k8s/namespace.yaml
-kubectl apply -f k8s/secrets.yaml   # copy from secrets.yaml.example and fill in
-kubectl apply -f k8s/configmap.yaml
-envsubst < k8s/gateway-deployment.yaml | kubectl apply -f -
-# repeat for each service
-kubectl apply -f k8s/ingress.yaml
+cp .env.example .env        # set JWT_SECRET (and GRAFANA_ADMIN_PASSWORD)
+make docker-up              # build + start the full stack
+make health                 # verify every service is healthy
 ```
 
-### CI/CD (GitHub Actions)
+Databases are per-service **SQLite** files under `./data`, bind-mounted into the
+containers. Back them up with [`scripts/backup-databases.sh`](scripts/backup-databases.sh).
+
+### Public exposure (optional)
+
+A [Cloudflare Tunnel](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/)
+service (`cloudflared`) is included in the Compose stack — set `TUNNEL_TOKEN` to
+expose the gateway without opening inbound ports.
+
+### CI (GitHub Actions)
 
 | Workflow | Trigger | Action |
 |----------|---------|--------|
-| `ci.yml` | push / PR | Lint, security scan (Trivy + npm audit), build images |
-| `build.yml` | push main/develop | Type check, tests, push to ECR |
-| `deploy-staging.yml` | push main | Auto-deploy to staging ECS |
-| `deploy-production.yml` | manual | Manual-gated production deploy with rollback on SLO breach |
+| `pr-validation.yml` | push / PR | Typecheck, Semgrep, architecture rules, unit/contract/invariant tests, migration safety, security audit |
+| `e2e.yml` | push / PR | Playwright end-to-end + permission flows |
+| `performance.yml` | manual / schedule | k6 load tests, bundle analysis, Lighthouse |
+| `nightly-governance.yml` | schedule | Architecture drift, dead-code, dependency drift, engineering-health report |
 
 ---
 
@@ -234,7 +234,7 @@ cd services/testcase && npx prisma migrate dev
 cd services/testrun && npx prisma migrate dev
 ```
 
-Databases used: **SQLite** in development, **PostgreSQL RDS** in production (set via `DATABASE_URL`).
+Databases are per-service **SQLite** files (set via each service's `DATABASE_URL`), stored under `./data` and bind-mounted into the containers under Docker Compose.
 
 ---
 
@@ -261,7 +261,7 @@ node ./scripts/load-test.js
 | Doc | Description |
 |-----|-------------|
 | [Architecture](docs/architecture.md) | Complete system design, service breakdown, DB schemas, RBAC, event system |
-| [Deployment](docs/deployment.md) | Docker, Kubernetes, Terraform, backup/restore, troubleshooting |
+| [Deployment](docs/deployment.md) | Docker Compose self-hosting, backup/restore, troubleshooting |
 | [Observability](docs/observability.md) | Metrics, health checks, distributed tracing, Grafana, alerting, SLOs |
 | [Integration Guide](docs/integration.md) | Reference for service observability patterns and EventBus usage |
 

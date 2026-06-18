@@ -135,14 +135,3 @@ EOF
 
 log_info "✓ Backup manifest created: $manifest_file"
 log_info "Backup process completed successfully!"
-
-# Optional: Upload to S3 if configured
-if [ -n "$S3_BUCKET" ]; then
-    if command -v aws &>/dev/null; then
-        log_info "Uploading backups to S3..."
-        aws s3 sync "$BACKUP_DIR" "s3://$S3_BUCKET/backups/$DATE/"
-        log_info "✓ Upload complete"
-    else
-        log_warn "AWS CLI not installed, skipping S3 upload"
-    fi
-fi

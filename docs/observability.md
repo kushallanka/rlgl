@@ -68,7 +68,7 @@ Example healthy response:
 }
 ```
 
-Kubernetes uses `/health/live` for liveness probes and `/health/ready` for readiness probes.
+Use `/health/live` for liveness probes and `/health/ready` for readiness probes (e.g. from a load balancer, container orchestrator, or uptime monitor).
 
 ---
 

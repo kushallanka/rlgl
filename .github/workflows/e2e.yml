@@ -26,19 +26,6 @@ jobs:
     timeout-minutes: 30
 
     services:
-      postgres:
-        image: postgres:16-alpine
-        env:
-          POSTGRES_USER: rlgl
-          POSTGRES_PASSWORD: rlgl
-          POSTGRES_DB: rlgl_e2e
-        ports: ['5432:5432']
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
       redis:
         image: redis:7-alpine
         ports: ['6379:6379']
@@ -62,24 +49,13 @@ jobs:
         run: npm run build
 
       - name: Run database migrations (all services)
-        env:
-          AUTH_DATABASE_URL: postgresql://rlgl:rlgl@localhost:5432/rlgl_e2e_auth
-          PROJECT_DATABASE_URL: postgresql://rlgl:rlgl@localhost:5432/rlgl_e2e_project
-          TESTCASE_DATABASE_URL: postgresql://rlgl:rlgl@localhost:5432/rlgl_e2e_testcase
-          TESTRUN_DATABASE_URL: postgresql://rlgl:rlgl@localhost:5432/rlgl_e2e_testrun
         run: |
-          # Create schemas
-          PGPASSWORD=rlgl psql -h localhost -U rlgl -d rlgl_e2e -c "
-            CREATE DATABASE rlgl_e2e_auth;
-            CREATE DATABASE rlgl_e2e_project;
-            CREATE DATABASE rlgl_e2e_testcase;
-            CREATE DATABASE rlgl_e2e_testrun;
-          " 2>/dev/null || true
-
+          # Provision per-service SQLite databases under ./data
           for svc in auth project testcase testrun; do
             if [ -d "services/$svc/prisma" ]; then
               echo "Migrating $svc..."
-              DATABASE_URL="postgresql://rlgl:rlgl@localhost:5432/rlgl_e2e_$svc" \
+              mkdir -p "data/$svc"
+              DATABASE_URL="file:$PWD/data/$svc/$svc.db" \
                 npx prisma migrate deploy --schema=services/$svc/prisma/schema.prisma
             fi
           done
@@ -89,10 +65,10 @@ jobs:
           NODE_ENV: test
           JWT_SECRET: e2e-test-jwt-secret
           REDIS_URL: redis://localhost:6379
-          AUTH_DATABASE_URL: postgresql://rlgl:rlgl@localhost:5432/rlgl_e2e_auth
-          PROJECT_DATABASE_URL: postgresql://rlgl:rlgl@localhost:5432/rlgl_e2e_project
-          TESTCASE_DATABASE_URL: postgresql://rlgl:rlgl@localhost:5432/rlgl_e2e_testcase
-          TESTRUN_DATABASE_URL: postgresql://rlgl:rlgl@localhost:5432/rlgl_e2e_testrun
+          AUTH_DATABASE_URL: file:./data/auth/auth.db
+          PROJECT_DATABASE_URL: file:./data/project/project.db
+          TESTCASE_DATABASE_URL: file:./data/testcase/testcase.db
+          TESTRUN_DATABASE_URL: file:./data/testrun/testrun.db
         run: |
           npm run start &
           npx wait-on http://localhost:3000/health http://localhost:3001/health \

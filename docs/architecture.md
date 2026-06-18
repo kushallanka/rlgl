@@ -190,7 +190,7 @@ Each service owns its own isolated database schema managed via **Prisma**.
 | Environment | Database |
 |-------------|----------|
 | Development | SQLite (files in `data/`) |
-| Production | PostgreSQL RDS (multi-AZ) |
+| Production (self-hosted) | SQLite (files in `data/`, bind-mounted under Docker Compose) |
 
 Run migrations per service:
 ```bash
@@ -343,19 +343,9 @@ Gateway:3000  ──▶  Auth (internal)
                    Grafana → host:3001
 ```
 
-### Kubernetes (Production Scale)
+### Self-Hosted (Docker Compose)
 
-- 2 replicas per service with rolling updates
-- 256 Mi memory / 300 m CPU per replica
-- Liveness + readiness probes wired to `/health/live` and `/health/ready`
-- Persistent volumes for SQLite in staging; RDS for production
-
-### AWS / Terraform
-
-- **VPC** with public/private subnets across 2 availability zones
-- **ECS Fargate** for stateless container orchestration
-- **RDS PostgreSQL** multi-AZ with automated backups
-- **Elasticache Redis** for BullMQ, EventBus, and idempotency key storage
-- **ALB** with per-service target groups
-- **CloudWatch** for log aggregation
-- State stored in S3 backend
+- Single-node stack: all services, Redis, Prometheus, and Grafana via `docker-compose.yml`
+- Per-service SQLite databases bind-mounted from `./data` for persistence
+- Liveness + readiness probes exposed at `/health/live` and `/health/ready`
+- Optional Cloudflare Tunnel (`cloudflared`) for public exposure without inbound ports

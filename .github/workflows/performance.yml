@@ -87,18 +87,6 @@ jobs:
     timeout-minutes: 30
 
     services:
-      postgres:
-        image: postgres:16-alpine
-        env:
-          POSTGRES_USER: rlgl
-          POSTGRES_PASSWORD: rlgl
-          POSTGRES_DB: rlgl_perf
-        ports: ['5432:5432']
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
       redis:
         image: redis:7-alpine
         ports: ['6379:6379']
@@ -131,9 +119,18 @@ jobs:
           NODE_ENV: production
           JWT_SECRET: perf-test-jwt-secret
           REDIS_URL: redis://localhost:6379
-          DATABASE_URL: postgresql://rlgl:rlgl@localhost:5432/rlgl_perf
+          AUTH_DATABASE_URL: file:./data/auth/auth.db
+          PROJECT_DATABASE_URL: file:./data/project/project.db
+          TESTCASE_DATABASE_URL: file:./data/testcase/testcase.db
+          TESTRUN_DATABASE_URL: file:./data/testrun/testrun.db
         run: |
           npm run build --workspace=@rlgl/shared
+          # Provision per-service SQLite databases under ./data
+          for svc in auth project testcase testrun; do
+            mkdir -p "data/$svc"
+            DATABASE_URL="file:$PWD/data/$svc/$svc.db" \
+              npx prisma migrate deploy --schema="services/$svc/prisma/schema.prisma"
+          done
           npm run start &
           npx wait-on http://localhost:3000/health --timeout 60000
 

@@ -28,10 +28,12 @@ cp .env.example .env
 # Edit .env — set JWT_SECRET at minimum
 
 # 3. Generate Prisma clients
-npm run prisma:generate --workspaces
+npm run prisma:generate
 
 # 4. Apply database migrations (creates SQLite files in data/)
-npm run prisma:migrate --workspaces
+for svc in auth project testcase testrun; do
+  (cd services/$svc && npx prisma migrate deploy)
+done
 
 # 5. Start all services + frontend with hot reload
 npm run dev
@@ -98,86 +100,21 @@ docker-compose up --build
 
 ---
 
-## Kubernetes (Production Scale)
+## Scaling
 
-### Deploy
-
-```bash
-# 1. Create namespace
-kubectl apply -f k8s/namespace.yaml
-
-# 2. Configure secrets
-cp k8s/secrets.yaml.example k8s/secrets.yaml
-# Edit k8s/secrets.yaml with your values (base64-encoded)
-kubectl apply -f k8s/secrets.yaml
-
-# 3. Apply ConfigMap
-kubectl apply -f k8s/configmap.yaml
-
-# 4. Deploy each service (supply REGISTRY and IMAGE_TAG)
-export REGISTRY=ghcr.io/your-org
-export IMAGE_TAG=latest
-
-for svc in gateway auth project testcase testrun worker; do
-  envsubst < k8s/${svc}-deployment.yaml | kubectl apply -f -
-done
-
-# 5. Apply ingress
-kubectl apply -f k8s/ingress.yaml
-```
-
-### Configuration
-
-| Parameter | Default | Notes |
-|-----------|---------|-------|
-| Replicas | 2 per service | Rolling update strategy |
-| Memory limit | 256 Mi | Adjust for worker if needed |
-| CPU limit | 300 m | |
-| Liveness probe | `/health/live` | Restart if unhealthy |
-| Readiness probe | `/health/ready` | Remove from LB until ready |
-
-### Scale
-
-```bash
-kubectl scale deployment gateway --replicas=5 -n rlgl
-```
+RLGL is a single-node, self-hosted stack. To handle more load, scale vertically
+(more CPU/RAM on the host) or run multiple gateway replicas behind your own
+reverse proxy. The services are stateless except for their SQLite databases, so
+horizontal scaling of the data services would require migrating to a networked
+database first (not currently supported — see the OSS roadmap).
 
 ---
 
-## Terraform / AWS (Infrastructure as Code)
+## Continuous Integration
 
-### Staging
-
-```bash
-cd terraform
-terraform init
-terraform apply -var-file=staging.tfvars
-```
-
-### Production
-
-```bash
-terraform apply -var-file=production.tfvars
-```
-
-**Resources provisioned:**
-- VPC with public/private subnets across 2 AZs
-- ECS Fargate cluster + task definitions for each service
-- PostgreSQL RDS multi-AZ (automated backups, failover)
-- Redis Elasticache
-- Application Load Balancer with per-service target groups
-- Security groups with strict ingress/egress rules
-- CloudWatch log groups
-- S3 backend for Terraform state
-
-### CI/CD Pipelines
-
-| Workflow | Trigger | What it does |
-|----------|---------|--------------|
-| `ci.yml` | push / PR | Lint, security scan (Trivy + npm audit), build Docker images |
-| `build.yml` | push main/develop | Type check, tests, push images to ECR with git SHA tag |
-| `deploy-staging.yml` | push main | Auto-deploy to staging ECS cluster |
-| `deploy-production.yml` | manual | Manual-gated production deploy, rolls back on SLO breach |
+CI runs on GitHub Actions — see the workflow table in the
+[README](../README.md#ci-github-actions). There is **no cloud deploy pipeline**:
+RLGL is self-hosted via Docker Compose (above).
 
 ---
 
@@ -225,9 +162,6 @@ cd services/testrun  && npx prisma migrate deploy
 
 # Custom retention
 RETENTION_DAYS=7 ./scripts/backup-databases.sh
-
-# Backup directly to S3
-S3_BUCKET=my-backup-bucket ./scripts/backup-databases.sh
 ```
 
 ### Restore
@@ -253,8 +187,7 @@ ls -la backups/*.db.gz
 - **Bcryptjs** — strong password hashing
 - **Rate limiting** — `express-rate-limit` on sensitive routes
 - **Prisma ORM** — parameterized queries prevent SQL injection
-- **Kubernetes secrets** — for production credentials; `.env` files for local only
-- Never commit `.env` or `k8s/secrets.yaml` to Git
+- **Secrets** — keep credentials in `.env` / Docker environment variables; never commit `.env` to Git
 
 ---
 
@@ -264,8 +197,8 @@ All services expose:
 
 ```
 GET /health         Full health with dependency checks (DB, Redis)
-GET /health/live    Kubernetes liveness probe
-GET /health/ready   Kubernetes readiness probe
+GET /health/live    Liveness probe (process is up)
+GET /health/ready   Readiness probe (dependencies ready)
 GET /metrics        Prometheus text format
 GET /metrics/json   JSON format
 ```
@@ -321,9 +254,6 @@ docker stats
 
 # View slow requests in structured logs
 docker-compose logs -f gateway | grep '"duration"'
-
-# Scale a service (Kubernetes)
-kubectl scale deployment gateway --replicas=5 -n rlgl
 ```
 
 ### Grafana login
