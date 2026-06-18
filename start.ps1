@@ -13,10 +13,9 @@ $attempts = 0
 while (-not $url -and $attempts -lt 30) {
     Start-Sleep -Seconds 3
     $logs = docker compose logs cloudflared 2>&1
-    $match = $logs | Select-String "trycloudflare.com"
+    $match = $logs | Select-String "trycloudflare\.com"
     if ($match) {
-        $url = ($match.Line -split "https://")[1] -split " " | Select-Object -First 1
-        $url = "https://$url"
+        $url = [regex]::Match($match.Line, 'https://[a-zA-Z0-9\-]+\.trycloudflare\.com').Value
     }
     $attempts++
 }
