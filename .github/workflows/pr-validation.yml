@@ -244,35 +244,43 @@ jobs:
         with:
           fetch-depth: 0
 
-      # Git-diff analysis + optional global tool — no workspace install needed
-      - name: Check for OpenAPI changes
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Regenerate the spec from controller annotations and fail if the committed
+      # docs/openapi.json is stale — keeps the published contract honest.
+      - name: Regenerate OpenAPI spec
+        run: npm run generate:openapi
+
+      - name: Check committed spec is up to date
+        run: |
+          if [ -n "$(git status --porcelain -- docs/openapi.json)" ]; then
+            echo "::error::docs/openapi.json is missing or out of date. Run 'npm run generate:openapi' and commit the result."
+            git diff -- docs/openapi.json
+            exit 1
+          fi
+          echo "Committed OpenAPI spec matches generated output."
+
+      # Non-blocking: surface breaking changes vs the PR base for reviewer awareness.
+      - name: Diff against base for breaking changes
         run: |
           BASE="${{ github.event.pull_request.base.sha }}"
-          CHANGED=$(git diff --name-only "$BASE" HEAD -- "**openapi**" "**swagger**" "**/api-spec*" 2>/dev/null || echo "")
-
-          if [ -z "$CHANGED" ]; then
-            echo "No OpenAPI spec changes detected."
+          if ! git show "$BASE:docs/openapi.json" > /tmp/base-openapi.json 2>/dev/null; then
+            echo "::notice::No base spec to diff against (new file). Skipping breaking-change check."
             exit 0
           fi
-
-          echo "OpenAPI changes detected in:"
-          echo "$CHANGED"
-          echo "::warning::OpenAPI spec changed — verify consumers are not broken (check contract tests)"
-
-      - name: Install openapi-diff
-        run: npm install -g @openapitools/openapi-diff 2>/dev/null || true
-
-      - name: Run OpenAPI diff if specs exist
-        run: |
-          if ls docs/openapi*.json 2>/dev/null | head -1 | grep -q .; then
-            echo "OpenAPI spec files found, running diff..."
-            # Extract base version and compare
-            git stash 2>/dev/null || true
-            # (Full diff implementation requires spec generation — see docs/observability.md)
-            git stash pop 2>/dev/null || true
-          else
-            echo "::notice::No OpenAPI spec files found in docs/. Generate them with npm run generate:openapi"
+          if git diff --quiet "$BASE" HEAD -- docs/openapi.json; then
+            echo "No OpenAPI changes vs base."
+            exit 0
           fi
+          echo "OpenAPI spec changed vs base — running breaking-change diff..."
+          npx --yes @openapitools/openapi-diff --fail-on-incompatible /tmp/base-openapi.json docs/openapi.json \
+            || echo "::warning::Potentially breaking OpenAPI changes detected — verify consumers and contract tests."
 
   # ─── 9. PR Blast-Radius Analysis ─────────────────────────────────────────────
   blast-radius:

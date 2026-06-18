@@ -1,0 +1,2492 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Red Light Green Light Platform API",
+    "version": "1.0.0",
+    "description": "Unified public API served through the gateway. Generated from per-service controller annotations — do not edit by hand (run `npm run generate:openapi`).",
+    "contact": {
+      "name": "Red Light Green Light Support"
+    }
+  },
+  "servers": [
+    {
+      "url": "/",
+      "description": "API Gateway"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Auth",
+      "description": "Authentication and Identity Management"
+    },
+    {
+      "name": "Organizations",
+      "description": "Multi-tenant organization management"
+    },
+    {
+      "name": "Project Access",
+      "description": "Roles, role assignments, and permission lookups"
+    },
+    {
+      "name": "Project Config",
+      "description": "Per-project configuration (types, priorities, custom fields, schema)"
+    },
+    {
+      "name": "Projects",
+      "description": "Project management"
+    },
+    {
+      "name": "TestCases",
+      "description": "Test Case management (Suites, Sections, Cases)"
+    },
+    {
+      "name": "TestRuns",
+      "description": "Test Execution and Results management"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "AuthResponse": {
+        "properties": {
+          "accessToken": {
+            "type": "string"
+          },
+          "refreshToken": {
+            "type": "string"
+          },
+          "user": {
+            "$ref": "#/components/schemas/User"
+          }
+        },
+        "type": "object"
+      },
+      "CreateProjectRequest": {
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "type": "object"
+      },
+      "Organization": {
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "plan": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "Project": {
+        "properties": {
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "Section": {
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "suiteId": {
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "SectionInput": {
+        "properties": {
+          "name": {
+            "maxLength": 100,
+            "type": "string"
+          },
+          "suiteId": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "name",
+          "suiteId"
+        ],
+        "type": "object"
+      },
+      "Suite": {
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "projectId": {
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "SuiteInput": {
+        "properties": {
+          "description": {
+            "maxLength": 500,
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 100,
+            "type": "string"
+          },
+          "projectId": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "name",
+          "projectId"
+        ],
+        "type": "object"
+      },
+      "TestCaseInput": {
+        "properties": {
+          "customFieldValues": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "description": {
+            "maxLength": 2000,
+            "type": "string"
+          },
+          "expectedResult": {
+            "maxLength": 1000,
+            "type": "string"
+          },
+          "preconditions": {
+            "maxLength": 1000,
+            "type": "string"
+          },
+          "priority": {
+            "type": "string"
+          },
+          "projectId": {
+            "type": "integer"
+          },
+          "sectionId": {
+            "type": "integer"
+          },
+          "steps": {
+            "description": "Ordered list of step objects (at least one required)",
+            "items": {
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "suiteId": {
+            "type": "integer"
+          },
+          "title": {
+            "maxLength": 200,
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "steps",
+          "sectionId",
+          "suiteId",
+          "projectId"
+        ],
+        "type": "object"
+      },
+      "TestResult": {
+        "properties": {
+          "comment": {
+            "type": "string"
+          },
+          "id": {
+            "type": "integer"
+          },
+          "status": {
+            "enum": [
+              "passed",
+              "failed",
+              "blocked",
+              "skipped",
+              "untested"
+            ],
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "TestRun": {
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "projectId": {
+            "type": "integer"
+          },
+          "status": {
+            "enum": [
+              "open",
+              "closed"
+            ],
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "TestRunInput": {
+        "properties": {
+          "caseIds": {
+            "description": "One or more test case IDs to include in the run",
+            "items": {
+              "type": "integer"
+            },
+            "type": "array"
+          },
+          "description": {
+            "maxLength": 500,
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 200,
+            "type": "string"
+          },
+          "projectId": {
+            "type": "integer"
+          },
+          "suiteId": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "name",
+          "projectId",
+          "caseIds"
+        ],
+        "type": "object"
+      },
+      "UpdateResultInput": {
+        "properties": {
+          "comment": {
+            "maxLength": 1000,
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "Passed",
+              "Failed",
+              "Blocked",
+              "Untested"
+            ],
+            "type": "string"
+          },
+          "version": {
+            "description": "Optimistic-concurrency token; update fails with 409 if stale",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "type": "object"
+      },
+      "UpdateTestRunInput": {
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "version": {
+            "description": "Optimistic-concurrency token; update fails with 409 if stale",
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "User": {
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "firstName": {
+            "type": "string"
+          },
+          "id": {
+            "type": "integer"
+          },
+          "lastName": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          },
+          "systemPermissions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      }
+    }
+  },
+  "security": [
+    {
+      "BearerAuth": []
+    }
+  ],
+  "paths": {
+    "/api/v1/auth/internal/projects/{projectId}/init-admin": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "projectId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "userId": {
+                    "type": "integer"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Admin initialized successfully"
+          }
+        },
+        "summary": "Initialize project admin (Internal)",
+        "tags": [
+          "IAM"
+        ]
+      }
+    },
+    "/api/v1/auth/login": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "email": {
+                    "type": "string"
+                  },
+                  "password": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "email",
+                  "password"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse"
+                }
+              }
+            },
+            "description": "Login successful"
+          },
+          "401": {
+            "description": "Invalid credentials"
+          }
+        },
+        "security": [],
+        "summary": "Authenticate user and return tokens",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/api/v1/auth/logout": {
+      "post": {
+        "responses": {
+          "200": {
+            "description": "Logged out successfully"
+          }
+        },
+        "summary": "Log out user and clear cookies",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/api/v1/auth/me": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "id": {
+                      "type": "integer"
+                    }
+                  },
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Current user ID"
+          },
+          "401": {
+            "description": "Not authenticated"
+          }
+        },
+        "summary": "Get current user context",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/api/v1/auth/orgs": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Organizations for the current user"
+          },
+          "401": {
+            "description": "Not authenticated"
+          }
+        },
+        "summary": "List organizations the current user belongs to",
+        "tags": [
+          "Organizations"
+        ]
+      },
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "slug": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Organization created"
+          },
+          "400": {
+            "description": "Invalid or reserved slug"
+          },
+          "409": {
+            "description": "Slug already taken"
+          }
+        },
+        "summary": "Create a new organization (creator becomes owner)",
+        "tags": [
+          "Organizations"
+        ]
+      }
+    },
+    "/api/v1/auth/orgs/{orgId}": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "orgId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Organization details"
+          },
+          "403": {
+            "description": "Not a member"
+          },
+          "404": {
+            "description": "Organization not found"
+          }
+        },
+        "summary": "Get an organization (members only)",
+        "tags": [
+          "Organizations"
+        ]
+      },
+      "patch": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "orgId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "plan": {
+                    "type": "string"
+                  },
+                  "version": {
+                    "description": "Version the client last read (CAS)",
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "version"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Organization updated"
+          },
+          "403": {
+            "description": "Insufficient role"
+          },
+          "409": {
+            "description": "Version conflict"
+          }
+        },
+        "summary": "Update an organization (owner/admin, optimistic concurrency)",
+        "tags": [
+          "Organizations"
+        ]
+      }
+    },
+    "/api/v1/auth/orgs/{orgId}/audit-log": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "orgId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Audit log entries, newest first"
+          },
+          "403": {
+            "description": "Insufficient role"
+          }
+        },
+        "summary": "Read the append-only audit log (owner/admin only)",
+        "tags": [
+          "Organizations"
+        ]
+      }
+    },
+    "/api/v1/auth/orgs/{orgId}/members": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "orgId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "role": {
+                    "enum": [
+                      "owner",
+                      "admin",
+                      "member",
+                      "viewer"
+                    ],
+                    "type": "string"
+                  },
+                  "userId": {
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "userId"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Member added"
+          },
+          "403": {
+            "description": "Insufficient role or privilege escalation attempt"
+          }
+        },
+        "summary": "Add or update a member (owner/admin; only owners assign owner)",
+        "tags": [
+          "Organizations"
+        ]
+      }
+    },
+    "/api/v1/auth/orgs/{orgId}/members/{userId}": {
+      "delete": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "orgId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Member removed"
+          },
+          "400": {
+            "description": "Cannot remove the last owner"
+          },
+          "403": {
+            "description": "Insufficient role"
+          }
+        },
+        "summary": "Remove a member (owner/admin; last owner protected)",
+        "tags": [
+          "Organizations"
+        ]
+      }
+    },
+    "/api/v1/auth/refresh": {
+      "post": {
+        "responses": {
+          "200": {
+            "description": "Tokens refreshed successfully"
+          },
+          "401": {
+            "description": "Invalid refresh token"
+          }
+        },
+        "security": [],
+        "summary": "Refresh access token using refresh token cookie",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/api/v1/auth/signup": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "email": {
+                    "type": "string"
+                  },
+                  "firstName": {
+                    "type": "string"
+                  },
+                  "lastName": {
+                    "type": "string"
+                  },
+                  "password": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "email",
+                  "password"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse"
+                }
+              }
+            },
+            "description": "User created successfully"
+          },
+          "400": {
+            "description": "User already exists"
+          }
+        },
+        "security": [],
+        "summary": "Create a new user account",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/api/v1/auth/users": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/User"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "List of users"
+          }
+        },
+        "summary": "List all users",
+        "tags": [
+          "Users"
+        ]
+      }
+    },
+    "/api/v1/auth/users/{userId}/projects": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of project IDs"
+          }
+        },
+        "summary": "List project IDs for a user (IAM)",
+        "tags": [
+          "IAM"
+        ]
+      }
+    },
+    "/api/v1/auth/users/{userId}/projects/{projectId}/permissions": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "projectId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of permissions"
+          }
+        },
+        "summary": "Get permissions for a user in a project (IAM)",
+        "tags": [
+          "IAM"
+        ]
+      }
+    },
+    "/api/v1/projects": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "data": {
+                      "items": {
+                        "$ref": "#/components/schemas/Project"
+                      },
+                      "type": "array"
+                    }
+                  },
+                  "type": "object"
+                }
+              }
+            },
+            "description": "List of projects"
+          }
+        },
+        "summary": "List projects for current user",
+        "tags": [
+          "Projects"
+        ]
+      },
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateProjectRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Project"
+                }
+              }
+            },
+            "description": "Project created successfully"
+          },
+          "403": {
+            "description": "Forbidden - Insufficient permissions"
+          }
+        },
+        "summary": "Create a new project",
+        "tags": [
+          "Projects"
+        ]
+      }
+    },
+    "/api/v1/projects/{id}": {
+      "delete": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deleted"
+          },
+          "404": {
+            "description": "Project not found"
+          }
+        },
+        "summary": "Delete a project",
+        "tags": [
+          "Projects"
+        ]
+      },
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Project"
+                }
+              }
+            },
+            "description": "Project details"
+          },
+          "404": {
+            "description": "Project not found"
+          }
+        },
+        "summary": "Get a single project by ID",
+        "tags": [
+          "Projects"
+        ]
+      },
+      "put": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateProjectRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Updated project"
+          },
+          "404": {
+            "description": "Project not found"
+          }
+        },
+        "summary": "Update a project",
+        "tags": [
+          "Projects"
+        ]
+      }
+    },
+    "/api/v1/projects/{projectId}/activities": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "projectId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Activity entries"
+          }
+        },
+        "summary": "List recent activity / audit entries for a project",
+        "tags": [
+          "Project Config"
+        ]
+      }
+    },
+    "/api/v1/projects/{projectId}/config/audit": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "projectId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Audit entries"
+          }
+        },
+        "summary": "List config audit entries for a project (alias of /activities)",
+        "tags": [
+          "Project Config"
+        ]
+      }
+    },
+    "/api/v1/projects/{projectId}/config/fields": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "projectId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "description": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "required": {
+                    "type": "boolean"
+                  },
+                  "type": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name",
+                  "type"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created custom field"
+          }
+        },
+        "summary": "Create a custom field",
+        "tags": [
+          "Project Config"
+        ]
+      }
+    },
+    "/api/v1/projects/{projectId}/config/fields/{fieldId}": {
+      "delete": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "projectId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "fieldId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deleted"
+          }
+        },
+        "summary": "Delete a custom field",
+        "tags": [
+          "Project Config"
+        ]
+      },
+      "put": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "projectId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "fieldId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Updated custom field"
+          }
+        },
+        "summary": "Update a custom field",
+        "tags": [
+          "Project Config"
+        ]
+      }
+    },
+    "/api/v1/projects/{projectId}/config/priorities": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "projectId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "color": {
+                    "type": "string"
+                  },
+                  "level": {
+                    "type": "integer"
+                  },
+                  "name": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created priority"
+          }
+        },
+        "summary": "Create a priority",
+        "tags": [
+          "Project Config"
+        ]
+      }
+    },
+    "/api/v1/projects/{projectId}/config/priorities/{priorityId}": {
+      "delete": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "projectId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "priorityId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deleted"
+          }
+        },
+        "summary": "Delete a priority",
+        "tags": [
+          "Project Config"
+        ]
+      },
+      "put": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "projectId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "priorityId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Updated priority"
+          }
+        },
+        "summary": "Update a priority",
+        "tags": [
+          "Project Config"
+        ]
+      }
+    },
+    "/api/v1/projects/{projectId}/config/schema": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "projectId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Project config schema"
+          }
+        },
+        "summary": "Get the resolved config schema (types, priorities, fields) for a project",
+        "tags": [
+          "Project Config"
+        ]
+      }
+    },
+    "/api/v1/projects/{projectId}/config/types": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "projectId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "color": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created type"
+          }
+        },
+        "summary": "Create a test-case type",
+        "tags": [
+          "Project Config"
+        ]
+      }
+    },
+    "/api/v1/projects/{projectId}/config/types/{typeId}": {
+      "delete": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "projectId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "typeId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deleted"
+          }
+        },
+        "summary": "Delete a test-case type",
+        "tags": [
+          "Project Config"
+        ]
+      },
+      "put": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "projectId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "typeId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Updated type"
+          }
+        },
+        "summary": "Update a test-case type",
+        "tags": [
+          "Project Config"
+        ]
+      }
+    },
+    "/api/v1/projects/{projectId}/permissions/mine": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "projectId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "permissions": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array"
+                    }
+                  },
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Permission list"
+          }
+        },
+        "summary": "Get the calling user's effective permissions for a project",
+        "tags": [
+          "Project Access"
+        ]
+      }
+    },
+    "/api/v1/projects/{projectId}/roles": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "projectId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of roles"
+          }
+        },
+        "summary": "List roles defined in a project",
+        "tags": [
+          "Project Access"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "projectId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "description": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "permissions": {
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  }
+                },
+                "required": [
+                  "name"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created role"
+          }
+        },
+        "summary": "Create a role in a project",
+        "tags": [
+          "Project Access"
+        ]
+      }
+    },
+    "/api/v1/projects/{projectId}/roles/{roleId}": {
+      "delete": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "projectId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "roleId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deleted"
+          }
+        },
+        "summary": "Delete a role",
+        "tags": [
+          "Project Access"
+        ]
+      },
+      "put": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "projectId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "roleId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Updated role"
+          }
+        },
+        "summary": "Update a role",
+        "tags": [
+          "Project Access"
+        ]
+      }
+    },
+    "/api/v1/projects/{projectId}/users/roles": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "projectId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User-role assignments"
+          }
+        },
+        "summary": "List users and their assigned roles in a project",
+        "tags": [
+          "Project Access"
+        ]
+      }
+    },
+    "/api/v1/projects/{projectId}/users/{userId}/roles": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "projectId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "roleId": {
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "roleId"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Role assigned"
+          },
+          "400": {
+            "description": "User already has this role"
+          }
+        },
+        "summary": "Assign a role to a user in a project",
+        "tags": [
+          "Project Access"
+        ]
+      }
+    },
+    "/api/v1/projects/{projectId}/users/{userId}/roles/{roleId}": {
+      "delete": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "projectId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "roleId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Role removed"
+          }
+        },
+        "summary": "Remove a role assignment from a user",
+        "tags": [
+          "Project Access"
+        ]
+      }
+    },
+    "/api/v1/testcases/cases": {
+      "get": {
+        "parameters": [
+          {
+            "in": "header",
+            "name": "x-project-id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "suiteId",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sectionId",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated list of test cases"
+          }
+        },
+        "summary": "List test cases in a project (optionally filtered by suite or section)",
+        "tags": [
+          "TestCases"
+        ]
+      },
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TestCaseInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created test case"
+          }
+        },
+        "summary": "Create a new test case",
+        "tags": [
+          "TestCases"
+        ]
+      }
+    },
+    "/api/v1/testcases/cases/{id}": {
+      "delete": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-project-id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deleted"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        },
+        "summary": "Soft-delete a test case",
+        "tags": [
+          "TestCases"
+        ]
+      },
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Test case"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        },
+        "summary": "Get a single test case by ID",
+        "tags": [
+          "TestCases"
+        ]
+      },
+      "put": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-project-id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TestCaseInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Updated test case"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "409": {
+            "description": "Version conflict (optimistic concurrency)"
+          }
+        },
+        "summary": "Update a test case",
+        "tags": [
+          "TestCases"
+        ]
+      }
+    },
+    "/api/v1/testcases/sections": {
+      "get": {
+        "parameters": [
+          {
+            "in": "header",
+            "name": "x-project-id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "suiteId",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Section"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "List of sections"
+          }
+        },
+        "summary": "List sections in a project (optionally filtered by suite)",
+        "tags": [
+          "TestCases"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "in": "header",
+            "name": "x-project-id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SectionInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Section"
+                }
+              }
+            },
+            "description": "Created section"
+          }
+        },
+        "summary": "Create a new section",
+        "tags": [
+          "TestCases"
+        ]
+      }
+    },
+    "/api/v1/testcases/sections/{id}": {
+      "delete": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-project-id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deleted"
+          },
+          "404": {
+            "description": "Section not found"
+          }
+        },
+        "summary": "Delete a section (cascades to its cases)",
+        "tags": [
+          "TestCases"
+        ]
+      },
+      "put": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-project-id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Updated section"
+          },
+          "404": {
+            "description": "Section not found"
+          }
+        },
+        "summary": "Update a section",
+        "tags": [
+          "TestCases"
+        ]
+      }
+    },
+    "/api/v1/testcases/suites": {
+      "get": {
+        "parameters": [
+          {
+            "in": "header",
+            "name": "x-project-id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "data": {
+                      "items": {
+                        "$ref": "#/components/schemas/Suite"
+                      },
+                      "type": "array"
+                    }
+                  },
+                  "type": "object"
+                }
+              }
+            },
+            "description": "List of suites"
+          }
+        },
+        "summary": "List all test suites in a project",
+        "tags": [
+          "TestCases"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "in": "header",
+            "name": "x-project-id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SuiteInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Suite"
+                }
+              }
+            },
+            "description": "Created suite"
+          },
+          "403": {
+            "description": "projectId mismatch with x-project-id header"
+          }
+        },
+        "summary": "Create a new test suite",
+        "tags": [
+          "TestCases"
+        ]
+      }
+    },
+    "/api/v1/testcases/suites/{id}": {
+      "delete": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-project-id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deleted"
+          },
+          "404": {
+            "description": "Suite not found"
+          }
+        },
+        "summary": "Delete a test suite (cascades to its sections and cases)",
+        "tags": [
+          "TestCases"
+        ]
+      },
+      "put": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-project-id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Updated suite"
+          },
+          "404": {
+            "description": "Suite not found"
+          }
+        },
+        "summary": "Update a test suite",
+        "tags": [
+          "TestCases"
+        ]
+      }
+    },
+    "/api/v1/testruns": {
+      "get": {
+        "parameters": [
+          {
+            "in": "header",
+            "name": "x-project-id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/TestRun"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "List of test runs"
+          }
+        },
+        "summary": "List all test runs in a project",
+        "tags": [
+          "TestRuns"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "in": "header",
+            "name": "x-project-id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Optional key to make run creation idempotent on retry",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TestRunInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestRun"
+                }
+              }
+            },
+            "description": "Created test run"
+          },
+          "400": {
+            "description": "Validation failed or invalid case IDs"
+          },
+          "403": {
+            "description": "projectId mismatch with x-project-id header"
+          }
+        },
+        "summary": "Create a new test run",
+        "tags": [
+          "TestRuns"
+        ]
+      }
+    },
+    "/api/v1/testruns/results/{resultId}": {
+      "put": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "resultId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-project-id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateResultInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestResult"
+                }
+              }
+            },
+            "description": "Updated test result"
+          },
+          "404": {
+            "description": "Test result not found"
+          },
+          "409": {
+            "description": "Version conflict (optimistic concurrency)"
+          }
+        },
+        "summary": "Record or update the outcome of a single test result",
+        "tags": [
+          "TestRuns"
+        ]
+      }
+    },
+    "/api/v1/testruns/{id}": {
+      "delete": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-project-id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deleted"
+          },
+          "404": {
+            "description": "Test run not found"
+          }
+        },
+        "summary": "Delete a test run",
+        "tags": [
+          "TestRuns"
+        ]
+      },
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-project-id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestRun"
+                }
+              }
+            },
+            "description": "Test run"
+          },
+          "404": {
+            "description": "Test run not found"
+          }
+        },
+        "summary": "Get a single test run (with its results) by ID",
+        "tags": [
+          "TestRuns"
+        ]
+      },
+      "put": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-project-id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTestRunInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Updated test run"
+          },
+          "404": {
+            "description": "Test run not found"
+          },
+          "409": {
+            "description": "Version conflict (optimistic concurrency)"
+          }
+        },
+        "summary": "Update a test run's metadata",
+        "tags": [
+          "TestRuns"
+        ]
+      }
+    }
+  }
+}

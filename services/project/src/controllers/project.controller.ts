@@ -5,9 +5,13 @@ import { ProjectService } from '../services/project.service.js';
 /**
  * @swagger
  * tags:
- *   name: Projects
- *   description: Project management and configuration
- * 
+ *   - name: Projects
+ *     description: Project management
+ *   - name: Project Config
+ *     description: Per-project configuration (types, priorities, custom fields, schema)
+ *   - name: Project Access
+ *     description: Roles, role assignments, and permission lookups
+ *
  * components:
  *   schemas:
  *     Project:
@@ -143,6 +147,44 @@ export class ProjectController {
     } catch (err) { return next(err); }
   };
 
+  /**
+   * @swagger
+   * /{id}:
+   *   put:
+   *     summary: Update a project
+   *     tags: [Projects]
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: integer
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             $ref: '#/components/schemas/CreateProjectRequest'
+   *     responses:
+   *       200:
+   *         description: Updated project
+   *       404:
+   *         description: Project not found
+   *   delete:
+   *     summary: Delete a project
+   *     tags: [Projects]
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: integer
+   *     responses:
+   *       204:
+   *         description: Deleted
+   *       404:
+   *         description: Project not found
+   */
   update = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const context = (req as any).context;
@@ -162,6 +204,22 @@ export class ProjectController {
     } catch (err) { return next(err); }
   };
 
+  /**
+   * @swagger
+   * /{projectId}/config/schema:
+   *   get:
+   *     summary: Get the resolved config schema (types, priorities, fields) for a project
+   *     tags: [Project Config]
+   *     parameters:
+   *       - in: path
+   *         name: projectId
+   *         required: true
+   *         schema:
+   *           type: integer
+   *     responses:
+   *       200:
+   *         description: Project config schema
+   */
   getSchema = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const projectId = parseInt(req.params.projectId ?? '', 10);
@@ -171,6 +229,31 @@ export class ProjectController {
     } catch (err) { return next(err); }
   };
 
+  /**
+   * @swagger
+   * /{projectId}/permissions/mine:
+   *   get:
+   *     summary: Get the calling user's effective permissions for a project
+   *     tags: [Project Access]
+   *     parameters:
+   *       - in: path
+   *         name: projectId
+   *         required: true
+   *         schema:
+   *           type: integer
+   *     responses:
+   *       200:
+   *         description: Permission list
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 permissions:
+   *                   type: array
+   *                   items:
+   *                     type: string
+   */
   getMyPermissions = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { userId: userIdStr, systemPermissions } = (req as any).context || {};
@@ -199,6 +282,50 @@ export class ProjectController {
     }
   };
 
+  /**
+   * @swagger
+   * /{projectId}/roles:
+   *   get:
+   *     summary: List roles defined in a project
+   *     tags: [Project Access]
+   *     parameters:
+   *       - in: path
+   *         name: projectId
+   *         required: true
+   *         schema:
+   *           type: integer
+   *     responses:
+   *       200:
+   *         description: List of roles
+   *   post:
+   *     summary: Create a role in a project
+   *     tags: [Project Access]
+   *     parameters:
+   *       - in: path
+   *         name: projectId
+   *         required: true
+   *         schema:
+   *           type: integer
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required: [name]
+   *             properties:
+   *               name:
+   *                 type: string
+   *               description:
+   *                 type: string
+   *               permissions:
+   *                 type: array
+   *                 items:
+   *                   type: string
+   *     responses:
+   *       201:
+   *         description: Created role
+   */
   getRoles = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const projectId = parseInt(req.params.projectId ?? '', 10);
@@ -222,6 +349,44 @@ export class ProjectController {
     }
   };
 
+  /**
+   * @swagger
+   * /{projectId}/roles/{roleId}:
+   *   put:
+   *     summary: Update a role
+   *     tags: [Project Access]
+   *     parameters:
+   *       - in: path
+   *         name: projectId
+   *         required: true
+   *         schema:
+   *           type: integer
+   *       - in: path
+   *         name: roleId
+   *         required: true
+   *         schema:
+   *           type: integer
+   *     responses:
+   *       200:
+   *         description: Updated role
+   *   delete:
+   *     summary: Delete a role
+   *     tags: [Project Access]
+   *     parameters:
+   *       - in: path
+   *         name: projectId
+   *         required: true
+   *         schema:
+   *           type: integer
+   *       - in: path
+   *         name: roleId
+   *         required: true
+   *         schema:
+   *           type: integer
+   *     responses:
+   *       204:
+   *         description: Deleted
+   */
   updateRole = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const roleId = parseInt(req.params.roleId ?? '', 10);
@@ -246,6 +411,22 @@ export class ProjectController {
     }
   };
 
+  /**
+   * @swagger
+   * /{projectId}/users/roles:
+   *   get:
+   *     summary: List users and their assigned roles in a project
+   *     tags: [Project Access]
+   *     parameters:
+   *       - in: path
+   *         name: projectId
+   *         required: true
+   *         schema:
+   *           type: integer
+   *     responses:
+   *       200:
+   *         description: User-role assignments
+   */
   getUserRoles = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const projectId = parseInt(req.params.projectId ?? '', 10);
@@ -257,6 +438,39 @@ export class ProjectController {
     }
   };
 
+  /**
+   * @swagger
+   * /{projectId}/users/{userId}/roles:
+   *   post:
+   *     summary: Assign a role to a user in a project
+   *     tags: [Project Access]
+   *     parameters:
+   *       - in: path
+   *         name: projectId
+   *         required: true
+   *         schema:
+   *           type: integer
+   *       - in: path
+   *         name: userId
+   *         required: true
+   *         schema:
+   *           type: integer
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required: [roleId]
+   *             properties:
+   *               roleId:
+   *                 type: integer
+   *     responses:
+   *       201:
+   *         description: Role assigned
+   *       400:
+   *         description: User already has this role
+   */
   assignUserRole = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const context = (req as any).context;
@@ -274,6 +488,32 @@ export class ProjectController {
     }
   };
 
+  /**
+   * @swagger
+   * /{projectId}/users/{userId}/roles/{roleId}:
+   *   delete:
+   *     summary: Remove a role assignment from a user
+   *     tags: [Project Access]
+   *     parameters:
+   *       - in: path
+   *         name: projectId
+   *         required: true
+   *         schema:
+   *           type: integer
+   *       - in: path
+   *         name: userId
+   *         required: true
+   *         schema:
+   *           type: integer
+   *       - in: path
+   *         name: roleId
+   *         required: true
+   *         schema:
+   *           type: integer
+   *     responses:
+   *       204:
+   *         description: Role removed
+   */
   removeUserRole = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const context = (req as any).context;
@@ -288,6 +528,35 @@ export class ProjectController {
     }
   };
 
+  /**
+   * @swagger
+   * /{projectId}/activities:
+   *   get:
+   *     summary: List recent activity / audit entries for a project
+   *     tags: [Project Config]
+   *     parameters:
+   *       - in: path
+   *         name: projectId
+   *         required: true
+   *         schema:
+   *           type: integer
+   *     responses:
+   *       200:
+   *         description: Activity entries
+   * /{projectId}/config/audit:
+   *   get:
+   *     summary: List config audit entries for a project (alias of /activities)
+   *     tags: [Project Config]
+   *     parameters:
+   *       - in: path
+   *         name: projectId
+   *         required: true
+   *         schema:
+   *           type: integer
+   *     responses:
+   *       200:
+   *         description: Audit entries
+   */
   getActivities = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const projectId = parseInt(req.params.projectId ?? '', 10);
@@ -302,6 +571,36 @@ export class ProjectController {
   };
 
   // Test Case Types
+  /**
+   * @swagger
+   * /{projectId}/config/types:
+   *   post:
+   *     summary: Create a test-case type
+   *     tags: [Project Config]
+   *     parameters:
+   *       - in: path
+   *         name: projectId
+   *         required: true
+   *         schema:
+   *           type: integer
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required: [name]
+   *             properties:
+   *               name:
+   *                 type: string
+   *               description:
+   *                 type: string
+   *               color:
+   *                 type: string
+   *     responses:
+   *       201:
+   *         description: Created type
+   */
   createType = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const projectId = parseInt(req.params.projectId ?? '', 10);
@@ -314,6 +613,44 @@ export class ProjectController {
     }
   };
 
+  /**
+   * @swagger
+   * /{projectId}/config/types/{typeId}:
+   *   put:
+   *     summary: Update a test-case type
+   *     tags: [Project Config]
+   *     parameters:
+   *       - in: path
+   *         name: projectId
+   *         required: true
+   *         schema:
+   *           type: integer
+   *       - in: path
+   *         name: typeId
+   *         required: true
+   *         schema:
+   *           type: integer
+   *     responses:
+   *       200:
+   *         description: Updated type
+   *   delete:
+   *     summary: Delete a test-case type
+   *     tags: [Project Config]
+   *     parameters:
+   *       - in: path
+   *         name: projectId
+   *         required: true
+   *         schema:
+   *           type: integer
+   *       - in: path
+   *         name: typeId
+   *         required: true
+   *         schema:
+   *           type: integer
+   *     responses:
+   *       204:
+   *         description: Deleted
+   */
   updateType = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const typeId = parseInt(req.params.typeId ?? '', 10);
@@ -338,6 +675,36 @@ export class ProjectController {
   };
 
   // Priorities
+  /**
+   * @swagger
+   * /{projectId}/config/priorities:
+   *   post:
+   *     summary: Create a priority
+   *     tags: [Project Config]
+   *     parameters:
+   *       - in: path
+   *         name: projectId
+   *         required: true
+   *         schema:
+   *           type: integer
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required: [name]
+   *             properties:
+   *               name:
+   *                 type: string
+   *               level:
+   *                 type: integer
+   *               color:
+   *                 type: string
+   *     responses:
+   *       201:
+   *         description: Created priority
+   */
   createPriority = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const projectId = parseInt(req.params.projectId ?? '', 10);
@@ -350,6 +717,44 @@ export class ProjectController {
     }
   };
 
+  /**
+   * @swagger
+   * /{projectId}/config/priorities/{priorityId}:
+   *   put:
+   *     summary: Update a priority
+   *     tags: [Project Config]
+   *     parameters:
+   *       - in: path
+   *         name: projectId
+   *         required: true
+   *         schema:
+   *           type: integer
+   *       - in: path
+   *         name: priorityId
+   *         required: true
+   *         schema:
+   *           type: integer
+   *     responses:
+   *       200:
+   *         description: Updated priority
+   *   delete:
+   *     summary: Delete a priority
+   *     tags: [Project Config]
+   *     parameters:
+   *       - in: path
+   *         name: projectId
+   *         required: true
+   *         schema:
+   *           type: integer
+   *       - in: path
+   *         name: priorityId
+   *         required: true
+   *         schema:
+   *           type: integer
+   *     responses:
+   *       204:
+   *         description: Deleted
+   */
   updatePriority = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const priorityId = parseInt(req.params.priorityId ?? '', 10);
@@ -374,6 +779,38 @@ export class ProjectController {
   };
 
   // Custom Fields
+  /**
+   * @swagger
+   * /{projectId}/config/fields:
+   *   post:
+   *     summary: Create a custom field
+   *     tags: [Project Config]
+   *     parameters:
+   *       - in: path
+   *         name: projectId
+   *         required: true
+   *         schema:
+   *           type: integer
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required: [name, type]
+   *             properties:
+   *               name:
+   *                 type: string
+   *               type:
+   *                 type: string
+   *               required:
+   *                 type: boolean
+   *               description:
+   *                 type: string
+   *     responses:
+   *       201:
+   *         description: Created custom field
+   */
   createCustomField = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const projectId = parseInt(req.params.projectId ?? '', 10);
@@ -386,6 +823,44 @@ export class ProjectController {
     }
   };
 
+  /**
+   * @swagger
+   * /{projectId}/config/fields/{fieldId}:
+   *   put:
+   *     summary: Update a custom field
+   *     tags: [Project Config]
+   *     parameters:
+   *       - in: path
+   *         name: projectId
+   *         required: true
+   *         schema:
+   *           type: integer
+   *       - in: path
+   *         name: fieldId
+   *         required: true
+   *         schema:
+   *           type: integer
+   *     responses:
+   *       200:
+   *         description: Updated custom field
+   *   delete:
+   *     summary: Delete a custom field
+   *     tags: [Project Config]
+   *     parameters:
+   *       - in: path
+   *         name: projectId
+   *         required: true
+   *         schema:
+   *           type: integer
+   *       - in: path
+   *         name: fieldId
+   *         required: true
+   *         schema:
+   *           type: integer
+   *     responses:
+   *       204:
+   *         description: Deleted
+   */
   updateCustomField = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const fieldId = parseInt(req.params.fieldId ?? '', 10);

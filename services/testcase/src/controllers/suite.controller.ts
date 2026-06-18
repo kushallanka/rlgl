@@ -31,6 +31,31 @@ import { PaginationSchema, SuiteSchema, UpdateSuiteSchema } from '../validators/
  *           type: string
  *         suiteId:
  *           type: integer
+ *     SuiteInput:
+ *       type: object
+ *       required:
+ *         - name
+ *         - projectId
+ *       properties:
+ *         name:
+ *           type: string
+ *           maxLength: 100
+ *         description:
+ *           type: string
+ *           maxLength: 500
+ *         projectId:
+ *           type: integer
+ *     SectionInput:
+ *       type: object
+ *       required:
+ *         - name
+ *         - suiteId
+ *       properties:
+ *         name:
+ *           type: string
+ *           maxLength: 100
+ *         suiteId:
+ *           type: integer
  */
 export class SuiteController {
   constructor(
@@ -91,6 +116,38 @@ export class SuiteController {
     }
   };
 
+  /**
+   * @swagger
+   * /suites:
+   *   post:
+   *     summary: Create a new test suite
+   *     tags: [TestCases]
+   *     parameters:
+   *       - in: header
+   *         name: x-project-id
+   *         required: true
+   *         schema:
+   *           type: integer
+   *       - in: header
+   *         name: Idempotency-Key
+   *         schema:
+   *           type: string
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             $ref: '#/components/schemas/SuiteInput'
+   *     responses:
+   *       201:
+   *         description: Created suite
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/Suite'
+   *       403:
+   *         description: projectId mismatch with x-project-id header
+   */
   createSuite = async (req: Request, res: Response) => {
     const requestId = (req as any).requestId;
     const { userId } = (req as any).user;
@@ -123,6 +180,48 @@ export class SuiteController {
     }
   };
 
+  /**
+   * @swagger
+   * /suites/{id}:
+   *   put:
+   *     summary: Update a test suite
+   *     tags: [TestCases]
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: integer
+   *       - in: header
+   *         name: x-project-id
+   *         required: true
+   *         schema:
+   *           type: integer
+   *     responses:
+   *       200:
+   *         description: Updated suite
+   *       404:
+   *         description: Suite not found
+   *   delete:
+   *     summary: Delete a test suite (cascades to its sections and cases)
+   *     tags: [TestCases]
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: integer
+   *       - in: header
+   *         name: x-project-id
+   *         required: true
+   *         schema:
+   *           type: integer
+   *     responses:
+   *       204:
+   *         description: Deleted
+   *       404:
+   *         description: Suite not found
+   */
   updateSuite = async (req: Request, res: Response) => {
     const requestId = (req as any).requestId;
     const projectId = (req as any).projectId;

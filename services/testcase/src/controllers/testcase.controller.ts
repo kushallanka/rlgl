@@ -5,6 +5,51 @@ import { PaginationSchema, TestCaseSchema, UpdateTestCaseSchema } from '../valid
 
 /**
  * @swagger
+ * components:
+ *   schemas:
+ *     TestCaseInput:
+ *       type: object
+ *       required:
+ *         - title
+ *         - steps
+ *         - sectionId
+ *         - suiteId
+ *         - projectId
+ *       properties:
+ *         title:
+ *           type: string
+ *           maxLength: 200
+ *         description:
+ *           type: string
+ *           maxLength: 2000
+ *         preconditions:
+ *           type: string
+ *           maxLength: 1000
+ *         steps:
+ *           type: array
+ *           description: Ordered list of step objects (at least one required)
+ *           items:
+ *             type: object
+ *         expectedResult:
+ *           type: string
+ *           maxLength: 1000
+ *         priority:
+ *           type: string
+ *         type:
+ *           type: string
+ *         sectionId:
+ *           type: integer
+ *         suiteId:
+ *           type: integer
+ *         projectId:
+ *           type: integer
+ *         customFieldValues:
+ *           type: object
+ *           additionalProperties: true
+ */
+
+/**
+ * @swagger
  * /cases:
  *   get:
  *     summary: List test cases in a project (optionally filtered by suite or section)
@@ -59,16 +104,50 @@ import { PaginationSchema, TestCaseSchema, UpdateTestCaseSchema } from '../valid
  *   put:
  *     summary: Update a test case
  *     tags: [TestCases]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *       - in: header
+ *         name: x-project-id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/TestCaseInput'
  *     responses:
  *       200:
  *         description: Updated test case
+ *       404:
+ *         description: Not found
+ *       409:
+ *         description: Version conflict (optimistic concurrency)
  *
  *   delete:
  *     summary: Soft-delete a test case
  *     tags: [TestCases]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *       - in: header
+ *         name: x-project-id
+ *         required: true
+ *         schema:
+ *           type: integer
  *     responses:
  *       204:
  *         description: Deleted
+ *       404:
+ *         description: Not found
  */
 export class TestCaseController {
   constructor(

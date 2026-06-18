@@ -16,6 +16,58 @@ export class SectionController {
     private readonly logger: any,
   ) {}
 
+  /**
+   * @swagger
+   * /sections:
+   *   get:
+   *     summary: List sections in a project (optionally filtered by suite)
+   *     tags: [TestCases]
+   *     parameters:
+   *       - in: header
+   *         name: x-project-id
+   *         required: true
+   *         schema:
+   *           type: integer
+   *       - in: query
+   *         name: suiteId
+   *         schema:
+   *           type: integer
+   *     responses:
+   *       200:
+   *         description: List of sections
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: array
+   *               items:
+   *                 $ref: '#/components/schemas/Section'
+   *   post:
+   *     summary: Create a new section
+   *     tags: [TestCases]
+   *     parameters:
+   *       - in: header
+   *         name: x-project-id
+   *         required: true
+   *         schema:
+   *           type: integer
+   *       - in: header
+   *         name: Idempotency-Key
+   *         schema:
+   *           type: string
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             $ref: '#/components/schemas/SectionInput'
+   *     responses:
+   *       201:
+   *         description: Created section
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/Section'
+   */
   listSections = async (req: Request, res: Response) => {
     const projectId = (req as any).projectId;
     const requestId = (req as any).requestId;
@@ -67,6 +119,48 @@ export class SectionController {
     }
   };
 
+  /**
+   * @swagger
+   * /sections/{id}:
+   *   put:
+   *     summary: Update a section
+   *     tags: [TestCases]
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: integer
+   *       - in: header
+   *         name: x-project-id
+   *         required: true
+   *         schema:
+   *           type: integer
+   *     responses:
+   *       200:
+   *         description: Updated section
+   *       404:
+   *         description: Section not found
+   *   delete:
+   *     summary: Delete a section (cascades to its cases)
+   *     tags: [TestCases]
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: integer
+   *       - in: header
+   *         name: x-project-id
+   *         required: true
+   *         schema:
+   *           type: integer
+   *     responses:
+   *       204:
+   *         description: Deleted
+   *       404:
+   *         description: Section not found
+   */
   updateSection = async (req: Request, res: Response) => {
     const requestId = (req as any).requestId;
     const projectId = (req as any).projectId;
