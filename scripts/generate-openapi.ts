@@ -14,6 +14,18 @@ import swaggerJsdoc from 'swagger-jsdoc';
 import * as fs from 'fs';
 import * as path from 'path';
 
+// swagger-jsdoc's transitive dep (@apidevtools/json-schema-ref-parser) still
+// calls the deprecated url.parse(), which spams DEP0169 on Node 24. Suppress
+// only that one third-party warning so genuine deprecations stay visible.
+const emitWarning = process.emitWarning.bind(process);
+process.emitWarning = ((warning: string | Error, ...args: unknown[]) => {
+  const carrier = [warning, ...args]
+    .map((a) => (typeof a === 'string' ? a : (a as { code?: string } | null)?.code ?? ''))
+    .join(' ');
+  if (carrier.includes('DEP0169') || carrier.includes('url.parse')) return;
+  (emitWarning as (...a: unknown[]) => void)(warning, ...args);
+}) as typeof process.emitWarning;
+
 const ROOT = path.join(import.meta.dirname, '..');
 const OUT_FILE = path.join(ROOT, 'docs', 'openapi.json');
 
