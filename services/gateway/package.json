@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx src/main.ts",
-    "start": "node dist/main.js"
+    "start": "node --import tsx src/main.ts"
   },
   "dependencies": {
     "@rlgl/shared": "*",

@@ -99,10 +99,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: npm
+      # Shared bootstrap: node + npm ci + Prisma client generation + shared build.
+      # Same action every service-running job uses, so setup can't drift.
+      - uses: ./.github/actions/setup-workspace
 
       - name: Install k6
         run: |
@@ -112,24 +111,7 @@ jobs:
           sudo cp k6-v0.54.0-linux-amd64/k6 /usr/local/bin/k6
           k6 version
 
-      - run: npm ci
-
-      - name: Build backend services
-        run: |
-          for svc in auth project gateway testcase testrun; do
-            cd services/$svc
-            npx tsc --project tsconfig.json --outDir dist --noEmit false
-            # @rlgl/shared's tsconfig `paths` point at raw source outside src/,
-            # so tsc widens its inferred rootDir to the repo root and nests
-            # output under dist/services/$svc/src/. Flatten so dist/main.js exists.
-            if [ -d "dist/services/$svc/src" ]; then
-              cp -r "dist/services/$svc/src/." dist/
-              rm -rf dist/services dist/packages
-            fi
-            cd -
-          done
-
-      - name: Build + start services
+      - name: Migrate databases + start services
         env:
           NODE_ENV: production
           JWT_SECRET: perf-test-jwt-secret
@@ -139,8 +121,6 @@ jobs:
           TESTCASE_DATABASE_URL: file:./data/testcase/testcase.db
           TESTRUN_DATABASE_URL: file:./data/testrun/testrun.db
         run: |
-          npm run build --workspace=@rlgl/shared
-
           # Provision per-service SQLite databases under ./data
           for svc in auth project testcase testrun; do
             mkdir -p "data/$svc"
@@ -148,6 +128,7 @@ jobs:
               npx prisma migrate deploy --schema="services/$svc/prisma/schema.prisma"
           done
 
+          # Services run from source via tsx (see each service's `start` script).
           npm run start &
           npx wait-on http://localhost:3000/health --timeout 60000
 
