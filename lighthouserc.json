@@ -1,7 +1,10 @@
 {
   "ci": {
     "collect": {
-      "staticDistDir": "./dist",
+      "startServerCommand": "npx vite preview --port 4173 --strictPort",
+      "url": ["http://localhost:4173/"],
+      "startServerReadyPattern": "Local:",
+      "startServerReadyTimeout": 30000,
       "numberOfRuns": 3,
       "settings": {
         "preset": "desktop",
