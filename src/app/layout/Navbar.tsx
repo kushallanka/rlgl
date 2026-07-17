@@ -1,15 +1,15 @@
-import { useState, type ComponentType } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { ClipboardList, FolderKanban, LayoutDashboard, LogOut, PlayCircle, Search, Settings } from 'lucide-react';
 import { motion } from 'motion/react';
-import { LayoutDashboard, FolderKanban, ClipboardList, PlayCircle, LogOut, Settings, Search } from 'lucide-react';
+import { type ComponentType, useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { LogoutConfirmModal } from '../../features/auth/components/LogoutConfirmModal';
+import { useLogout } from '../../features/auth/hooks/useUser';
+import { usePermission } from '../../hooks/usePermission';
+import { cn } from '../../lib/cn';
+import { IconButton, Kbd, Tooltip } from '../../shared/ui';
 import { useAuthStore } from '../../stores/auth.store';
 import { useProjectStore } from '../../stores/project.store';
 import { useUIStore } from '../../stores/ui.store';
-import { usePermission } from '../../hooks/usePermission';
-import { useLogout } from '../../features/auth/hooks/useUser';
-import { LogoutConfirmModal } from '../../features/auth/components/LogoutConfirmModal';
-import { IconButton, Kbd, Tooltip } from '../../shared/ui';
-import { cn } from '../../lib/cn';
 
 const springGentle = { type: 'spring' as const, stiffness: 400, damping: 30, mass: 1 };
 
@@ -44,11 +44,7 @@ function NavItem({ to, icon: Icon, label, active, disabled }: NavItemProps) {
       <span
         className={cn(
           'relative z-10 flex items-center gap-2',
-          active
-            ? 'text-white'
-            : disabled
-              ? 'text-fg-subtle'
-              : 'text-fg-muted hover:text-fg',
+          active ? 'text-white' : disabled ? 'text-fg-subtle' : 'text-fg-muted hover:text-fg',
         )}
       >
         <Icon className="w-4 h-4" />
@@ -105,15 +101,34 @@ export function Navbar() {
         <div className="glass-card px-1.5 py-1.5 flex items-center gap-0.5 rounded-full">
           <NavItem to="/" icon={LayoutDashboard} label="Dashboard" active={location.pathname === '/'} />
           <NavItem to="/projects" icon={FolderKanban} label="Projects" active={location.pathname === '/projects'} />
-          <NavItem to="/test-cases" icon={ClipboardList} label="Test Repository" active={location.pathname === '/test-cases'} disabled={!activeProject} />
-          <NavItem to="/test-runs" icon={PlayCircle} label="Test Runs" active={location.pathname === '/test-runs'} disabled={!activeProject} />
+          <NavItem
+            to="/test-cases"
+            icon={ClipboardList}
+            label="Test Repository"
+            active={location.pathname === '/test-cases'}
+            disabled={!activeProject}
+          />
+          <NavItem
+            to="/test-runs"
+            icon={PlayCircle}
+            label="Test Runs"
+            active={location.pathname === '/test-runs'}
+            disabled={!activeProject}
+          />
           {(hasConfigManage || hasMemberManage) && (
-            <NavItem to="/admin" icon={Settings} label="Admin" active={location.pathname === '/admin'} disabled={!activeProject} />
+            <NavItem
+              to="/admin"
+              icon={Settings}
+              label="Admin"
+              active={location.pathname === '/admin'}
+              disabled={!activeProject}
+            />
           )}
         </div>
 
         <div className="flex items-center gap-2 sm:gap-3">
           <button
+            type="button"
             onClick={openCommandPalette}
             className="hidden md:flex items-center gap-2.5 h-9 pl-3 pr-2 rounded-xl glass-input cursor-pointer text-fg-subtle hover:text-fg-muted"
             aria-label="Open command palette"

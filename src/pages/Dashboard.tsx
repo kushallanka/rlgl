@@ -1,16 +1,16 @@
+import { Activity, AlertCircle, CheckCircle2, ClipboardList, Inbox, PlayCircle } from 'lucide-react';
 import { motion } from 'motion/react';
-import { ClipboardList, PlayCircle, CheckCircle2, AlertCircle, Activity, Inbox } from 'lucide-react';
-import { useProjectStore } from '../stores/project.store';
-import { useProjectsList } from '../features/project/hooks/useProjectsList';
-import { useDashboardData } from '../features/dashboard/hooks/useDashboardData';
-import { useDashboardStats } from '../features/dashboard/hooks/useDashboardStats';
-import { StatCard } from '../shared/components/StatCard';
 import { ActivityItem } from '../features/dashboard/components/ActivityItem';
 import { RecentProjectsList } from '../features/dashboard/components/RecentProjectsList';
+import { useDashboardData } from '../features/dashboard/hooks/useDashboardData';
+import { useDashboardStats } from '../features/dashboard/hooks/useDashboardStats';
+import { useProjectsList } from '../features/project/hooks/useProjectsList';
+import { ErrorState } from '../shared/components/ErrorState';
 import { FullPageSpinner } from '../shared/components/loading/FullPageSpinner';
 import { DashboardOverviewSkeleton } from '../shared/components/loading/PageSkeletons';
-import { ErrorState } from '../shared/components/ErrorState';
+import { StatCard } from '../shared/components/StatCard';
 import { Badge, EmptyState, Skeleton } from '../shared/ui';
+import { useProjectStore } from '../stores/project.store';
 
 export default function Dashboard() {
   const { activeProject } = useProjectStore();
@@ -47,8 +47,7 @@ export default function Dashboard() {
 
   const statsLoading = !!activeProject?.id && dashboard.isLoading;
   const statsError = !!activeProject?.id && dashboard.isError;
-  const passRate =
-    stats.cases > 0 ? `${Math.round((stats.passed / (stats.passed + stats.failed || 1)) * 100)}%` : '0%';
+  const passRate = stats.cases > 0 ? `${Math.round((stats.passed / (stats.passed + stats.failed || 1)) * 100)}%` : '0%';
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
@@ -64,9 +63,13 @@ export default function Dashboard() {
               </p>
             </div>
             {activeProject ? (
-              <Badge variant="success" dot>{activeProject.name}</Badge>
+              <Badge variant="success" dot>
+                {activeProject.name}
+              </Badge>
             ) : (
-              <Badge variant="neutral" dot>No project selected</Badge>
+              <Badge variant="neutral" dot>
+                No project selected
+              </Badge>
             )}
           </div>
 
@@ -81,7 +84,13 @@ export default function Dashboard() {
           ) : (
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <StatCard icon={ClipboardList} label="Total Test Cases" value={stats.cases.toLocaleString()} tone="accent" delay={0} />
+                <StatCard
+                  icon={ClipboardList}
+                  label="Total Test Cases"
+                  value={stats.cases.toLocaleString()}
+                  tone="accent"
+                  delay={0}
+                />
                 <StatCard icon={PlayCircle} label="Active Test Runs" value={stats.runs} tone="info" delay={0.06} />
                 <StatCard icon={CheckCircle2} label="Avg. Pass Rate" value={passRate} tone="success" delay={0.12} />
                 <StatCard icon={AlertCircle} label="Pending Defects" value={stats.failed} tone="danger" delay={0.18} />
@@ -105,6 +114,7 @@ export default function Dashboard() {
           {statsLoading ? (
             <div className="space-y-6" aria-hidden="true">
               {Array.from({ length: 4 }).map((_, i) => (
+                // biome-ignore lint/suspicious/noArrayIndexKey: static placeholder count, list never reorders
                 <div key={i} className="flex gap-4">
                   <Skeleton circle className="w-2.5 h-2.5 mt-1.5 shrink-0" />
                   <div className="flex-1 space-y-2">
@@ -123,7 +133,7 @@ export default function Dashboard() {
             >
               {activities.map((activity, index) => (
                 <ActivityItem
-                  key={index}
+                  key={`${activity.type}-${activity.user}-${activity.description}-${activity.timestamp}`}
                   type={activity.type || 'created'}
                   user={activity.user || 'User'}
                   description={activity.description || ''}

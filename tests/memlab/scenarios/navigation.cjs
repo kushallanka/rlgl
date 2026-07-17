@@ -12,7 +12,7 @@
 
 /** @type {import('@memlab/api').IScenario} */
 const scenario = {
-  url: () => process.env['MEMLAB_BASE_URL'] || 'http://localhost:4173',
+  url: () => process.env.MEMLAB_BASE_URL || 'http://localhost:4173',
 
   /**
    * Action: Navigate to the main test runs view.

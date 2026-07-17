@@ -1,6 +1,6 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { adminApi } from '../api/admin.api';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { axios } from '../../../shared/api/api';
+import { adminApi } from '../api/admin.api';
 
 const PROJECT_MEMBERS_KEY = (projectId: string | null) => ['project-members', projectId];
 const ALL_USERS_KEY = ['all-users'];

@@ -1,17 +1,17 @@
-import { useState, useEffect, useRef } from 'react';
-import { useProjectStore } from '../../../stores/project.store';
-import { useAuthStore } from '../../../stores/auth.store';
+import { useEffect, useRef, useState } from 'react';
 import type { Project } from '../../../features/project/types/project.types';
-import { usePermissionStore } from '../../../stores/permission.store';
-import { useProjectsList } from '../hooks/useProjectsList';
-import { FullPageSpinner } from '../../../shared/components/loading/FullPageSpinner';
 import { ErrorState } from '../../../shared/components/ErrorState';
-import { ProjectsGrid } from '../components/ProjectsGrid';
+import { FullPageSpinner } from '../../../shared/components/loading/FullPageSpinner';
+import { useAuthStore } from '../../../stores/auth.store';
+import { usePermissionStore } from '../../../stores/permission.store';
+import { useProjectStore } from '../../../stores/project.store';
 import { CreateProjectModal } from '../components/CreateProjectModal';
 import { DeleteProjectModal } from '../components/DeleteProjectModal';
-import { ProjectDetailsModal } from '../components/ProjectDetailsModal';
 import { EditProjectModal } from '../components/EditProjectModal';
+import { ProjectDetailsModal } from '../components/ProjectDetailsModal';
+import { ProjectsGrid } from '../components/ProjectsGrid';
 import { ProjectsHeader } from '../components/ProjectsHeader';
+import { useProjectsList } from '../hooks/useProjectsList';
 
 export default function ProjectsPage() {
   const { projects, setActiveProject, activeProject } = useProjectStore();
@@ -52,6 +52,7 @@ export default function ProjectsPage() {
   }, []);
 
   // Update selectedProject when projects data changes (e.g., after edit)
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentionally keyed on the id, not the object reference, to avoid re-running when this effect's own setSelectedProject call updates the object
   useEffect(() => {
     if (selectedProject && projectsQuery.projects) {
       const updatedProject = projectsQuery.projects.find((p: Project) => p.id === selectedProject.id);
@@ -62,8 +63,8 @@ export default function ProjectsPage() {
   }, [projectsQuery.projects, selectedProject?.id]);
 
   // Permissions
-  const canCreateProject = useAuthStore(s => s.hasSystemPermission('system.project.create'));
-  const canDeleteActiveProject = usePermissionStore(s => s.hasPermission('project.manage'));
+  const canCreateProject = useAuthStore((s) => s.hasSystemPermission('system.project.create'));
+  const canDeleteActiveProject = usePermissionStore((s) => s.hasPermission('project.manage'));
 
   // Check if user can delete a specific project
   const canDeleteProject = (_project: Project) => {
@@ -91,7 +92,8 @@ export default function ProjectsPage() {
       setFormError(null);
     } catch (err: unknown) {
       const ax = err as { response?: { data?: { error?: string; message?: string } }; message?: string };
-      const errorMsg = ax.response?.data?.error || ax.response?.data?.message || ax.message || 'Failed to create project';
+      const errorMsg =
+        ax.response?.data?.error || ax.response?.data?.message || ax.message || 'Failed to create project';
       setFormError(errorMsg);
     }
   };
@@ -148,7 +150,8 @@ export default function ProjectsPage() {
       setDescription('');
     } catch (err: unknown) {
       const ax = err as { response?: { data?: { error?: string; message?: string } }; message?: string };
-      const errorMsg = ax.response?.data?.error || ax.response?.data?.message || ax.message || 'Failed to update project';
+      const errorMsg =
+        ax.response?.data?.error || ax.response?.data?.message || ax.message || 'Failed to update project';
       setEditError(errorMsg);
     }
   };
@@ -199,12 +202,7 @@ export default function ProjectsPage() {
   }
 
   if (projectsQuery.error) {
-    return (
-      <ErrorState
-        message={projectsQuery.error?.message || 'Failed to load projects.'}
-        onRetry={handleRefresh}
-      />
-    );
+    return <ErrorState message={projectsQuery.error?.message || 'Failed to load projects.'} onRetry={handleRefresh} />;
   }
 
   // Use query data directly when available

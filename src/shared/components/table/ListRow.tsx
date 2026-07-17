@@ -1,4 +1,4 @@
-import { ReactNode, CSSProperties } from 'react';
+import { CSSProperties, ReactNode } from 'react';
 
 interface ListRowProps {
   /** Dropdown open or otherwise "focused" — slightly stronger tint, no hover needed */
@@ -26,8 +26,8 @@ export function ListRow({ isActive, isSelected, children, style }: ListRowProps)
         isActive
           ? 'bg-black/[0.03] dark:bg-white/[0.05]'
           : isSelected
-          ? 'bg-violet-500/[0.06] dark:bg-violet-500/[0.06]'
-          : 'hover:bg-black/[0.025] dark:hover:bg-white/[0.04]',
+            ? 'bg-violet-500/[0.06] dark:bg-violet-500/[0.06]'
+            : 'hover:bg-black/[0.025] dark:hover:bg-white/[0.04]',
       ].join(' ')}
       style={style}
     >

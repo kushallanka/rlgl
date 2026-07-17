@@ -1,7 +1,7 @@
-import { Request, Response, NextFunction, RequestHandler } from 'express';
-import { v4 as uuidv4 } from 'uuid';
+import { createHash } from 'node:crypto';
+import { NextFunction, Request, RequestHandler, Response } from 'express';
 import { Redis } from 'ioredis';
-import { createHash } from 'crypto';
+import { v4 as uuidv4 } from 'uuid';
 import { AppError } from '../errors/index.js';
 
 // Export auth middleware
@@ -40,12 +40,23 @@ export const requireIdempotency = (serviceName: string, redis?: Redis): RequestH
     try {
       const existing = await redis.get(redisKey);
       if (existing) {
-        const record = JSON.parse(existing) as { state: string; requestHash: string; statusCode?: number; body?: unknown };
+        const record = JSON.parse(existing) as {
+          state: string;
+          requestHash: string;
+          statusCode?: number;
+          body?: unknown;
+        };
         if (record.requestHash !== requestHash) {
-          return res.status(409).json({ error: 'Idempotency key was already used with a different payload', code: 'IDEMPOTENCY_KEY_REUSED' });
+          return res.status(409).json({
+            error: 'Idempotency key was already used with a different payload',
+            code: 'IDEMPOTENCY_KEY_REUSED',
+          });
         }
         if (record.state === 'pending') {
-          return res.status(409).json({ error: 'A request with this idempotency key is still being processed', code: 'IDEMPOTENCY_IN_PROGRESS' });
+          return res.status(409).json({
+            error: 'A request with this idempotency key is still being processed',
+            code: 'IDEMPOTENCY_IN_PROGRESS',
+          });
         }
         res.setHeader('x-idempotent-replay', 'true');
         return res.status(record.statusCode ?? 200).json(record.body ?? null);
@@ -54,11 +65,15 @@ export const requireIdempotency = (serviceName: string, redis?: Redis): RequestH
       const acquired = await redis.set(
         redisKey,
         JSON.stringify({ state: 'pending', requestHash }),
-        'EX', IDEMPOTENCY_PENDING_TTL_SECONDS,
-        'NX'
+        'EX',
+        IDEMPOTENCY_PENDING_TTL_SECONDS,
+        'NX',
       );
       if (!acquired) {
-        return res.status(409).json({ error: 'A request with this idempotency key is still being processed', code: 'IDEMPOTENCY_IN_PROGRESS' });
+        return res.status(409).json({
+          error: 'A request with this idempotency key is still being processed',
+          code: 'IDEMPOTENCY_IN_PROGRESS',
+        });
       }
     } catch {
       // Redis unavailable: fail open rather than block writes.
@@ -79,14 +94,17 @@ export const requireIdempotency = (serviceName: string, redis?: Redis): RequestH
             await redis.set(
               redisKey,
               JSON.stringify({ state: 'done', requestHash, statusCode: res.statusCode, body: capturedBody ?? null }),
-              'EX', IDEMPOTENCY_RESPONSE_TTL_SECONDS
+              'EX',
+              IDEMPOTENCY_RESPONSE_TTL_SECONDS,
             );
           } else {
             // Failures did not commit anything worth replaying: release the
             // key so the client can correct the request and retry.
             await redis.del(redisKey);
           }
-        } catch { /* best effort */ }
+        } catch {
+          /* best effort */
+        }
       })();
     });
 
@@ -108,7 +126,7 @@ export const requestContextMiddleware = (req: Request, _res: Response, next: Nex
   const requestId = (req.headers['x-request-id'] as string) || uuidv4();
   const userId = req.headers['x-user-id'] as string;
   const projectId = req.headers['x-project-id'] as string;
-  const tenantId = req.headers['x-tenant-id'] as string || projectId; // In this system, tenant is often project-scoped
+  const tenantId = (req.headers['x-tenant-id'] as string) || projectId; // In this system, tenant is often project-scoped
 
   (req as any).context = {
     requestId,
@@ -149,10 +167,7 @@ export const tenantRateLimiter = (redis: Redis, limit: number, windowSeconds: nu
       const now = Date.now();
       if (now - lastRateLimiterRedisWarnAt >= RATE_LIMITER_REDIS_WARN_MS) {
         lastRateLimiterRedisWarnAt = now;
-        console.warn(
-          'Rate limiter Redis error (failing open):',
-          (err as Error).message || err
-        );
+        console.warn('Rate limiter Redis error (failing open):', (err as Error).message || err);
       }
       next();
     }

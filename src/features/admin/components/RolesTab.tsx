@@ -1,5 +1,5 @@
+import { Edit2, Plus, Shield, Trash2, UserPlus, Users } from 'lucide-react';
 import { motion } from 'motion/react';
-import { Plus, Edit2, Trash2, Shield, UserPlus, Users } from 'lucide-react';
 
 interface RolesTabProps {
   roles: any[];
@@ -42,18 +42,11 @@ export function RolesTab({
         </div>
 
         {roles.length === 0 ? (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-center py-12"
-          >
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-12">
             <Shield className="w-16 h-16 text-gray-400 dark:text-white/30 mx-auto mb-4" />
             <p className="text-gray-500 dark:text-white/50">No roles configured</p>
             {canEdit && (
-              <button
-                onClick={onAddRole}
-                className="mt-4 text-green-400 hover:text-green-300"
-              >
+              <button type="button" onClick={onAddRole} className="mt-4 text-green-400 hover:text-green-300">
                 Add your first role
               </button>
             )}
@@ -119,11 +112,7 @@ export function RolesTab({
             <p className="text-gray-500 dark:text-white/50">Loading user roles...</p>
           </div>
         ) : userRoles.length === 0 ? (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-center py-12"
-          >
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-12">
             <UserPlus className="w-16 h-16 text-gray-400 dark:text-white/30 mx-auto mb-4" />
             <p className="text-gray-500 dark:text-white/50">No user roles assigned</p>
           </motion.div>
@@ -144,15 +133,11 @@ export function RolesTab({
                     </div>
                     <div>
                       <span className="text-gray-900 dark:text-white font-medium">{userRole.user?.name}</span>
-                      <div className="text-sm text-gray-400 dark:text-white/50">
-                        {userRole.user?.email}
-                      </div>
+                      <div className="text-sm text-gray-400 dark:text-white/50">{userRole.user?.email}</div>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="px-3 py-1 accent-green rounded-lg text-sm text-white">
-                      {userRole.role?.name}
-                    </span>
+                    <span className="px-3 py-1 accent-green rounded-lg text-sm text-white">{userRole.role?.name}</span>
                     {canEdit && (
                       <motion.button
                         whileHover={{ scale: 1.1 }}

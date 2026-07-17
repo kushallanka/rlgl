@@ -33,15 +33,12 @@ export const projectApi = {
     await axios.delete(`/projects/${id}`);
   },
 
-  getMembers: (projectId: string) =>
-    axios.get(`/projects/${projectId}/members`),
+  getMembers: (projectId: string) => axios.get(`/projects/${projectId}/members`),
 
   addMember: (projectId: string, data: { userId: string; roleId: string }) =>
     axios.post(`/projects/${projectId}/members`, data),
 
-  removeMember: (projectId: string, userId: string) =>
-    axios.delete(`/projects/${projectId}/members/${userId}`),
+  removeMember: (projectId: string, userId: string) => axios.delete(`/projects/${projectId}/members/${userId}`),
 
-  getDetails: (projectId: string) =>
-    axios.get(`/projects/${projectId}`),
+  getDetails: (projectId: string) => axios.get(`/projects/${projectId}`),
 };

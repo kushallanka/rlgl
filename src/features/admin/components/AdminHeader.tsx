@@ -1,5 +1,5 @@
-import { motion } from 'motion/react';
 import { Settings } from 'lucide-react';
+import { motion } from 'motion/react';
 
 interface AdminHeaderProps {
   projectName: string;
@@ -17,8 +17,12 @@ export function AdminHeader({ projectName }: AdminHeaderProps) {
         <Settings className="w-7 h-7 text-white" />
       </motion.div>
       <div className="flex flex-col gap-1">
-        <h1 className="text-3xl font-heading font-bold tracking-tight text-gray-900 dark:text-white">Admin Configuration</h1>
-        <p className="text-gray-500 dark:text-white/50 font-body text-sm">Configure settings for <span className="text-gray-700 dark:text-white/70">{projectName}</span></p>
+        <h1 className="text-3xl font-heading font-bold tracking-tight text-gray-900 dark:text-white">
+          Admin Configuration
+        </h1>
+        <p className="text-gray-500 dark:text-white/50 font-body text-sm">
+          Configure settings for <span className="text-gray-700 dark:text-white/70">{projectName}</span>
+        </p>
       </div>
     </div>
   );

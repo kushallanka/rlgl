@@ -1,12 +1,14 @@
 import { motion } from 'motion/react';
 
-const skeletonGradient = 'linear-gradient(90deg, rgba(128,128,128,0) 0%, rgba(128,128,128,0.15) 50%, rgba(128,128,128,0) 100%)';
+const skeletonGradient =
+  'linear-gradient(90deg, rgba(128,128,128,0) 0%, rgba(128,128,128,0.15) 50%, rgba(128,128,128,0) 100%)';
 
 export function ProjectsGridSkeleton() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" aria-hidden>
       {Array.from({ length: 6 }).map((_, i) => (
         <motion.div
+          // biome-ignore lint/suspicious/noArrayIndexKey: static placeholder count, list never reorders
           key={i}
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -44,11 +46,7 @@ export function DashboardOverviewSkeleton() {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8" aria-hidden>
       <div className="lg:col-span-2 space-y-8">
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="glass-card p-8 space-y-6"
-        >
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="glass-card p-8 space-y-6">
           <div className="flex justify-between">
             <div className="space-y-2">
               <div className="h-8 w-40 rounded-lg bg-gray-200 dark:bg-white/10" />
@@ -59,6 +57,7 @@ export function DashboardOverviewSkeleton() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {Array.from({ length: 4 }).map((_, i) => (
               <motion.div
+                // biome-ignore lint/suspicious/noArrayIndexKey: static placeholder count, list never reorders
                 key={i}
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -70,6 +69,7 @@ export function DashboardOverviewSkeleton() {
           <div className="space-y-3 pt-4">
             {Array.from({ length: 3 }).map((_, i) => (
               <motion.div
+                // biome-ignore lint/suspicious/noArrayIndexKey: static placeholder count, list never reorders
                 key={i}
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -89,6 +89,7 @@ export function DashboardOverviewSkeleton() {
         <div className="h-6 w-40 rounded bg-gray-200 dark:bg-white/10" />
         {Array.from({ length: 4 }).map((_, i) => (
           <motion.div
+            // biome-ignore lint/suspicious/noArrayIndexKey: static placeholder count, list never reorders
             key={i}
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}

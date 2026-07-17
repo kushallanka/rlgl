@@ -1,13 +1,21 @@
+import { AlertCircle, PlayCircle, Plus } from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
 import { useRef, useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { useProjectStore } from '../../../stores/project.store';
-import { Plus, PlayCircle, AlertCircle } from 'lucide-react';
+import { useToggleSet } from '../../../hooks/useToggleSet';
 import { ErrorAlert } from '../../../shared/components';
 import { usePermissionStore } from '../../../stores/permission.store';
-import { useToggleSet } from '../../../hooks/useToggleSet';
-import { useTestRunsList, useCreateTestRun, useUpdateTestRun, useUpdateTestRunResult, useSuitesQuery, useCasesBySuiteQuery, useDeleteTestRun } from '../hooks/useTestRuns';
-import { TestRunCard } from '../components/TestRunCard';
+import { useProjectStore } from '../../../stores/project.store';
 import { CreateTestRunModal } from '../components/CreateTestRunModal';
+import { TestRunCard } from '../components/TestRunCard';
+import {
+  useCasesBySuiteQuery,
+  useCreateTestRun,
+  useDeleteTestRun,
+  useSuitesQuery,
+  useTestRunsList,
+  useUpdateTestRun,
+  useUpdateTestRunResult,
+} from '../hooks/useTestRuns';
 
 export default function TestRunsPage() {
   const { activeProject } = useProjectStore();
@@ -33,8 +41,8 @@ export default function TestRunsPage() {
 
   const expandedRunsState = useToggleSet<string>();
 
-  const canCreateTestRun = usePermissionStore(s => s.hasPermission('testrun.create'));
-  const canDeleteTestRun = usePermissionStore(s => s.hasPermission('testrun.delete'));
+  const canCreateTestRun = usePermissionStore((s) => s.hasPermission('testrun.create'));
+  const canDeleteTestRun = usePermissionStore((s) => s.hasPermission('testrun.delete'));
 
   const handleSuiteSelect = (suiteId: string) => {
     setSelectedSuite(suiteId);
@@ -43,14 +51,22 @@ export default function TestRunsPage() {
 
   const handleCreateTestRun = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!runName.trim()) { setError('Test run name is required'); return; }
-    if (selectedCases.size === 0) { setError('Please select at least one test case'); return; }
+    if (!runName.trim()) {
+      setError('Test run name is required');
+      return;
+    }
+    if (selectedCases.size === 0) {
+      setError('Please select at least one test case');
+      return;
+    }
 
     try {
       setError(null);
       await createTestRunMutation.mutateAsync({
-        name: runName, description: runDescription,
-        projectId: projectId!, suiteId: selectedSuite,
+        name: runName,
+        description: runDescription,
+        projectId: projectId!,
+        suiteId: selectedSuite,
         caseIds: Array.from(selectedCases.set),
         idempotencyKey: idempotencyKeyRef.current,
       });
@@ -61,8 +77,11 @@ export default function TestRunsPage() {
   };
 
   const resetRunForm = () => {
-    setRunName(''); setRunDescription(''); setSelectedSuite('');
-    selectedCases.clear(); setIsCreatingRun(false);
+    setRunName('');
+    setRunDescription('');
+    setSelectedSuite('');
+    selectedCases.clear();
+    setIsCreatingRun(false);
     idempotencyKeyRef.current = crypto.randomUUID();
   };
 
@@ -72,7 +91,11 @@ export default function TestRunsPage() {
 
   if (!activeProject) {
     return (
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center justify-center py-20 space-y-4">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="flex flex-col items-center justify-center py-20 space-y-4"
+      >
         <div className="animate-float w-24 h-24 accent-gray rounded-3xl flex items-center justify-center accent-shadow">
           <PlayCircle className="w-12 h-12 text-gray-400 dark:text-white/50" />
         </div>
@@ -85,16 +108,32 @@ export default function TestRunsPage() {
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-8">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-4 min-w-0">
-          <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.25, ease: [0.25, 0.46, 0.45, 0.94] }} className="w-12 h-12 sm:w-14 sm:h-14 accent-green rounded-2xl flex items-center justify-center glow-green shadow-lg flex-shrink-0" aria-hidden="true">
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.25, ease: [0.25, 0.46, 0.45, 0.94] }}
+            className="w-12 h-12 sm:w-14 sm:h-14 accent-green rounded-2xl flex items-center justify-center glow-green shadow-lg flex-shrink-0"
+            aria-hidden="true"
+          >
             <PlayCircle className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
           </motion.div>
           <div className="flex flex-col gap-1 min-w-0">
-            <h1 className="text-2xl sm:text-3xl font-heading font-bold tracking-tight text-gray-900 dark:text-white">Test Runs</h1>
-            <p className="text-gray-500 dark:text-white/50 font-body text-sm truncate">Execute and track test results for <span className="text-gray-700 dark:text-white/70">{activeProject?.name}</span></p>
+            <h1 className="text-2xl sm:text-3xl font-heading font-bold tracking-tight text-gray-900 dark:text-white">
+              Test Runs
+            </h1>
+            <p className="text-gray-500 dark:text-white/50 font-body text-sm truncate">
+              Execute and track test results for{' '}
+              <span className="text-gray-700 dark:text-white/70">{activeProject?.name}</span>
+            </p>
           </div>
         </div>
         {canCreateTestRun && (
-          <motion.button onClick={() => setIsCreatingRun(true)} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="flex items-center gap-2 px-4 sm:px-5 py-2.5 accent-blue text-white font-body font-medium rounded-xl glow-blue shadow-lg transition-ui text-sm min-h-[40px] flex-shrink-0 self-start sm:self-auto">
+          <motion.button
+            onClick={() => setIsCreatingRun(true)}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className="flex items-center gap-2 px-4 sm:px-5 py-2.5 accent-blue text-white font-body font-medium rounded-xl glow-blue shadow-lg transition-ui text-sm min-h-[40px] flex-shrink-0 self-start sm:self-auto"
+          >
             <Plus className="w-5 h-5 flex-shrink-0" /> New Test Run
           </motion.button>
         )}
@@ -112,10 +151,19 @@ export default function TestRunsPage() {
               <p className="text-gray-400">Loading test runs...</p>
             </div>
           ) : testRunsQuery.isError ? (
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center py-12 liquid-glass rounded-2xl accent-shadow">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-center py-12 liquid-glass rounded-2xl accent-shadow"
+            >
               <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
               <p className="text-red-400 mb-4 font-body">Failed to load test runs</p>
-              <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={() => void testRunsQuery.refetch()} className="px-5 py-2.5 accent-blue text-white font-body font-medium rounded-xl glow-blue shadow-lg transition-ui text-sm">
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => void testRunsQuery.refetch()}
+                className="px-5 py-2.5 accent-blue text-white font-body font-medium rounded-xl glow-blue shadow-lg transition-ui text-sm"
+              >
                 Retry
               </motion.button>
             </motion.div>

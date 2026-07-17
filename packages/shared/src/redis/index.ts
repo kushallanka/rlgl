@@ -1,4 +1,4 @@
-import { Queue, Worker, QueueEvents } from 'bullmq';
+import { Queue, QueueEvents, Worker } from 'bullmq';
 import { Redis } from 'ioredis';
 
 export interface QueueConfig {

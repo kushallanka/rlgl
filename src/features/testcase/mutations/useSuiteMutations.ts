@@ -6,8 +6,7 @@ import type { TestSuite } from '../types/testcase.types';
 export function useCreateSuiteMutation(projectId: string | null) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: { name: string; description?: string; projectId: string }) =>
-      testcaseApi.createSuite(data),
+    mutationFn: (data: { name: string; description?: string; projectId: string }) => testcaseApi.createSuite(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: TESTCASE_QUERY_KEYS.suites(projectId) });
     },
@@ -30,9 +29,8 @@ export function useDeleteSuiteMutation(projectId: string | null) {
   return useMutation({
     mutationFn: testcaseApi.deleteSuite,
     onSuccess: (_, suiteId) => {
-      queryClient.setQueryData<TestSuite[]>(
-        TESTCASE_QUERY_KEYS.suites(projectId),
-        (old) => old?.filter(s => s.id !== suiteId)
+      queryClient.setQueryData<TestSuite[]>(TESTCASE_QUERY_KEYS.suites(projectId), (old) =>
+        old?.filter((s) => s.id !== suiteId),
       );
     },
   });

@@ -1,23 +1,32 @@
-import { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
 import {
-  PlayCircle, CheckCircle2, XCircle, AlertCircle, Clock, ClipboardList,
-  ChevronRight, ChevronDown, Info, Pencil, Trash2,
+  AlertCircle,
+  CheckCircle2,
+  ChevronDown,
+  ChevronRight,
+  ClipboardList,
+  Clock,
+  Info,
+  Pencil,
+  PlayCircle,
+  Trash2,
+  XCircle,
 } from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
+import { useEffect, useRef, useState } from 'react';
+import { ActionDropdown, type ActionItem } from '../../../shared/components/ActionDropdown';
+import { ConfirmModal } from '../../../shared/components/ConfirmModal';
 import { formatDate } from '../../../utils';
 import type { TestRun } from '../types';
-import { VirtualTestResultsList } from './VirtualTestResultsList';
-import { ConfirmModal } from '../../../shared/components/ConfirmModal';
-import { ActionDropdown, type ActionItem } from '../../../shared/components/ActionDropdown';
 import { EditTestRunModal } from './EditTestRunModal';
+import { VirtualTestResultsList } from './VirtualTestResultsList';
 
 const CARD_GRADIENTS = [
-  { bg: 'accent-blue',   glow: 'glow-blue' },
+  { bg: 'accent-blue', glow: 'glow-blue' },
   { bg: 'accent-purple', glow: 'glow-purple' },
-  { bg: 'accent-green',  glow: 'glow-green' },
+  { bg: 'accent-green', glow: 'glow-green' },
   { bg: 'accent-orange', glow: 'glow-orange' },
-  { bg: 'accent-teal',   glow: 'glow-teal' },
-  { bg: 'accent-pink',   glow: 'glow-pink' },
+  { bg: 'accent-teal', glow: 'glow-teal' },
+  { bg: 'accent-pink', glow: 'glow-pink' },
 ];
 
 interface TestRunCardProps {
@@ -33,22 +42,29 @@ interface TestRunCardProps {
 }
 
 export function TestRunCard({
-  run, index, isExpanded, onToggleExpand,
-  onDelete, canDelete, onUpdateStatus, onEditSave, isSaving,
+  run,
+  index,
+  isExpanded,
+  onToggleExpand,
+  onDelete,
+  canDelete,
+  onUpdateStatus,
+  onEditSave,
+  isSaving,
 }: TestRunCardProps) {
   const gradient = CARD_GRADIENTS[index % CARD_GRADIENTS.length] ?? CARD_GRADIENTS[0]!;
 
-  const total    = run.results?.length || 0;
-  const passed   = run.results?.filter(r => r.status === 'Passed').length || 0;
-  const failed   = run.results?.filter(r => r.status === 'Failed').length || 0;
-  const blocked  = run.results?.filter(r => r.status === 'Blocked').length || 0;
+  const total = run.results?.length || 0;
+  const passed = run.results?.filter((r) => r.status === 'Passed').length || 0;
+  const failed = run.results?.filter((r) => r.status === 'Failed').length || 0;
+  const blocked = run.results?.filter((r) => r.status === 'Blocked').length || 0;
   const untested = total - passed - failed - blocked;
   const progress = total > 0 ? ((passed + failed + blocked) / total) * 100 : 0;
 
-  const [selectedIds, setSelectedIds]           = useState<Set<string>>(new Set());
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [showEditModal, setShowEditModal]         = useState(false);
-  const [menuOpen, setMenuOpen]                   = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
 
   // Close menu on outside click
@@ -66,12 +82,18 @@ export function TestRunCard({
     if (!isExpanded) setSelectedIds(new Set());
   }, [isExpanded]);
 
-  const handleToggleSelect  = (id: string) =>
-    setSelectedIds(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
-  const handleSelectAll     = () => setSelectedIds(new Set(run.results?.map(r => r.id) ?? []));
+  const handleToggleSelect = (id: string) =>
+    setSelectedIds((prev) => {
+      const n = new Set(prev);
+      n.has(id) ? n.delete(id) : n.add(id);
+      return n;
+    });
+  const handleSelectAll = () => setSelectedIds(new Set(run.results?.map((r) => r.id) ?? []));
   const handleClearSelection = () => setSelectedIds(new Set());
-  const handleBulkUpdate    = (status: string) => {
-    selectedIds.forEach(id => onUpdateStatus?.(id, status));
+  const handleBulkUpdate = (status: string) => {
+    selectedIds.forEach((id) => {
+      onUpdateStatus?.(id, status);
+    });
     setSelectedIds(new Set());
   };
 
@@ -79,19 +101,32 @@ export function TestRunCard({
     {
       label: 'Details',
       icon: Info,
-      onClick: () => { setMenuOpen(false); onToggleExpand(run.id); },
+      onClick: () => {
+        setMenuOpen(false);
+        onToggleExpand(run.id);
+      },
     },
     {
       label: 'Edit',
       icon: Pencil,
-      onClick: () => { setMenuOpen(false); setShowEditModal(true); },
+      onClick: () => {
+        setMenuOpen(false);
+        setShowEditModal(true);
+      },
     },
-    ...(canDelete && onDelete ? [{
-      label: 'Delete',
-      icon: Trash2,
-      onClick: () => { setMenuOpen(false); setShowDeleteConfirm(true); },
-      variant: 'danger' as const,
-    }] : []),
+    ...(canDelete && onDelete
+      ? [
+          {
+            label: 'Delete',
+            icon: Trash2,
+            onClick: () => {
+              setMenuOpen(false);
+              setShowDeleteConfirm(true);
+            },
+            variant: 'danger' as const,
+          },
+        ]
+      : []),
   ];
 
   return (
@@ -113,6 +148,7 @@ export function TestRunCard({
         <div className="flex flex-col lg:flex-row lg:items-center gap-8 p-8 relative z-10">
           {/* Title + meta */}
           <button
+            type="button"
             onClick={() => onToggleExpand(run.id)}
             className="flex items-start gap-6 flex-1 text-left"
           >
@@ -140,34 +176,53 @@ export function TestRunCard({
           </button>
 
           {/* Progress — also clickable to expand */}
-          <button
-            onClick={() => onToggleExpand(run.id)}
-            className="flex-1 max-w-md text-left"
-          >
+          <button type="button" onClick={() => onToggleExpand(run.id)} className="flex-1 max-w-md text-left">
             <div className="flex items-center justify-between mb-2 text-[10px] font-bold uppercase tracking-widest">
               <span className="text-gray-500">Execution Progress</span>
               <span className="text-violet-600 dark:text-violet-400">{Math.round(progress)}%</span>
             </div>
             <div className="h-2 bg-black/[0.07] dark:bg-white/5 rounded-full overflow-hidden flex">
-              <div className="bg-gradient-to-r from-emerald-500 to-teal-500 h-full shadow-lg shadow-emerald-500/30 transition-[width] duration-300 ease-out" style={{ width: `${(passed / total) * 100}%` }} />
-              <div className="bg-gradient-to-r from-red-500 to-orange-500 h-full shadow-lg shadow-red-500/30 transition-[width] duration-300 ease-out" style={{ width: `${(failed / total) * 100}%` }} />
-              <div className="bg-gradient-to-r from-yellow-500 to-amber-500 h-full shadow-lg shadow-yellow-500/30 transition-[width] duration-300 ease-out" style={{ width: `${(blocked / total) * 100}%` }} />
+              <div
+                className="bg-gradient-to-r from-emerald-500 to-teal-500 h-full shadow-lg shadow-emerald-500/30 transition-[width] duration-300 ease-out"
+                style={{ width: `${(passed / total) * 100}%` }}
+              />
+              <div
+                className="bg-gradient-to-r from-red-500 to-orange-500 h-full shadow-lg shadow-red-500/30 transition-[width] duration-300 ease-out"
+                style={{ width: `${(failed / total) * 100}%` }}
+              />
+              <div
+                className="bg-gradient-to-r from-yellow-500 to-amber-500 h-full shadow-lg shadow-yellow-500/30 transition-[width] duration-300 ease-out"
+                style={{ width: `${(blocked / total) * 100}%` }}
+              />
             </div>
             <div className="flex items-center gap-4 mt-4 text-[10px] font-bold uppercase tracking-widest">
-              <motion.div whileHover={{ scale: 1.1 }} className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400"><CheckCircle2 className="w-3 h-3" /> {passed}</motion.div>
-              <motion.div whileHover={{ scale: 1.1 }} className="flex items-center gap-1.5 text-red-600 dark:text-red-400"><XCircle className="w-3 h-3" /> {failed}</motion.div>
-              <motion.div whileHover={{ scale: 1.1 }} className="flex items-center gap-1.5 text-amber-600 dark:text-yellow-400"><AlertCircle className="w-3 h-3" /> {blocked}</motion.div>
-              <motion.div whileHover={{ scale: 1.1 }} className="flex items-center gap-1.5 text-gray-500"><AlertCircle className="w-3 h-3" /> {untested}</motion.div>
+              <motion.div
+                whileHover={{ scale: 1.1 }}
+                className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400"
+              >
+                <CheckCircle2 className="w-3 h-3" /> {passed}
+              </motion.div>
+              <motion.div
+                whileHover={{ scale: 1.1 }}
+                className="flex items-center gap-1.5 text-red-600 dark:text-red-400"
+              >
+                <XCircle className="w-3 h-3" /> {failed}
+              </motion.div>
+              <motion.div
+                whileHover={{ scale: 1.1 }}
+                className="flex items-center gap-1.5 text-amber-600 dark:text-yellow-400"
+              >
+                <AlertCircle className="w-3 h-3" /> {blocked}
+              </motion.div>
+              <motion.div whileHover={{ scale: 1.1 }} className="flex items-center gap-1.5 text-gray-500">
+                <AlertCircle className="w-3 h-3" /> {untested}
+              </motion.div>
             </div>
           </button>
 
           {/* Actions — outside any overflow-hidden parent */}
           <div className="flex items-center gap-2 flex-shrink-0 relative">
-            <ActionDropdown
-              isOpen={menuOpen}
-              onToggle={() => setMenuOpen(v => !v)}
-              actions={menuActions}
-            />
+            <ActionDropdown isOpen={menuOpen} onToggle={() => setMenuOpen((v) => !v)} actions={menuActions} />
             <motion.button
               onClick={() => onToggleExpand(run.id)}
               whileHover={{ scale: 1.1 }}
@@ -215,7 +270,10 @@ export function TestRunCard({
         isOpen={showEditModal}
         run={run}
         onClose={() => setShowEditModal(false)}
-        onSave={(id, data) => { onEditSave?.(id, data); setShowEditModal(false); }}
+        onSave={(id, data) => {
+          onEditSave?.(id, data);
+          setShowEditModal(false);
+        }}
         isSaving={isSaving}
       />
 
@@ -225,7 +283,10 @@ export function TestRunCard({
         title="Delete Test Run"
         itemName={run.name}
         description="This will permanently remove the test run and all its results."
-        onConfirm={() => { onDelete?.(run.id); setShowDeleteConfirm(false); }}
+        onConfirm={() => {
+          onDelete?.(run.id);
+          setShowDeleteConfirm(false);
+        }}
       />
     </>
   );

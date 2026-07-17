@@ -1,6 +1,6 @@
 import { create } from 'zustand';
-import { apiClient as axios } from '../shared/api/api';
 import { queryClient } from '../lib/queryClient';
+import { apiClient as axios } from '../shared/api/api';
 
 export interface User {
   id: string;
@@ -25,7 +25,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   onLogout: (cb) => {
     set({ onLogoutCallbacks: [...get().onLogoutCallbacks, cb] });
     return () => {
-      set({ onLogoutCallbacks: get().onLogoutCallbacks.filter(c => c !== cb) });
+      set({ onLogoutCallbacks: get().onLogoutCallbacks.filter((c) => c !== cb) });
     };
   },
   setAuth: (user) => {
@@ -37,12 +37,18 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     localStorage.removeItem('user');
     localStorage.removeItem('activeProjectId');
     localStorage.removeItem('activeProject');
-    get().onLogoutCallbacks.forEach(cb => cb());
+    get().onLogoutCallbacks.forEach((cb) => {
+      cb();
+    });
     set({ user: null, onLogoutCallbacks: [] });
     queryClient.clear();
-    try { await axios.post('/auth/logout'); } catch { /* ignore */ }
+    try {
+      await axios.post('/auth/logout');
+    } catch {
+      /* ignore */
+    }
   },
   hasSystemPermission: (key: string) => {
     return get().user?.systemPermissions?.includes(key) || false;
-  }
+  },
 }));

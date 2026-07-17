@@ -13,11 +13,7 @@ export class CacheManager {
   /**
    * Get value with Single-Flight (Request Coalescing) and Jittered TTL
    */
-  async getOrFetch<T>(
-    key: string,
-    fetchFn: () => Promise<T>,
-    options: CacheOptions
-  ): Promise<T> {
+  async getOrFetch<T>(key: string, fetchFn: () => Promise<T>, options: CacheOptions): Promise<T> {
     // 1. Check local inflight (Single-Flight)
     const existingPromise = this.inflight.get(key);
     if (existingPromise) return existingPromise;

@@ -1,7 +1,7 @@
-import { motion, AnimatePresence } from 'motion/react';
-import { X, Edit2, ChevronDown } from 'lucide-react';
-import { TestCaseFormData } from '../types/testcase.types';
+import { ChevronDown, Edit2, X } from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
 import { DynamicFormFields } from '../../../shared/components';
+import { TestCaseFormData } from '../types/testcase.types';
 
 interface TestCaseModalProps {
   isOpen: boolean;
@@ -43,15 +43,15 @@ export function TestCaseModal({
       ...formData,
       customFieldValues: {
         ...formData.customFieldValues,
-        [fieldId]: value
-      }
+        [fieldId]: value,
+      },
     });
-    
+
     // Clear error for this field when user starts typing
     if (fieldErrors[fieldId]) {
       setFieldErrors({
         ...fieldErrors,
-        [fieldId]: ''
+        [fieldId]: '',
       });
     }
   };
@@ -103,8 +103,14 @@ export function TestCaseModal({
 
             <form onSubmit={onSubmit} className="space-y-4">
               <div className="space-y-2">
-                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Test Case Title *</label>
+                <label
+                  htmlFor="testcase-title"
+                  className="text-[10px] font-bold text-gray-400 uppercase tracking-widest"
+                >
+                  Test Case Title *
+                </label>
                 <input
+                  id="testcase-title"
                   type="text"
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
@@ -116,7 +122,7 @@ export function TestCaseModal({
 
               <div className="grid grid-cols-2 gap-4 relative z-20">
                 <div className="space-y-2 relative">
-                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Priority</label>
+                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Priority</span>
                   <button
                     type="button"
                     onClick={() => {
@@ -126,9 +132,11 @@ export function TestCaseModal({
                     className="w-full flex items-center justify-between px-4 py-3 glass-input rounded-2xl focus:ring-2 focus:ring-violet-500 outline-none transition-ui text-sm text-white"
                   >
                     <span>{formData.priority || 'Select Priority'}</span>
-                    <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${isPriorityOpen ? 'rotate-180' : ''}`} />
+                    <ChevronDown
+                      className={`w-4 h-4 text-gray-400 transition-transform ${isPriorityOpen ? 'rotate-180' : ''}`}
+                    />
                   </button>
-                  
+
                   <AnimatePresence>
                     {isPriorityOpen && (
                       <motion.div
@@ -151,7 +159,9 @@ export function TestCaseModal({
                           </button>
                         ))}
                         {(!configSchema?.priorities || configSchema.priorities.length === 0) && (
-                          <div className="px-4 py-3 text-gray-500 dark:text-gray-300 text-sm">No priorities configured</div>
+                          <div className="px-4 py-3 text-gray-500 dark:text-gray-300 text-sm">
+                            No priorities configured
+                          </div>
                         )}
                       </motion.div>
                     )}
@@ -159,7 +169,7 @@ export function TestCaseModal({
                 </div>
 
                 <div className="space-y-2 relative">
-                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Type</label>
+                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Type</span>
                   <button
                     type="button"
                     onClick={() => {
@@ -169,7 +179,9 @@ export function TestCaseModal({
                     className="w-full flex items-center justify-between px-4 py-3 glass-input rounded-2xl focus:ring-2 focus:ring-violet-500 outline-none transition-ui text-sm text-white"
                   >
                     <span>{formData.type || 'Select Type'}</span>
-                    <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${isTypeOpen ? 'rotate-180' : ''}`} />
+                    <ChevronDown
+                      className={`w-4 h-4 text-gray-400 transition-transform ${isTypeOpen ? 'rotate-180' : ''}`}
+                    />
                   </button>
 
                   <AnimatePresence>
@@ -203,8 +215,14 @@ export function TestCaseModal({
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Description</label>
+                <label
+                  htmlFor="testcase-description"
+                  className="text-[10px] font-bold text-gray-400 uppercase tracking-widest"
+                >
+                  Description
+                </label>
                 <textarea
+                  id="testcase-description"
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   placeholder="Detailed description of the test case..."
@@ -214,8 +232,14 @@ export function TestCaseModal({
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Preconditions</label>
+                <label
+                  htmlFor="testcase-preconditions"
+                  className="text-[10px] font-bold text-gray-400 uppercase tracking-widest"
+                >
+                  Preconditions
+                </label>
                 <textarea
+                  id="testcase-preconditions"
                   value={formData.preconditions}
                   onChange={(e) => setFormData({ ...formData, preconditions: e.target.value })}
                   placeholder="Prerequisites for running this test case..."
@@ -225,8 +249,14 @@ export function TestCaseModal({
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Test Steps (One per line)</label>
+                <label
+                  htmlFor="testcase-steps"
+                  className="text-[10px] font-bold text-gray-400 uppercase tracking-widest"
+                >
+                  Test Steps (One per line)
+                </label>
                 <textarea
+                  id="testcase-steps"
                   value={formData.steps}
                   onChange={(e) => setFormData({ ...formData, steps: e.target.value })}
                   placeholder="Step 1&#10;Step 2&#10;Step 3"
@@ -236,8 +266,14 @@ export function TestCaseModal({
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Expected Result</label>
+                <label
+                  htmlFor="testcase-expected-result"
+                  className="text-[10px] font-bold text-gray-400 uppercase tracking-widest"
+                >
+                  Expected Result
+                </label>
                 <textarea
+                  id="testcase-expected-result"
                   value={formData.expectedResult}
                   onChange={(e) => setFormData({ ...formData, expectedResult: e.target.value })}
                   placeholder="What should happen when the steps are executed..."
@@ -249,7 +285,9 @@ export function TestCaseModal({
               {/* Dynamic Custom Fields */}
               {configSchema?.customFields && configSchema.customFields.length > 0 && (
                 <div className="border-t border-gray-200 dark:border-white/10 pt-4 mt-4">
-                  <h3 className="text-[10px] font-bold text-gray-400 dark:text-gray-400 uppercase tracking-widest mb-4">Custom Fields</h3>
+                  <h3 className="text-[10px] font-bold text-gray-400 dark:text-gray-400 uppercase tracking-widest mb-4">
+                    Custom Fields
+                  </h3>
                   <DynamicFormFields
                     fields={configSchema.customFields}
                     values={formData.customFieldValues}
@@ -272,7 +310,7 @@ export function TestCaseModal({
                   disabled={isLoading}
                   className="flex-1 py-3 bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white font-bold rounded-2xl shadow-lg shadow-violet-500/20 hover:shadow-violet-500/40 transition-ui disabled:opacity-50"
                 >
-                  {isLoading ? 'Saving...' : (isEditing ? 'Update Test Case' : 'Create Test Case')}
+                  {isLoading ? 'Saving...' : isEditing ? 'Update Test Case' : 'Create Test Case'}
                 </button>
               </div>
             </form>

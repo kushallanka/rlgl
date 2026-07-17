@@ -1,15 +1,11 @@
+import { ArrowRight, ClipboardList } from 'lucide-react';
 import { motion } from 'motion/react';
-import { ClipboardList, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function LandingPage() {
   return (
     <div className="min-h-screen flex items-center justify-center p-8">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="text-center max-w-2xl"
-      >
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center max-w-2xl">
         <motion.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
@@ -29,9 +25,7 @@ export default function LandingPage() {
           <span className="text-gray-400 mx-2">-</span>
           <span className="text-gray-900 dark:text-white">GreenLight</span>
         </h1>
-        <p className="text-xl text-gray-500 dark:text-white/60 mb-8">
-          Enterprise Test Management Platform
-        </p>
+        <p className="text-xl text-gray-500 dark:text-white/60 mb-8">Enterprise Test Management Platform</p>
         <Link
           to="/login"
           className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl text-white font-semibold text-lg"

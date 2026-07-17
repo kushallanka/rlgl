@@ -1,14 +1,12 @@
+import path from 'node:path';
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
-import path from 'path';
-import {defineConfig, loadEnv} from 'vite';
+import { defineConfig } from 'vite';
 
-export default defineConfig(({mode}) => {
-  const env = loadEnv(mode, '.', '');
+export default defineConfig(({ mode }) => {
   return {
     plugins: [react(), tailwindcss()],
-    define: {
-    },
+    define: {},
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),
@@ -45,7 +43,7 @@ export default defineConfig(({mode}) => {
           cookieDomainRewrite: 'localhost',
           cookiePathRewrite: '/',
           headers: {
-            'Connection': 'keep-alive',
+            Connection: 'keep-alive',
           },
           configure: (proxy, _options) => {
             proxy.on('proxyReq', (proxyReq, req) => {

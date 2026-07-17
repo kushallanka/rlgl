@@ -36,12 +36,7 @@ export function StatCard({ icon: Icon, label, value, tone = 'accent', delay = 0 
       transition={{ delay, duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
       className="liquid-glass p-5 flex items-center gap-4 hover:-translate-y-0.5 transition-transform duration-200"
     >
-      <div
-        className={cn(
-          'w-12 h-12 rounded-2xl border flex items-center justify-center shrink-0',
-          tones[tone].tile,
-        )}
-      >
+      <div className={cn('w-12 h-12 rounded-2xl border flex items-center justify-center shrink-0', tones[tone].tile)}>
         <Icon className="w-6 h-6" strokeWidth={2} />
       </div>
       <div className="min-w-0">

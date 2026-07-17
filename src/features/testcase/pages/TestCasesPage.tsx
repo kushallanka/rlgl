@@ -1,23 +1,23 @@
-import { motion } from 'motion/react';
 import { FolderKanban } from 'lucide-react';
-import { useProjectStore } from '../../../stores/project.store';
-import { usePermissionStore } from '../../../stores/permission.store';
-import { useConfigSchema } from '../../../shared/hooks/useConfigSchema';
-import { useTestCases } from '../hooks/useTestCases';
-import { useTestCaseForms } from '../hooks/useTestCaseForms';
-import { useToggleSet, useDropdownPortal } from '../../../hooks';
-import { TestCaseHeader } from '../components/TestCaseHeader';
-import { TestCaseTree } from '../components/TestCaseTree';
-import { SuiteModal } from '../components/SuiteModal';
-import { SectionModal } from '../components/SectionModal';
-import { TestCaseModal } from '../components/TestCaseModal';
+import { motion } from 'motion/react';
+import { useDropdownPortal, useToggleSet } from '../../../hooks';
 import { ConfirmModal } from '../../../shared/components/ConfirmModal';
 import { FullPageSpinner } from '../../../shared/components/loading/FullPageSpinner';
+import { useConfigSchema } from '../../../shared/hooks/useConfigSchema';
+import { usePermissionStore } from '../../../stores/permission.store';
+import { useProjectStore } from '../../../stores/project.store';
+import { SectionModal } from '../components/SectionModal';
+import { SuiteModal } from '../components/SuiteModal';
+import { TestCaseHeader } from '../components/TestCaseHeader';
+import { TestCaseModal } from '../components/TestCaseModal';
+import { TestCaseTree } from '../components/TestCaseTree';
+import { useTestCaseForms } from '../hooks/useTestCaseForms';
+import { useTestCases } from '../hooks/useTestCases';
 
 export default function TestCasesPage() {
   const { activeProject } = useProjectStore();
   const configSchema = useConfigSchema(activeProject?.id || null).data ?? null;
-  
+
   const {
     suites,
     sections,
@@ -104,7 +104,7 @@ export default function TestCasesPage() {
   const { openMenuId, toggleMenu, closeMenu, getTriggerRef, registerTriggerRef } = useDropdownPortal();
 
   // Permissions
-  const hasPermission = usePermissionStore(s => s.hasPermission);
+  const hasPermission = usePermissionStore((s) => s.hasPermission);
   const canCreateTestCase = hasPermission('testcase.create');
   const canEditTestCase = hasPermission('testcase.edit');
   const canDeleteTestCase = hasPermission('testcase.delete');
@@ -132,13 +132,13 @@ export default function TestCasesPage() {
   // Handle suite creation
   const handleAddSuite = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!suiteForm.name.trim()) return;
+    if (!suiteForm.name.trim() || !activeProject) return;
 
     try {
       await createSuiteMutation.mutateAsync({
         name: suiteForm.name,
         description: suiteForm.description,
-        projectId: activeProject?.id!,
+        projectId: activeProject.id,
       });
       resetSuiteForm();
     } catch (err: any) {
@@ -243,7 +243,7 @@ export default function TestCasesPage() {
         }
       }
 
-      const stepsArray = caseForm.steps.split('\n').filter(step => step.trim());
+      const stepsArray = caseForm.steps.split('\n').filter((step) => step.trim());
 
       await createCaseMutation.mutateAsync({
         title: caseForm.title,
@@ -270,7 +270,7 @@ export default function TestCasesPage() {
     if (!caseForm.title.trim() || !editingCase) return;
 
     try {
-      const stepsArray = caseForm.steps.split('\n').filter(step => step.trim());
+      const stepsArray = caseForm.steps.split('\n').filter((step) => step.trim());
 
       await updateCaseMutation.mutateAsync({
         id: editingCase.id,
@@ -328,12 +328,7 @@ export default function TestCasesPage() {
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="space-y-8"
-    >
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-8">
       <TestCaseHeader
         projectName={activeProject.name}
         canCreateTestCase={canCreateTestCase}

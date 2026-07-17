@@ -1,6 +1,6 @@
-import { useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
 import { LogOut } from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
+import { useEffect } from 'react';
 import { Button } from '../../../shared/ui';
 
 interface LogoutConfirmModalProps {
@@ -10,12 +10,7 @@ interface LogoutConfirmModalProps {
   isLoading: boolean;
 }
 
-export function LogoutConfirmModal({
-  isOpen,
-  onClose,
-  onConfirm,
-  isLoading,
-}: LogoutConfirmModalProps) {
+export function LogoutConfirmModal({ isOpen, onClose, onConfirm, isLoading }: LogoutConfirmModalProps) {
   useEffect(() => {
     if (!isOpen) return;
     const onKeyDown = (e: KeyboardEvent) => {

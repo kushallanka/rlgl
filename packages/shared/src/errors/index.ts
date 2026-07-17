@@ -3,7 +3,7 @@ export class AppError extends Error {
     public readonly statusCode: number,
     public override readonly message: string,
     public readonly isOperational = true,
-    public readonly errorCode?: string
+    public readonly errorCode?: string,
   ) {
     super(message);
     Object.setPrototypeOf(this, new.target.prototype);
@@ -15,7 +15,7 @@ export class AppError extends Error {
 export enum BreakerState {
   CLOSED,
   OPEN,
-  HALF_OPEN
+  HALF_OPEN,
 }
 
 export interface BreakerOptions {
@@ -35,8 +35,8 @@ export class CircuitBreaker {
     private readonly options: Required<BreakerOptions> = {
       failureThreshold: 5,
       resetTimeoutMs: 10000,
-      halfOpenMaxRequests: 3
-    }
+      halfOpenMaxRequests: 3,
+    },
   ) {}
 
   async execute<T>(fn: () => Promise<T>): Promise<T> {
@@ -62,14 +62,16 @@ export class CircuitBreaker {
     } catch (error) {
       this.failures++;
       this.lastFailureTime = Date.now();
-      
+
       if (this.failures >= this.options.failureThreshold) {
         this.state = BreakerState.OPEN;
       }
-      
+
       throw error;
     }
   }
 
-  get currentState() { return this.state; }
+  get currentState() {
+    return this.state;
+  }
 }

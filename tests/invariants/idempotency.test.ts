@@ -10,10 +10,11 @@
  *
  * These tests exercise the middleware directly and through HTTP.
  */
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+
 import express, { type Express } from 'express';
-import request from 'supertest';
 import { Redis } from 'ioredis';
+import request from 'supertest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { requireIdempotency } from '../../packages/shared/src/middleware/index.js';
 
 // ---------------------------------------------------------------------------
@@ -42,7 +43,7 @@ beforeEach(async () => {
   mutationCount = 0;
 
   // Try to connect to Redis; fall back to no-Redis (pass-through) mode
-  const REDIS_URL = process.env['REDIS_URL'] ?? 'redis://localhost:6379';
+  const REDIS_URL = process.env.REDIS_URL ?? 'redis://localhost:6379';
   try {
     redis = new Redis(REDIS_URL, { lazyConnect: true, connectTimeout: 1000, maxRetriesPerRequest: 0 });
     await redis.connect();
@@ -174,11 +175,7 @@ describe('Idempotency: user-scoped keys cannot cross user boundaries', () => {
 
     const KEY = `shared-key-${Date.now()}`;
 
-    await request(app)
-      .post('/create')
-      .set('Idempotency-Key', KEY)
-      .set('x-user-id', 'user-1')
-      .send({ x: 1 });
+    await request(app).post('/create').set('Idempotency-Key', KEY).set('x-user-id', 'user-1').send({ x: 1 });
 
     await request(app)
       .post('/create')

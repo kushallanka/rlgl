@@ -1,6 +1,6 @@
+import { Pencil, X } from 'lucide-react';
 import { motion } from 'motion/react';
-import { X, Pencil } from 'lucide-react';
-import { GlassDropdown, type DropdownOption } from '../../../shared/components';
+import { type DropdownOption, GlassDropdown } from '../../../shared/components';
 
 interface EditMemberModalProps {
   isOpen: boolean;
@@ -16,7 +16,16 @@ interface EditMemberModalProps {
 }
 
 export function EditMemberModal({
-  isOpen, onClose, member, selectedRole, onRoleChange, roleOptions, error, isLoading, onSubmit, getUserDisplayName,
+  isOpen,
+  onClose,
+  member,
+  selectedRole,
+  onRoleChange,
+  roleOptions,
+  error,
+  isLoading,
+  onSubmit,
+  getUserDisplayName,
 }: EditMemberModalProps) {
   if (!isOpen || !member) return null;
 
@@ -37,9 +46,15 @@ export function EditMemberModal({
             </div>
             <div className="flex-1">
               <h3 className="text-xl font-bold text-gray-900 dark:text-white">Edit Role</h3>
-              <p className="text-sm text-gray-500 dark:text-white/50">Update role for {getUserDisplayName(member.userId)}</p>
+              <p className="text-sm text-gray-500 dark:text-white/50">
+                Update role for {getUserDisplayName(member.userId)}
+              </p>
             </div>
-            <button onClick={onClose} className="p-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-xl text-gray-400 dark:text-white/40 hover:text-gray-900 dark:hover:text-white transition-ui">
+            <button
+              type="button"
+              onClick={onClose}
+              className="p-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-xl text-gray-400 dark:text-white/40 hover:text-gray-900 dark:hover:text-white transition-ui"
+            >
               <X className="w-5 h-5" />
             </button>
           </div>
@@ -50,19 +65,47 @@ export function EditMemberModal({
               <p className="text-gray-900 dark:text-white font-medium">{getUserDisplayName(member.userId)}</p>
             </div>
 
-            <GlassDropdown label="New Role" value={selectedRole} options={roleOptions} onChange={onRoleChange} placeholder="Select New Role" zIndex={10} emptyMessage="No roles available" />
+            <GlassDropdown
+              label="New Role"
+              value={selectedRole}
+              options={roleOptions}
+              onChange={onRoleChange}
+              placeholder="Select New Role"
+              zIndex={10}
+              emptyMessage="No roles available"
+            />
 
             {error && (
-              <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="p-3 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20">
-                <p className="text-sm text-red-600 dark:text-red-400 flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-red-500 dark:bg-red-400" />{error}</p>
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="p-3 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20"
+              >
+                <p className="text-sm text-red-600 dark:text-red-400 flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-red-500 dark:bg-red-400" />
+                  {error}
+                </p>
               </motion.div>
             )}
 
             <div className="flex gap-3 pt-2">
-              <motion.button type="button" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={onClose} className="flex-1 py-3.5 rounded-xl bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-white/70 font-medium hover:bg-gray-200 dark:hover:bg-white/10 hover:text-gray-900 dark:hover:text-white transition-ui border border-gray-200 dark:border-white/10">
+              <motion.button
+                type="button"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={onClose}
+                className="flex-1 py-3.5 rounded-xl bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-white/70 font-medium hover:bg-gray-200 dark:hover:bg-white/10 hover:text-gray-900 dark:hover:text-white transition-ui border border-gray-200 dark:border-white/10"
+              >
                 Cancel
               </motion.button>
-              <motion.button type="button" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={onSubmit} disabled={isLoading || !selectedRole || selectedRole === member.roleId} className="flex-1 py-3.5 rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 text-white font-medium shadow-lg shadow-blue-500/25 transition-ui disabled:opacity-40 disabled:cursor-not-allowed hover:shadow-blue-500/40">
+              <motion.button
+                type="button"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={onSubmit}
+                disabled={isLoading || !selectedRole || selectedRole === member.roleId}
+                className="flex-1 py-3.5 rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 text-white font-medium shadow-lg shadow-blue-500/25 transition-ui disabled:opacity-40 disabled:cursor-not-allowed hover:shadow-blue-500/40"
+              >
                 {isLoading ? 'Updating...' : 'Update Role'}
               </motion.button>
             </div>

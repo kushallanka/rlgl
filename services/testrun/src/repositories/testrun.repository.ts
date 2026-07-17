@@ -63,7 +63,11 @@ export class TestRunRepository {
 
   // Compare-and-swap update: when expectedVersion is given, the update only
   // applies if the row still has that version; returns null on conflict.
-  async updateRun(runId: number, data: { name?: string | undefined; description?: string | undefined }, expectedVersion?: number) {
+  async updateRun(
+    runId: number,
+    data: { name?: string | undefined; description?: string | undefined },
+    expectedVersion?: number,
+  ) {
     const patch = {
       ...(data.name !== undefined ? { name: data.name } : {}),
       ...(data.description !== undefined ? { description: data.description } : {}),
@@ -99,7 +103,11 @@ export class TestRunRepository {
     });
   }
 
-  async updateResult(resultId: number, data: { status: string; comment?: string | undefined }, expectedVersion?: number) {
+  async updateResult(
+    resultId: number,
+    data: { status: string; comment?: string | undefined },
+    expectedVersion?: number,
+  ) {
     const patch = {
       status: data.status,
       ...(data.comment !== undefined ? { comment: data.comment } : {}),

@@ -1,15 +1,15 @@
-import { Request, Response, NextFunction } from 'express';
+import crypto from 'node:crypto';
+import { EventBus } from '@rlgl/shared';
+import { NextFunction, Request, Response } from 'express';
 import { AuthService } from '../services/auth.service.js';
 import { IAMService } from '../services/iam.service.js';
-import { EventBus } from '@rlgl/shared';
-import crypto from 'crypto';
 
 /**
  * @swagger
  * tags:
  *   name: Auth
  *   description: Authentication and Identity Management
- * 
+ *
  * components:
  *   schemas:
  *     User:
@@ -43,7 +43,7 @@ export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly iamService: IAMService,
-    private readonly eventBus?: EventBus
+    private readonly eventBus?: EventBus,
   ) {}
 
   /**
@@ -86,7 +86,7 @@ export class AuthController {
       const user = await this.authService.signup(req.body);
       const tokens = await this.authService.generateTokenPair(user);
       this.setCookies(res, tokens);
-      
+
       let sysPerms: string[] = [];
       try {
         const parsed = JSON.parse(user.systemPermissions || '[]');
@@ -94,18 +94,18 @@ export class AuthController {
       } catch {
         sysPerms = (user.systemPermissions || '').split(',').filter(Boolean);
       }
-      
+
       return res.json({
-        user: { 
-          id: user.id, 
-          email: user.email, 
+        user: {
+          id: user.id,
+          email: user.email,
           firstName: user.firstName,
           lastName: user.lastName,
           role: user.role || 'user',
-          systemPermissions: sysPerms
-        }
+          systemPermissions: sysPerms,
+        },
       });
-    } catch (err: any) { 
+    } catch (err: any) {
       if (err.code === 'P2002') return res.status(400).json({ error: 'User already exists' });
       return next(err);
     }
@@ -147,7 +147,7 @@ export class AuthController {
       const user = await this.authService.login(req.body);
       const tokens = await this.authService.generateTokenPair(user);
       this.setCookies(res, tokens);
-      
+
       // Publish event
       const context = (req as any).context;
       if (this.eventBus) {
@@ -161,10 +161,10 @@ export class AuthController {
           {
             requestId: context?.requestId,
             userId: user.id.toString(),
-          }
+          },
         );
       }
-      
+
       let sysPerms: string[] = [];
       try {
         const parsed = JSON.parse(user.systemPermissions || '[]');
@@ -172,20 +172,22 @@ export class AuthController {
       } catch {
         sysPerms = (user.systemPermissions || '').split(',').filter(Boolean);
       }
-      
+
       return res.json({
-        user: { 
-          id: user.id, 
-          email: user.email, 
+        user: {
+          id: user.id,
+          email: user.email,
           firstName: user.firstName,
           lastName: user.lastName,
           role: user.role || 'user',
-          systemPermissions: sysPerms
+          systemPermissions: sysPerms,
         },
         accessToken: tokens.accessToken,
-        refreshToken: tokens.refreshToken
+        refreshToken: tokens.refreshToken,
       });
-    } catch (err) { return next(err); }
+    } catch (err) {
+      return next(err);
+    }
   };
 
   /**
@@ -212,7 +214,9 @@ export class AuthController {
       const { userId } = (req as any).context;
       if (!userId) return res.status(401).json({ error: 'Not authenticated' });
       return res.json({ id: userId });
-    } catch (err) { return next(err); }
+    } catch (err) {
+      return next(err);
+    }
   };
 
   /**
@@ -234,7 +238,9 @@ export class AuthController {
       const tokens = await this.authService.refresh(refreshToken);
       this.setCookies(res, tokens);
       return res.json({ success: true });
-    } catch (err) { return next(err); }
+    } catch (err) {
+      return next(err);
+    }
   };
 
   /**
@@ -249,7 +255,7 @@ export class AuthController {
    */
   logout = async (req: Request, res: Response) => {
     const context = (req as any).context;
-    
+
     // Publish event
     if (this.eventBus && context?.userId) {
       await this.eventBus.publishEvent(
@@ -260,10 +266,10 @@ export class AuthController {
         {
           requestId: context?.requestId,
           userId: context.userId,
-        }
+        },
       );
     }
-    
+
     res.clearCookie('accessToken');
     res.clearCookie('refreshToken');
     res.clearCookie('csrf-token');
@@ -291,7 +297,7 @@ export class AuthController {
     try {
       const { userId } = req.params;
       const userIdNum = parseInt(userId ?? '', 10);
-      if (isNaN(userIdNum)) return res.status(400).json({ error: 'Invalid user ID' });
+      if (Number.isNaN(userIdNum)) return res.status(400).json({ error: 'Invalid user ID' });
       const projectIds = await this.iamService.listProjectIdsForUser(userIdNum);
       return res.json({ projectIds });
     } catch (err) {
@@ -326,7 +332,8 @@ export class AuthController {
       const { userId, projectId } = req.params;
       const userIdNum = parseInt(userId ?? '', 10);
       const projectIdNum = parseInt(projectId ?? '', 10);
-      if (isNaN(userIdNum) || isNaN(projectIdNum)) return res.status(400).json({ error: 'Invalid ID format' });
+      if (Number.isNaN(userIdNum) || Number.isNaN(projectIdNum))
+        return res.status(400).json({ error: 'Invalid ID format' });
       const permissions = await this.iamService.getPermissions(userIdNum, projectIdNum);
       return res.json({ permissions });
     } catch (err) {
@@ -369,7 +376,8 @@ export class AuthController {
       if (!userId) {
         return res.status(400).json({ error: 'userId is required' });
       }
-      if (isNaN(projectIdNum) || isNaN(userIdNum)) return res.status(400).json({ error: 'Invalid ID format' });
+      if (Number.isNaN(projectIdNum) || Number.isNaN(userIdNum))
+        return res.status(400).json({ error: 'Invalid ID format' });
       await this.iamService.initProjectAdmin(projectIdNum, userIdNum);
       return res.status(201).json({ ok: true });
     } catch (err) {
@@ -411,21 +419,20 @@ export class AuthController {
       httpOnly: true,
       secure: isProd,
       sameSite: 'strict',
-      maxAge: 15 * 60 * 1000
+      maxAge: 15 * 60 * 1000,
     });
 
     res.cookie('refreshToken', tokens.refreshToken, {
       httpOnly: true,
       secure: isProd,
       sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
     res.cookie('csrf-token', csrfToken, {
       secure: isProd,
       sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
   }
 }
-

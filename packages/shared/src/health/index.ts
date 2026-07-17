@@ -79,9 +79,7 @@ export class HealthChecker {
       try {
         const result = await Promise.race([
           check(),
-          new Promise<boolean>((_, reject) =>
-            setTimeout(() => reject(new Error('Health check timeout')), 5000),
-          ),
+          new Promise<boolean>((_, reject) => setTimeout(() => reject(new Error('Health check timeout')), 5000)),
         ]);
 
         const latency = Date.now() - startCheck;

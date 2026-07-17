@@ -1,17 +1,17 @@
+import { Edit2, MoreVertical, Plus, Trash2 } from 'lucide-react';
 import { motion } from 'motion/react';
-import { Edit2, Trash2, Plus, MoreVertical } from 'lucide-react';
-import { VirtualizedTreeList } from '../../../shared/components/virtual/VirtualizedList';
 import { DropdownPortal } from '../../../shared/components/DropdownPortal';
-import { ListRow, ColLabel } from '../../../shared/components/table';
+import { ColLabel, ListRow } from '../../../shared/components/table';
+import { VirtualizedTreeList } from '../../../shared/components/virtual/VirtualizedList';
 import type { TestCase } from '../types/testcase.types';
 import { getColorWithOpacity, getPriorityColor, getTypeColor } from '../utils/color.utils';
 
 // Column widths — single source of truth shared between header and rows
 const COL = {
-  dot:      'w-2.5  flex-shrink-0',
+  dot: 'w-2.5  flex-shrink-0',
   priority: 'w-[80px]  flex-shrink-0 text-center',
-  type:     'w-[96px]  flex-shrink-0 text-center',
-  actions:  'w-8    flex-shrink-0',
+  type: 'w-[96px]  flex-shrink-0 text-center',
+  actions: 'w-8    flex-shrink-0',
 } as const;
 
 /*
@@ -82,8 +82,8 @@ export function VirtualTestCaseList({
             maxHeight={400}
             renderItem={(testCase) => {
               const priorityColor = getPriorityColor(testCase.priority, configSchema);
-              const typeColor     = getTypeColor(testCase.type, configSchema);
-              const isMenuOpen    = openMenuId === testCase.id;
+              const typeColor = getTypeColor(testCase.type, configSchema);
+              const isMenuOpen = openMenuId === testCase.id;
 
               return (
                 <ListRow isActive={isMenuOpen}>
@@ -91,7 +91,8 @@ export function VirtualTestCaseList({
                   <div
                     className={COL.dot}
                     style={{
-                      width: 10, height: 10,
+                      width: 10,
+                      height: 10,
                       borderRadius: '50%',
                       backgroundColor: getColorWithOpacity(priorityColor, 0.75),
                       boxShadow: `0 0 5px ${getColorWithOpacity(priorityColor, 0.4)}`,
@@ -130,8 +131,12 @@ export function VirtualTestCaseList({
                   {showActions && (
                     <>
                       <button
+                        type="button"
                         ref={(el) => registerTriggerRef(testCase.id, el)}
-                        onClick={(e) => { e.stopPropagation(); toggleMenu(testCase.id); }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleMenu(testCase.id);
+                        }}
                         className={`${COL.actions} h-8 flex items-center justify-center rounded-lg transition-colors ${
                           isMenuOpen
                             ? 'bg-gray-100 dark:bg-white/10 text-gray-700 dark:text-white'
@@ -149,7 +154,12 @@ export function VirtualTestCaseList({
                       >
                         {canEditTestCase && (
                           <button
-                            onClick={(e) => { e.stopPropagation(); closeMenu(); onEditCase(testCase); }}
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              closeMenu();
+                              onEditCase(testCase);
+                            }}
                             className="w-full px-4 py-3 flex items-center gap-3 text-sm text-gray-700 dark:text-white/80 hover:bg-gray-100 dark:hover:bg-white/10 hover:text-gray-900 dark:hover:text-white transition-ui font-body"
                           >
                             <Edit2 className="w-4 h-4" />
@@ -158,7 +168,12 @@ export function VirtualTestCaseList({
                         )}
                         {canDeleteTestCase && (
                           <button
-                            onClick={(e) => { e.stopPropagation(); closeMenu(); onDeleteCase(testCase); }}
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              closeMenu();
+                              onDeleteCase(testCase);
+                            }}
                             className="w-full px-4 py-3 flex items-center gap-3 text-sm text-red-600 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-500/30 dark:hover:text-red-200 transition-ui font-body border-t border-gray-100 dark:border-white/5"
                           >
                             <Trash2 className="w-4 h-4" />

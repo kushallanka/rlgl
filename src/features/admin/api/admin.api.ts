@@ -1,5 +1,5 @@
-import { axios } from '../../../shared/api/api';
 import { API_ENDPOINTS } from '../../../constants';
+import { axios } from '../../../shared/api/api';
 
 export interface ConfigType {
   id: string;
@@ -51,12 +51,10 @@ export interface ConfigSchema {
 
 export const adminApi = {
   // Configuration schema
-  getConfigSchema: (projectId: string) =>
-    axios.get(API_ENDPOINTS.CONFIG_SCHEMA(projectId)),
+  getConfigSchema: (projectId: string) => axios.get(API_ENDPOINTS.CONFIG_SCHEMA(projectId)),
 
   // Types
-  getTypes: (projectId: string) =>
-    axios.get(API_ENDPOINTS.CONFIG_TYPES(projectId)),
+  getTypes: (projectId: string) => axios.get(API_ENDPOINTS.CONFIG_TYPES(projectId)),
 
   createType: (data: { name: string; projectId: string }) =>
     axios.post(API_ENDPOINTS.CONFIG_TYPES(data.projectId), data),
@@ -64,12 +62,10 @@ export const adminApi = {
   updateType: (projectId: string, id: string, data: { name: string; description?: string; color?: string }) =>
     axios.put(`${API_ENDPOINTS.CONFIG_TYPES(projectId)}/${id}`, data),
 
-  deleteType: (projectId: string, id: string) =>
-    axios.delete(`${API_ENDPOINTS.CONFIG_TYPES(projectId)}/${id}`),
+  deleteType: (projectId: string, id: string) => axios.delete(`${API_ENDPOINTS.CONFIG_TYPES(projectId)}/${id}`),
 
   // Priorities
-  getPriorities: (projectId: string) =>
-    axios.get(API_ENDPOINTS.CONFIG_PRIORITIES(projectId)),
+  getPriorities: (projectId: string) => axios.get(API_ENDPOINTS.CONFIG_PRIORITIES(projectId)),
 
   createPriority: (data: { name: string; projectId: string }) =>
     axios.post(API_ENDPOINTS.CONFIG_PRIORITIES(data.projectId), data),
@@ -81,8 +77,7 @@ export const adminApi = {
     axios.delete(`${API_ENDPOINTS.CONFIG_PRIORITIES(projectId)}/${id}`),
 
   // Custom fields
-  getFields: (projectId: string) =>
-    axios.get(API_ENDPOINTS.CONFIG_FIELDS(projectId)),
+  getFields: (projectId: string) => axios.get(API_ENDPOINTS.CONFIG_FIELDS(projectId)),
 
   createField: (data: {
     name: string;
@@ -90,18 +85,15 @@ export const adminApi = {
     required: boolean;
     options?: string[];
     projectId: string;
-  }) =>
-    axios.post(API_ENDPOINTS.CONFIG_FIELDS(data.projectId), data),
+  }) => axios.post(API_ENDPOINTS.CONFIG_FIELDS(data.projectId), data),
 
   updateField: (projectId: string, id: string, data: Partial<ConfigField>) =>
     axios.put(`${API_ENDPOINTS.CONFIG_FIELDS(projectId)}/${id}`, data),
 
-  deleteField: (projectId: string, id: string) =>
-    axios.delete(`${API_ENDPOINTS.CONFIG_FIELDS(projectId)}/${id}`),
+  deleteField: (projectId: string, id: string) => axios.delete(`${API_ENDPOINTS.CONFIG_FIELDS(projectId)}/${id}`),
 
   // Roles
-  getRoles: (projectId: string) =>
-    axios.get(API_ENDPOINTS.CONFIG_ROLES(projectId)),
+  getRoles: (projectId: string) => axios.get(API_ENDPOINTS.CONFIG_ROLES(projectId)),
 
   createRole: (data: { name: string; permissions: string[]; projectId: string }) =>
     axios.post(API_ENDPOINTS.CONFIG_ROLES(data.projectId), data),
@@ -109,12 +101,10 @@ export const adminApi = {
   updateRole: (projectId: string, id: string, data: { name: string; permissions: string[] }) =>
     axios.put(`${API_ENDPOINTS.CONFIG_ROLES(projectId)}/${id}`, data),
 
-  deleteRole: (projectId: string, id: string) =>
-    axios.delete(`${API_ENDPOINTS.CONFIG_ROLES(projectId)}/${id}`),
+  deleteRole: (projectId: string, id: string) => axios.delete(`${API_ENDPOINTS.CONFIG_ROLES(projectId)}/${id}`),
 
   // User roles
-  getUserRoles: (projectId: string) =>
-    axios.get(API_ENDPOINTS.CONFIG_USER_ROLES(projectId)),
+  getUserRoles: (projectId: string) => axios.get(API_ENDPOINTS.CONFIG_USER_ROLES(projectId)),
 
   addUserRole: (data: { userId: string; roleId: string; projectId: string }) =>
     axios.post(API_ENDPOINTS.CONFIG_USER_ROLES(data.projectId), data),
@@ -122,12 +112,10 @@ export const adminApi = {
   updateUserRole: (id: string, data: { roleId: string }) =>
     axios.put(`${API_ENDPOINTS.CONFIG_USER_ROLES('')}/${id}`, data),
 
-  removeUserRole: (id: string) =>
-    axios.delete(`${API_ENDPOINTS.CONFIG_USER_ROLES('')}/${id}`),
+  removeUserRole: (id: string) => axios.delete(`${API_ENDPOINTS.CONFIG_USER_ROLES('')}/${id}`),
 
   // Project members
-  getProjectMembers: (projectId: string) =>
-    axios.get(`/projects/${projectId}/users/roles`),
+  getProjectMembers: (projectId: string) => axios.get(`/projects/${projectId}/users/roles`),
 
   addProjectMember: (projectId: string, userId: string, roleId: string) =>
     axios.post(`/projects/${projectId}/users/${userId}/roles`, { roleId }),
@@ -136,13 +124,15 @@ export const adminApi = {
     axios.delete(`/projects/${projectId}/users/${userId}/roles/${roleId}`),
 
   // Audit logs
-  getAuditLogs: (projectId: string, params?: {
-    page?: number;
-    limit?: number;
-    userId?: string;
-    action?: string;
-    startDate?: string;
-    endDate?: string;
-  }) =>
-    axios.get(`${API_ENDPOINTS.CONFIG_AUDIT(projectId)}?${new URLSearchParams(params as any).toString()}`),
+  getAuditLogs: (
+    projectId: string,
+    params?: {
+      page?: number;
+      limit?: number;
+      userId?: string;
+      action?: string;
+      startDate?: string;
+      endDate?: string;
+    },
+  ) => axios.get(`${API_ENDPOINTS.CONFIG_AUDIT(projectId)}?${new URLSearchParams(params as any).toString()}`),
 };

@@ -1,5 +1,5 @@
+import { FolderKanban, Plus, RefreshCw } from 'lucide-react';
 import { motion } from 'motion/react';
-import { Plus, RefreshCw, FolderKanban } from 'lucide-react';
 
 interface ProjectsHeaderProps {
   canCreateProject: boolean;
@@ -8,12 +8,7 @@ interface ProjectsHeaderProps {
   onCreateProject: () => void;
 }
 
-export function ProjectsHeader({
-  canCreateProject,
-  isFetching,
-  onRefresh,
-  onCreateProject,
-}: ProjectsHeaderProps) {
+export function ProjectsHeader({ canCreateProject, isFetching, onRefresh, onCreateProject }: ProjectsHeaderProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y: -20 }}
@@ -31,14 +26,20 @@ export function ProjectsHeader({
           <FolderKanban className="w-6 h-6 text-white" />
         </motion.div>
         <div className="flex flex-col gap-1 min-w-0">
-          <h1 className="text-2xl sm:text-3xl font-heading font-bold tracking-tight text-gray-900 dark:text-white">Projects</h1>
-          <p className="text-gray-500 dark:text-white/50 font-body text-sm truncate">Manage your testing environments and teams</p>
+          <h1 className="text-2xl sm:text-3xl font-heading font-bold tracking-tight text-gray-900 dark:text-white">
+            Projects
+          </h1>
+          <p className="text-gray-500 dark:text-white/50 font-body text-sm truncate">
+            Manage your testing environments and teams
+          </p>
         </div>
       </div>
 
       <div className="flex items-center gap-3 flex-shrink-0">
         {isFetching && (
-          <span className="text-xs font-body uppercase tracking-wider text-gray-500 dark:text-white/50">Refreshing…</span>
+          <span className="text-xs font-body uppercase tracking-wider text-gray-500 dark:text-white/50">
+            Refreshing…
+          </span>
         )}
         <motion.button
           whileHover={{ scale: 1.05 }}

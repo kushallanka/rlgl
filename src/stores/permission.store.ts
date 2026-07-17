@@ -18,7 +18,7 @@ export const usePermissionStore = create<PermissionState>((set, get) => ({
     set({ loading: true, projectId });
     try {
       const res = await axios.get(`/projects/${projectId}/permissions/mine`, {
-        headers: { 'x-project-id': projectId }
+        headers: { 'x-project-id': projectId },
       });
       set({ permissions: res.data.permissions || [], loading: false });
     } catch {

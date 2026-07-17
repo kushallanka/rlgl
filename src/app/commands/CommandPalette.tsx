@@ -1,25 +1,25 @@
-import { useEffect, useMemo, useRef, useState, type ComponentType } from 'react';
+import {
+  Check,
+  ClipboardList,
+  CornerDownLeft,
+  FolderKanban,
+  LayoutDashboard,
+  Moon,
+  PlayCircle,
+  Search,
+  Settings,
+  Sun,
+} from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
+import { type ComponentType, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'motion/react';
-import {
-  LayoutDashboard,
-  FolderKanban,
-  ClipboardList,
-  PlayCircle,
-  Settings,
-  Search,
-  Sun,
-  Moon,
-  Check,
-  CornerDownLeft,
-} from 'lucide-react';
-import { useUIStore } from '../../stores/ui.store';
+import { usePermission } from '../../hooks/usePermission';
+import { cn } from '../../lib/cn';
+import { Kbd } from '../../shared/ui';
 import { useProjectStore } from '../../stores/project.store';
 import { useThemeStore } from '../../stores/theme.store';
-import { usePermission } from '../../hooks/usePermission';
-import { Kbd } from '../../shared/ui';
-import { cn } from '../../lib/cn';
+import { useUIStore } from '../../stores/ui.store';
 
 interface Command {
   id: string;
@@ -36,11 +36,7 @@ export function CommandPalette() {
   const isOpen = useUIStore((s) => s.isCommandPaletteOpen);
   const close = useUIStore((s) => s.closeCommandPalette);
 
-  return (
-    <AnimatePresence>
-      {isOpen && <PaletteDialog onClose={close} />}
-    </AnimatePresence>
-  );
+  return <AnimatePresence>{isOpen && <PaletteDialog onClose={close} />}</AnimatePresence>;
 }
 
 function PaletteDialog({ onClose }: { onClose: () => void }) {
@@ -62,16 +58,56 @@ function PaletteDialog({ onClose }: { onClose: () => void }) {
     };
 
     const nav: Command[] = [
-      { id: 'nav-dashboard', group: 'Navigation', label: 'Go to Dashboard', hint: 'G D', icon: LayoutDashboard, keywords: 'home overview stats', run: go('/') },
-      { id: 'nav-projects', group: 'Navigation', label: 'Go to Projects', hint: 'G P', icon: FolderKanban, keywords: 'workspace list', run: go('/projects') },
+      {
+        id: 'nav-dashboard',
+        group: 'Navigation',
+        label: 'Go to Dashboard',
+        hint: 'G D',
+        icon: LayoutDashboard,
+        keywords: 'home overview stats',
+        run: go('/'),
+      },
+      {
+        id: 'nav-projects',
+        group: 'Navigation',
+        label: 'Go to Projects',
+        hint: 'G P',
+        icon: FolderKanban,
+        keywords: 'workspace list',
+        run: go('/projects'),
+      },
     ];
     if (activeProject) {
       nav.push(
-        { id: 'nav-cases', group: 'Navigation', label: 'Go to Test Repository', hint: 'G T', icon: ClipboardList, keywords: 'test cases suites sections', run: go('/test-cases') },
-        { id: 'nav-runs', group: 'Navigation', label: 'Go to Test Runs', hint: 'G R', icon: PlayCircle, keywords: 'execution results', run: go('/test-runs') },
+        {
+          id: 'nav-cases',
+          group: 'Navigation',
+          label: 'Go to Test Repository',
+          hint: 'G T',
+          icon: ClipboardList,
+          keywords: 'test cases suites sections',
+          run: go('/test-cases'),
+        },
+        {
+          id: 'nav-runs',
+          group: 'Navigation',
+          label: 'Go to Test Runs',
+          hint: 'G R',
+          icon: PlayCircle,
+          keywords: 'execution results',
+          run: go('/test-runs'),
+        },
       );
       if (hasConfigManage || hasMemberManage) {
-        nav.push({ id: 'nav-admin', group: 'Navigation', label: 'Go to Admin', hint: 'G A', icon: Settings, keywords: 'configuration members roles', run: go('/admin') });
+        nav.push({
+          id: 'nav-admin',
+          group: 'Navigation',
+          label: 'Go to Admin',
+          hint: 'G A',
+          icon: Settings,
+          keywords: 'configuration members roles',
+          run: go('/admin'),
+        });
       }
     }
 
@@ -103,17 +139,26 @@ function PaletteDialog({ onClose }: { onClose: () => void }) {
     ];
 
     return [...nav, ...projectCommands, ...prefs];
-  }, [activeProject, projects, theme, hasConfigManage, hasMemberManage, navigate, onClose, setActiveProject, toggleTheme]);
+  }, [
+    activeProject,
+    projects,
+    theme,
+    hasConfigManage,
+    hasMemberManage,
+    navigate,
+    onClose,
+    setActiveProject,
+    toggleTheme,
+  ]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return commands;
-    return commands.filter(
-      (c) => c.label.toLowerCase().includes(q) || c.keywords?.toLowerCase().includes(q),
-    );
+    return commands.filter((c) => c.label.toLowerCase().includes(q) || c.keywords?.toLowerCase().includes(q));
   }, [commands, query]);
 
   // Clamp selection when the result set changes
+  // biome-ignore lint/correctness/useExhaustiveDependencies: query drives filtered's result set; intentionally not read in the effect body
   useEffect(() => {
     setActiveIndex(0);
   }, [query]);
@@ -124,9 +169,7 @@ function PaletteDialog({ onClose }: { onClose: () => void }) {
 
   // Keep the active option visible while arrowing through results
   useEffect(() => {
-    listRef.current
-      ?.querySelector(`[data-index="${activeIndex}"]`)
-      ?.scrollIntoView({ block: 'nearest' });
+    listRef.current?.querySelector(`[data-index="${activeIndex}"]`)?.scrollIntoView({ block: 'nearest' });
   }, [activeIndex]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -196,11 +239,7 @@ function PaletteDialog({ onClose }: { onClose: () => void }) {
           aria-label="Commands"
           className="max-h-[46vh] overflow-y-auto p-2"
         >
-          {filtered.length === 0 && (
-            <p className="text-sm text-fg-muted text-center py-10">
-              No results for “{query}”
-            </p>
-          )}
+          {filtered.length === 0 && <p className="text-sm text-fg-muted text-center py-10">No results for “{query}”</p>}
 
           {filtered.map((cmd, index) => {
             const showGroup = cmd.group !== lastGroup;
@@ -213,6 +252,8 @@ function PaletteDialog({ onClose }: { onClose: () => void }) {
                     {cmd.group}
                   </p>
                 )}
+                {/* biome-ignore lint/a11y/useFocusableInteractive: ARIA combobox pattern — the input retains focus, aria-activedescendant drives virtual focus */}
+                {/* biome-ignore lint/a11y/useKeyWithClickEvents: keyboard activation is handled centrally by handleKeyDown on the input, not per-option */}
                 <div
                   id={cmd.id}
                   data-index={index}
@@ -225,11 +266,15 @@ function PaletteDialog({ onClose }: { onClose: () => void }) {
                     isActive ? 'bg-accent/10 text-fg dark:bg-indigo-400/15' : 'text-fg-secondary',
                   )}
                 >
-                  <cmd.icon className={cn('w-4 h-4 shrink-0', isActive ? 'text-accent dark:text-indigo-300' : 'text-fg-subtle')} />
+                  <cmd.icon
+                    className={cn('w-4 h-4 shrink-0', isActive ? 'text-accent dark:text-indigo-300' : 'text-fg-subtle')}
+                  />
                   <span className="flex-1 text-sm font-medium truncate">{cmd.label}</span>
                   {cmd.active && <Check className="w-4 h-4 text-success shrink-0" aria-label="Currently active" />}
                   {cmd.hint && <Kbd className="opacity-70">{cmd.hint}</Kbd>}
-                  {isActive && !cmd.hint && <CornerDownLeft className="w-3.5 h-3.5 text-fg-subtle shrink-0" aria-hidden="true" />}
+                  {isActive && !cmd.hint && (
+                    <CornerDownLeft className="w-3.5 h-3.5 text-fg-subtle shrink-0" aria-hidden="true" />
+                  )}
                 </div>
               </div>
             );

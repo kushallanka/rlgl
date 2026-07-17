@@ -7,7 +7,7 @@
  *
  * These tests ensure the CAS invariant is mechanically enforced.
  */
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { PrismaClient } from '../../services/testrun/generated/client/index.js';
 import { TestRunRepository } from '../../services/testrun/src/repositories/testrun.repository.js';
 import { createTestRunDb, type TestDb } from '../helpers/testrun-db.js';
@@ -23,9 +23,7 @@ beforeEach(async () => {
   prisma = db.prisma;
   repo = new TestRunRepository(prisma);
 
-  await prisma.$executeRawUnsafe(
-    `INSERT OR IGNORE INTO Project (id, name) VALUES (${PROJECT_ID}, 'CAS Test Project')`
-  );
+  await prisma.$executeRawUnsafe(`INSERT OR IGNORE INTO Project (id, name) VALUES (${PROJECT_ID}, 'CAS Test Project')`);
 });
 
 afterEach(async () => {
@@ -93,8 +91,8 @@ describe('CAS: stale version returns null (VERSION_CONFLICT)', () => {
     ]);
 
     // Exactly one must succeed, one must return null
-    const successes = [result1, result2].filter(r => r !== null);
-    const conflicts = [result1, result2].filter(r => r === null);
+    const successes = [result1, result2].filter((r) => r !== null);
+    const conflicts = [result1, result2].filter((r) => r === null);
 
     expect(successes).toHaveLength(1);
     expect(conflicts).toHaveLength(1);

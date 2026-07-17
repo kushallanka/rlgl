@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
-import { TestCaseService } from '../services/testcase.service.js';
 import { IdempotencyService } from '../middleware/idempotency.js';
+import { TestCaseService } from '../services/testcase.service.js';
 import { PaginationSchema, TestCaseSchema, UpdateTestCaseSchema } from '../validators/schemas.js';
 
 /**
@@ -170,8 +170,8 @@ export class TestCaseController {
     const suiteId = suiteIdStr ? parseInt(suiteIdStr, 10) : undefined;
     const sectionId = sectionIdStr ? parseInt(sectionIdStr, 10) : undefined;
 
-    if (suiteIdStr && isNaN(suiteId!)) return res.status(400).json({ error: 'Invalid suiteId' });
-    if (sectionIdStr && isNaN(sectionId!)) return res.status(400).json({ error: 'Invalid sectionId' });
+    if (suiteIdStr && Number.isNaN(suiteId!)) return res.status(400).json({ error: 'Invalid suiteId' });
+    if (sectionIdStr && Number.isNaN(sectionId!)) return res.status(400).json({ error: 'Invalid sectionId' });
 
     try {
       const result = await this.service.listCases(projectId, { suiteId, sectionId, search }, page, limit, requestId);
@@ -191,7 +191,12 @@ export class TestCaseController {
     const requestId = (req as any).requestId;
     const { ids, projectId } = req.body ?? {};
 
-    if (!Array.isArray(ids) || ids.length === 0 || ids.length > 1000 || !ids.every(id => Number.isInteger(id) && id > 0)) {
+    if (
+      !Array.isArray(ids) ||
+      ids.length === 0 ||
+      ids.length > 1000 ||
+      !ids.every((id) => Number.isInteger(id) && id > 0)
+    ) {
       return res.status(400).json({ error: 'ids must be an array of 1-1000 positive integers' });
     }
     if (!Number.isInteger(projectId) || projectId <= 0) {
@@ -211,7 +216,7 @@ export class TestCaseController {
     const projectId = (req as any).projectId;
     const requestId = (req as any).requestId;
     const id = parseInt(req.params.id ?? '', 10);
-    if (isNaN(id)) return res.status(400).json({ error: 'Invalid test case ID' });
+    if (Number.isNaN(id)) return res.status(400).json({ error: 'Invalid test case ID' });
 
     try {
       const tc = await this.service.getCase(id, projectId, requestId);
@@ -262,7 +267,7 @@ export class TestCaseController {
     const projectId = (req as any).projectId;
     const user = (req as any).user;
     const id = parseInt(req.params.id ?? '', 10);
-    if (isNaN(id)) return res.status(400).json({ error: 'Invalid test case ID' });
+    if (Number.isNaN(id)) return res.status(400).json({ error: 'Invalid test case ID' });
 
     const parsed = UpdateTestCaseSchema.safeParse(req.body);
     if (!parsed.success) {
@@ -287,7 +292,7 @@ export class TestCaseController {
     const requestId = (req as any).requestId;
     const projectId = (req as any).projectId;
     const id = parseInt(req.params.id ?? '', 10);
-    if (isNaN(id)) return res.status(400).json({ error: 'Invalid test case ID' });
+    if (Number.isNaN(id)) return res.status(400).json({ error: 'Invalid test case ID' });
 
     try {
       await this.service.deleteCase(id, projectId, requestId);

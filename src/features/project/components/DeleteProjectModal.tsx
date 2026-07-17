@@ -1,5 +1,5 @@
-import { motion, AnimatePresence } from 'motion/react';
-import { Trash2, Check } from 'lucide-react';
+import { Check, Trash2 } from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
 import { Project } from '../types/project.types';
 
 interface DeleteProjectModalProps {
@@ -47,14 +47,21 @@ export function DeleteProjectModal({
                 animate={{ scale: 1 }}
                 transition={{ duration: 0.25, ease: [0.25, 0.46, 0.45, 0.94] }}
                 className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6"
-                style={{ background: 'linear-gradient(135deg, #FF3B30 0%, #DC2626 100%)', boxShadow: '0 4px 20px rgba(255, 59, 48, 0.5), 0 0 40px rgba(255, 59, 48, 0.2)' }}
+                style={{
+                  background: 'linear-gradient(135deg, #FF3B30 0%, #DC2626 100%)',
+                  boxShadow: '0 4px 20px rgba(255, 59, 48, 0.5), 0 0 40px rgba(255, 59, 48, 0.2)',
+                }}
               >
                 <Trash2 className="w-8 h-8 text-white" />
               </motion.div>
 
-              <h2 className="text-2xl font-heading font-semibold text-gray-900 dark:text-white mb-2">Delete Project?</h2>
+              <h2 className="text-2xl font-heading font-semibold text-gray-900 dark:text-white mb-2">
+                Delete Project?
+              </h2>
               <p className="text-gray-500 dark:text-white/60 font-body mb-6">
-                Are you sure you want to delete <span className="text-gray-900 dark:text-white font-medium">{projectToDelete?.name}</span>? This action cannot be undone.
+                Are you sure you want to delete{' '}
+                <span className="text-gray-900 dark:text-white font-medium">{projectToDelete?.name}</span>? This action
+                cannot be undone.
               </p>
 
               {deleteError && (
@@ -83,7 +90,10 @@ export function DeleteProjectModal({
                   onClick={onConfirmDelete}
                   disabled={deletingProjectId !== null}
                   className="flex-1 py-3 rounded-xl text-white font-body font-medium transition-ui disabled:opacity-50"
-                  style={{ background: 'linear-gradient(135deg, #FF3B30 0%, #DC2626 100%)', boxShadow: '0 4px 20px rgba(255, 59, 48, 0.4)' }}
+                  style={{
+                    background: 'linear-gradient(135deg, #FF3B30 0%, #DC2626 100%)',
+                    boxShadow: '0 4px 20px rgba(255, 59, 48, 0.4)',
+                  }}
                 >
                   {deletingProjectId !== null ? 'Deleting...' : 'Delete'}
                 </motion.button>
@@ -98,7 +108,7 @@ export function DeleteProjectModal({
               <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
-                transition={{ type: "spring", stiffness: 200, damping: 15 }}
+                transition={{ type: 'spring', stiffness: 200, damping: 15 }}
                 className="w-16 h-16 accent-green rounded-2xl flex items-center justify-center mx-auto mb-4 glow-green"
               >
                 <Check className="w-8 h-8 text-white" />

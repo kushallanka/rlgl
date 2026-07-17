@@ -1,9 +1,9 @@
 // TestCase Service Auth Middleware - Forwards to shared
 import { initAuthMiddleware, setAuthLogger } from '@rlgl/shared';
-import { JWT_SECRET, PROJECT_SERVICE_URL, CACHE_TTL_MS } from '../config/constants.js';
+import { CACHE_TTL_MS, JWT_SECRET, PROJECT_SERVICE_URL } from '../config/constants.js';
 
 // Re-export shared middleware
-export { verifyToken, requirePermission, invalidateProjectCache, invalidateUserCache } from '@rlgl/shared';
+export { invalidateProjectCache, invalidateUserCache, requirePermission, verifyToken } from '@rlgl/shared';
 
 /**
  * Initialize auth middleware during app startup
@@ -16,8 +16,7 @@ export function initAuth(logger: any) {
       projectServiceUrl: PROJECT_SERVICE_URL,
       cacheTtlMs: CACHE_TTL_MS,
     },
-    logger
+    logger,
   );
   setAuthLogger(logger);
 }
-

@@ -1,5 +1,5 @@
-import { axios } from '../../../shared/api/api';
 import { API_ENDPOINTS } from '../../../constants';
+import { axios } from '../../../shared/api/api';
 
 export interface TestRunDto {
   id: string;
@@ -29,8 +29,7 @@ export interface CreateTestRunInput {
 }
 
 export const testrunsApi = {
-  list: (projectId: string) =>
-    axios.get(`${API_ENDPOINTS.TEST_RUNS}?projectId=${projectId}`),
+  list: (projectId: string) => axios.get(`${API_ENDPOINTS.TEST_RUNS}?projectId=${projectId}`),
 
   create: ({ idempotencyKey, ...input }: CreateTestRunInput) =>
     axios.post(API_ENDPOINTS.TEST_RUNS, input, {
@@ -40,8 +39,7 @@ export const testrunsApi = {
   update: (runId: string, data: { name?: string; description?: string; version?: number }) =>
     axios.put(`${API_ENDPOINTS.TEST_RUNS}/${runId}`, data),
 
-  delete: (runId: string) =>
-    axios.delete(`${API_ENDPOINTS.TEST_RUNS}/${runId}`),
+  delete: (runId: string) => axios.delete(`${API_ENDPOINTS.TEST_RUNS}/${runId}`),
 
   updateResult: (resultId: string, status: string, version?: number) =>
     axios.put(`${API_ENDPOINTS.RESULTS}/${resultId}`, {
@@ -50,9 +48,7 @@ export const testrunsApi = {
       ...(version !== undefined ? { version } : {}),
     }),
 
-  getSuites: (projectId: string) =>
-    axios.get(`${API_ENDPOINTS.SUITES}?projectId=${projectId}`),
+  getSuites: (projectId: string) => axios.get(`${API_ENDPOINTS.SUITES}?projectId=${projectId}`),
 
-  getCasesBySuite: (suiteId: string) =>
-    axios.get(`${API_ENDPOINTS.CASES}?suiteId=${suiteId}`),
+  getCasesBySuite: (suiteId: string) => axios.get(`${API_ENDPOINTS.CASES}?suiteId=${suiteId}`),
 };

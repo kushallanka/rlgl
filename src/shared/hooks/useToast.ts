@@ -1,5 +1,5 @@
-import { useToastStore } from '../../stores/toast.store';
 import type { Toast } from '../../stores/toast.store';
+import { useToastStore } from '../../stores/toast.store';
 
 export type { Toast };
 

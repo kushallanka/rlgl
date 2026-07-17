@@ -1,18 +1,18 @@
-import { loadConfig, createLogger, setupProcessHandlers, createEventBus, createHealthChecker } from '@rlgl/shared';
+import { createEventBus, createHealthChecker, createLogger, loadConfig, setupProcessHandlers } from '@rlgl/shared';
 import { PrismaClient } from '../generated/client/index.js';
-import { TestRunRepository } from './repositories/testrun.repository.js';
-import { TestRunService } from './services/testrun.service.js';
-import { TestRunController } from './controllers/testrun.controller.js';
 import { createApp } from './app.js';
-import { startServer } from './server.js';
+import { PORT, PROJECT_SERVICE_URL, REDIS_URL, SERVICE_NAME, TESTCASE_SERVICE_URL } from './config/constants.js';
+import { TestRunController } from './controllers/testrun.controller.js';
 import { initAuth } from './middleware/auth.js';
-import { PORT, REDIS_URL, SERVICE_NAME, PROJECT_SERVICE_URL, TESTCASE_SERVICE_URL } from './config/constants.js';
+import { TestRunRepository } from './repositories/testrun.repository.js';
+import { startServer } from './server.js';
+import { TestRunService } from './services/testrun.service.js';
 
 const config = loadConfig();
-const logger = createLogger({ 
+const logger = createLogger({
   service: SERVICE_NAME,
   level: config.LOG_LEVEL,
-  samplingRate: config.LOG_SAMPLING_RATE
+  samplingRate: config.LOG_SAMPLING_RATE,
 });
 const healthChecker = createHealthChecker(SERVICE_NAME, logger);
 
@@ -31,7 +31,7 @@ async function main() {
     try {
       const res = await fetch(`${PROJECT_SERVICE_URL}/internal/projects`);
       if (res.ok) {
-        const projects = await res.json() as { id: number; name: string }[];
+        const projects = (await res.json()) as { id: number; name: string }[];
         for (const p of projects) {
           await prisma.project.upsert({
             where: { id: p.id },
@@ -52,7 +52,7 @@ async function main() {
     try {
       const res = await fetch(`${TESTCASE_SERVICE_URL}/internal/suites`);
       if (res.ok) {
-        const suites = await res.json() as { id: number; projectId: number; name: string }[];
+        const suites = (await res.json()) as { id: number; projectId: number; name: string }[];
         for (const s of suites) {
           await prisma.suite.upsert({
             where: { id: s.id },
@@ -90,10 +90,15 @@ async function main() {
   const service = new TestRunService(repository, eventBus, logger);
   const controller = new TestRunController(service);
 
-  const app = createApp(config, controller, (hc) => {
-    hc.registerDatabase(prisma);
-    hc.registerRedis(redis);
-  }, redis);
+  const app = createApp(
+    config,
+    controller,
+    (hc) => {
+      hc.registerDatabase(prisma);
+      hc.registerRedis(redis);
+    },
+    redis,
+  );
 
   (app as any).eventBus = eventBus;
 

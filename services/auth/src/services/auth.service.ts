@@ -1,20 +1,21 @@
+import crypto from 'node:crypto';
+import { AppError } from '@rlgl/shared';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import crypto from 'crypto';
 import { AuthRepository } from '../repositories/auth.repository.js';
-import { AppError } from '@rlgl/shared';
 
 export class AuthService {
   constructor(
     private readonly repo: AuthRepository,
-    private readonly jwtSecret: string
+    private readonly jwtSecret: string,
   ) {}
 
   async signup(data: any) {
     const hashedPassword = await bcrypt.hash(data.password, 12);
-    
+
     // Split name into firstName and lastName
-    let firstName = '', lastName = '';
+    let firstName = '',
+      lastName = '';
     if (data.name) {
       const nameParts = data.name.trim().split(/\s+/);
       firstName = nameParts[0] || '';
@@ -27,7 +28,7 @@ export class AuthService {
       firstName,
       lastName,
       systemPermissions: 'system.user.view',
-      role: 'TESTER'
+      role: 'TESTER',
     });
 
     return user;
@@ -50,9 +51,15 @@ export class AuthService {
       sysPerms = (user.systemPermissions || '').split(',').filter(Boolean);
     }
     const accessToken = jwt.sign(
-      { userId: user.id, email: user.email, firstName: user.firstName, lastName: user.lastName, systemPermissions: sysPerms },
+      {
+        userId: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        systemPermissions: sysPerms,
+      },
       this.jwtSecret,
-      { expiresIn: '15m' }
+      { expiresIn: '15m' },
     );
 
     const randomHex = crypto.randomBytes(32).toString('hex');
@@ -62,7 +69,7 @@ export class AuthService {
     const rtRecord = await this.repo.createRefreshToken({
       userId: user.id,
       hash: refreshHash,
-      expiresAt
+      expiresAt,
     });
 
     const refreshToken = `${rtRecord.id}.${randomHex}`;
@@ -75,7 +82,7 @@ export class AuthService {
 
   async refresh(reqToken: string) {
     if (!reqToken) throw new AppError(401, 'No refresh token provided');
-    
+
     const [tokenId, randomHex] = reqToken.split('.');
     if (!tokenId || !randomHex) throw new AppError(401, 'Malformed refresh token');
     const record = await this.repo.findRefreshToken(tokenId);

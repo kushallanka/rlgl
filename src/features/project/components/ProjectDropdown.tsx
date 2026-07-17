@@ -1,4 +1,4 @@
-import { Info, Trash2, Pencil } from 'lucide-react';
+import { Info, Pencil, Trash2 } from 'lucide-react';
 import { ActionDropdown, type ActionItem } from '../../../shared/components/ActionDropdown';
 
 interface ProjectDropdownProps {
@@ -19,8 +19,8 @@ export function ProjectDropdown({
   canDelete,
 }: ProjectDropdownProps) {
   const actions: ActionItem[] = [
-    { label: 'Details', icon: Info,   onClick: onDetailsClick },
-    { label: 'Edit',    icon: Pencil, onClick: onEditClick },
+    { label: 'Details', icon: Info, onClick: onDetailsClick },
+    { label: 'Edit', icon: Pencil, onClick: onEditClick },
     ...(canDelete ? [{ label: 'Delete', icon: Trash2, onClick: onDeleteClick, variant: 'danger' as const }] : []),
   ];
 

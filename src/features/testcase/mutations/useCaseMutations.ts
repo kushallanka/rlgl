@@ -16,8 +16,7 @@ export function useCreateCaseMutation() {
 export function useUpdateCaseMutation() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: any }) =>
-      testcaseApi.updateCase(id, data),
+    mutationFn: ({ id, data }: { id: string; data: any }) => testcaseApi.updateCase(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries();
     },

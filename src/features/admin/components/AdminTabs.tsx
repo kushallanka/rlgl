@@ -16,6 +16,7 @@ export function AdminTabs({ tabs, activeTab, onTabChange, setActiveTab }: AdminT
       <nav className="flex space-x-8" aria-label="Tabs">
         {tabs.map((tab) => (
           <button
+            type="button"
             key={tab.id}
             onClick={() => handleTabClick(tab.id)}
             className={`py-4 px-1 border-b-2 font-medium text-sm transition-ui ${

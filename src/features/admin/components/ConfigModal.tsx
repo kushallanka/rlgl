@@ -1,8 +1,8 @@
-import { motion, AnimatePresence } from 'motion/react';
 import { X } from 'lucide-react';
-import { AVAILABLE_PERMISSIONS } from '../../../utils';
+import { AnimatePresence, motion } from 'motion/react';
 import { GlassDropdown } from '../../../shared/components';
 import { Checkbox } from '../../../shared/components/Checkbox';
+import { AVAILABLE_PERMISSIONS } from '../../../utils';
 
 interface ConfigModalProps {
   isOpen: boolean;
@@ -80,30 +80,44 @@ export function ConfigModal({
               <Checkbox
                 checked={formData.required}
                 onChange={(val) => setFormData({ ...formData, required: val })}
-                label={<span className="text-[11px] font-body font-medium text-gray-500 dark:text-white/60 uppercase tracking-wider">Required Field</span>}
+                label={
+                  <span className="text-[11px] font-body font-medium text-gray-500 dark:text-white/60 uppercase tracking-wider">
+                    Required Field
+                  </span>
+                }
               />
             </div>
 
             {formData.type === 'select' && (
               <div className="space-y-2">
-                <label className="text-[11px] font-body font-medium text-gray-500 dark:text-white/60 uppercase tracking-wider">Options (one per line)</label>
+                <label
+                  htmlFor="config-options"
+                  className="text-[11px] font-body font-medium text-gray-500 dark:text-white/60 uppercase tracking-wider"
+                >
+                  Options (one per line)
+                </label>
                 <textarea
+                  id="config-options"
                   value={formData.options?.join('\n') || ''}
-                  onChange={(e) => setFormData({ ...formData, options: e.target.value.split('\n').filter(o => o.trim()) })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, options: e.target.value.split('\n').filter((o) => o.trim()) })
+                  }
                   placeholder="Option 1&#10;Option 2&#10;Option 3"
                   rows={3}
                   className="w-full px-4 py-3.5 liquid-glass rounded-xl focus:ring-2 focus:ring-orange-500/50 outline-none transition-ui text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/30 resize-none"
                 />
               </div>
             )}
-</>
+          </>
         );
 
       case 'type':
         return (
           <>
             <div className="space-y-2">
-              <label className="text-[11px] font-body font-medium text-gray-500 dark:text-white/60 uppercase tracking-wider">Color</label>
+              <span className="text-[11px] font-body font-medium text-gray-500 dark:text-white/60 uppercase tracking-wider">
+                Color
+              </span>
               <div className="flex gap-2 flex-wrap">
                 {['blue', 'purple', 'green', 'red', 'orange', 'yellow', 'pink', 'gray'].map((color) => (
                   <button
@@ -119,8 +133,14 @@ export function ConfigModal({
               </div>
             </div>
             <div className="space-y-2">
-              <label className="text-[11px] font-body font-medium text-gray-500 dark:text-white/60 uppercase tracking-wider">Description</label>
+              <label
+                htmlFor="config-type-description"
+                className="text-[11px] font-body font-medium text-gray-500 dark:text-white/60 uppercase tracking-wider"
+              >
+                Description
+              </label>
               <textarea
+                id="config-type-description"
                 value={formData.description || ''}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 placeholder="Optional description"
@@ -135,17 +155,25 @@ export function ConfigModal({
         return (
           <>
             <div className="space-y-2">
-              <label className="text-[11px] font-body font-medium text-gray-500 dark:text-white/60 uppercase tracking-wider">Level</label>
+              <label
+                htmlFor="config-priority-level"
+                className="text-[11px] font-body font-medium text-gray-500 dark:text-white/60 uppercase tracking-wider"
+              >
+                Level
+              </label>
               <input
+                id="config-priority-level"
                 type="number"
                 value={formData.level || 3}
-                onChange={(e) => setFormData({ ...formData, level: parseInt(e.target.value) })}
+                onChange={(e) => setFormData({ ...formData, level: parseInt(e.target.value, 10) })}
                 placeholder="Priority level (1-5)"
                 className="w-full px-4 py-3.5 liquid-glass rounded-xl focus:ring-2 focus:ring-orange-500/50 outline-none transition-ui text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/30"
               />
             </div>
             <div className="space-y-2">
-              <label className="text-[11px] font-body font-medium text-gray-500 dark:text-white/60 uppercase tracking-wider">Color</label>
+              <span className="text-[11px] font-body font-medium text-gray-500 dark:text-white/60 uppercase tracking-wider">
+                Color
+              </span>
               <div className="flex gap-2 flex-wrap">
                 {['red', 'orange', 'yellow', 'green', 'blue', 'purple', 'pink', 'gray'].map((color) => (
                   <button
@@ -164,30 +192,35 @@ export function ConfigModal({
         );
 
       case 'role':
-          return (
-            <div className="space-y-2">
-              <label className="text-[11px] font-body font-medium text-gray-500 dark:text-white/60 uppercase tracking-wider">Permissions</label>
-              <div className="space-y-1 max-h-72 overflow-y-auto">
-                {AVAILABLE_PERMISSIONS.map(permission => (
-                  <div key={permission.action} className="px-2 py-1.5 hover:bg-black/[0.03] dark:hover:bg-white/5 rounded-lg transition-colors">
-                    <Checkbox
-                      checked={formData.permissions?.includes(permission.action) || false}
-                      onChange={(checked) => {
-                        const permissions = formData.permissions || [];
-                        setFormData({
-                          ...formData,
-                          permissions: checked
-                            ? [...permissions, permission.action]
-                            : permissions.filter((p: string) => p !== permission.action),
-                        });
-                      }}
-                      label={permission.label}
-                    />
-                  </div>
-                ))}
-              </div>
+        return (
+          <div className="space-y-2">
+            <span className="text-[11px] font-body font-medium text-gray-500 dark:text-white/60 uppercase tracking-wider">
+              Permissions
+            </span>
+            <div className="space-y-1 max-h-72 overflow-y-auto">
+              {AVAILABLE_PERMISSIONS.map((permission) => (
+                <div
+                  key={permission.action}
+                  className="px-2 py-1.5 hover:bg-black/[0.03] dark:hover:bg-white/5 rounded-lg transition-colors"
+                >
+                  <Checkbox
+                    checked={formData.permissions?.includes(permission.action) || false}
+                    onChange={(checked) => {
+                      const permissions = formData.permissions || [];
+                      setFormData({
+                        ...formData,
+                        permissions: checked
+                          ? [...permissions, permission.action]
+                          : permissions.filter((p: string) => p !== permission.action),
+                      });
+                    }}
+                    label={permission.label}
+                  />
+                </div>
+              ))}
             </div>
-          );
+          </div>
+        );
 
       default:
         return null;
@@ -240,13 +273,20 @@ export function ConfigModal({
 
           <form onSubmit={onSubmit} className="space-y-4">
             <div className="space-y-2">
-              <label className="text-[11px] font-body font-medium text-gray-500 dark:text-white/60 uppercase tracking-wider">Name</label>
+              <label
+                htmlFor="config-name"
+                className="text-[11px] font-body font-medium text-gray-500 dark:text-white/60 uppercase tracking-wider"
+              >
+                Name
+              </label>
               <input
+                id="config-name"
                 type="text"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 placeholder={`Enter ${getItemTitle().toLowerCase()} name`}
                 className="w-full px-4 py-3.5 liquid-glass rounded-xl focus:ring-2 focus:ring-orange-500/50 outline-none transition-ui text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/30"
+                // biome-ignore lint/a11y/noAutofocus: focuses the first field of an explicitly user-triggered modal, not on page load
                 autoFocus
                 required
               />
@@ -271,7 +311,7 @@ export function ConfigModal({
                 disabled={isLoading}
                 className="flex-1 py-3 rounded-xl accent-orange text-white font-body font-medium glow-orange shadow-lg transition-ui disabled:opacity-50"
               >
-                {isLoading ? 'Saving...' : (type === 'edit' ? 'Update' : 'Create')}
+                {isLoading ? 'Saving...' : type === 'edit' ? 'Update' : 'Create'}
               </motion.button>
             </div>
           </form>

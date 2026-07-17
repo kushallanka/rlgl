@@ -18,14 +18,31 @@ type CreateInput = {
 // under exactOptionalPropertyTypes — zod .optional() outputs `T | undefined`.
 type UpdateInput = {
   [K in keyof Omit<CreateInput, 'projectId' | 'suiteId' | 'sectionId'>]?:
-    Omit<CreateInput, 'projectId' | 'suiteId' | 'sectionId'>[K] | undefined;
+    | Omit<CreateInput, 'projectId' | 'suiteId' | 'sectionId'>[K]
+    | undefined;
 };
 
 function deserialize(tc: any) {
   return {
     ...tc,
-    steps: tc.steps ? (() => { try { return JSON.parse(tc.steps); } catch { return []; } })() : [],
-    customFieldValues: tc.customFieldValues ? (() => { try { return JSON.parse(tc.customFieldValues); } catch { return {}; } })() : {},
+    steps: tc.steps
+      ? (() => {
+          try {
+            return JSON.parse(tc.steps);
+          } catch {
+            return [];
+          }
+        })()
+      : [],
+    customFieldValues: tc.customFieldValues
+      ? (() => {
+          try {
+            return JSON.parse(tc.customFieldValues);
+          } catch {
+            return {};
+          }
+        })()
+      : {},
   };
 }
 
@@ -35,7 +52,13 @@ export class TestCaseService {
     private readonly logger?: any,
   ) {}
 
-  async listCases(projectId: number, filters: { suiteId?: number | undefined; sectionId?: number | undefined; search?: string | undefined }, page: number, limit: number, requestId: string) {
+  async listCases(
+    projectId: number,
+    filters: { suiteId?: number | undefined; sectionId?: number | undefined; search?: string | undefined },
+    page: number,
+    limit: number,
+    requestId: string,
+  ) {
     const skip = (page - 1) * limit;
     const [total, cases] = await Promise.all([
       this.repo.count(projectId, filters),
@@ -57,8 +80,8 @@ export class TestCaseService {
 
   async getCasesByIds(ids: number[], projectId: number, requestId: string) {
     const cases = await this.repo.findManyByIds(ids, projectId);
-    const foundIds = new Set(cases.map(c => c.id));
-    const missingIds = ids.filter(id => !foundIds.has(id));
+    const foundIds = new Set(cases.map((c) => c.id));
+    const missingIds = ids.filter((id) => !foundIds.has(id));
     this.logger?.info({ requestId, projectId, requested: ids.length, found: cases.length }, 'Test cases batch fetched');
     return { cases: cases.map(deserialize), missingIds };
   }
@@ -84,7 +107,13 @@ export class TestCaseService {
     return deserialize(tc);
   }
 
-  async updateCase(id: number, projectId: number, data: UpdateInput & { version?: number | undefined }, updatedBy: string, requestId: string) {
+  async updateCase(
+    id: number,
+    projectId: number,
+    data: UpdateInput & { version?: number | undefined },
+    updatedBy: string,
+    requestId: string,
+  ) {
     const { version, ...patch } = data;
     const existing = await this.repo.findById(id);
     if (!existing || existing.projectId !== projectId) {
@@ -93,7 +122,10 @@ export class TestCaseService {
     const updated = await this.repo.update(id, { ...patch, updatedBy }, version);
     if (!updated) {
       this.logger?.warn({ requestId, projectId, testCaseId: id, version }, 'Test case version conflict');
-      throw Object.assign(new Error('Test case was modified by someone else. Refresh and retry.'), { statusCode: 409, code: 'VERSION_CONFLICT' });
+      throw Object.assign(new Error('Test case was modified by someone else. Refresh and retry.'), {
+        statusCode: 409,
+        code: 'VERSION_CONFLICT',
+      });
     }
     this.logger?.info({ requestId, projectId, testCaseId: id }, 'Test case updated');
     return deserialize(updated);

@@ -1,5 +1,5 @@
-import { motion } from 'motion/react';
 import { FolderKanban } from 'lucide-react';
+import { motion } from 'motion/react';
 
 interface ProjectStats {
   id: string;
@@ -25,9 +25,7 @@ export function RecentProjectsList({ projects, isFetching }: RecentProjectsListP
     <div className="mt-12">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-lg font-heading font-semibold tracking-tight text-fg">Recent Projects</h2>
-        {isFetching && (
-          <span className="text-[10px] uppercase tracking-wider text-fg-subtle">Refreshing…</span>
-        )}
+        {isFetching && <span className="text-[10px] uppercase tracking-wider text-fg-subtle">Refreshing…</span>}
       </div>
       <div className="space-y-3">
         {projects.length > 0 ? (

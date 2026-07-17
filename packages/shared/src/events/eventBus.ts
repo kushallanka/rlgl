@@ -1,7 +1,7 @@
 import { Redis } from 'ioredis';
-import { v4 as uuidv4 } from 'uuid';
 import pino from 'pino';
-import type { DomainEvent, EventSubscriptionHandler, EventBusConfig, EventType } from './event.types.js';
+import { v4 as uuidv4 } from 'uuid';
+import type { DomainEvent, EventBusConfig, EventSubscriptionHandler, EventType } from './event.types.js';
 
 export class EventBus {
   private redis: Redis;
@@ -136,14 +136,7 @@ export class EventBus {
     while (true) {
       try {
         // Read pending messages first (for resilience after restarts)
-        const pendingMessages = await this.redis.xreadgroup(
-          'GROUP',
-          consumerGroup,
-          consumerId,
-          'STREAMS',
-          stream,
-          '0',
-        );
+        const pendingMessages = await this.redis.xreadgroup('GROUP', consumerGroup, consumerId, 'STREAMS', stream, '0');
 
         if (pendingMessages && pendingMessages.length > 0) {
           await this.processPendingMessages(pendingMessages, stream, consumerGroup, handler, autoAck);
@@ -177,10 +170,7 @@ export class EventBus {
                   await this.redis.xack(stream, consumerGroup, msgId);
                 }
               } catch (err) {
-                this.logger.error(
-                  { err, stream, consumerGroup, msgId },
-                  'Error processing event message',
-                );
+                this.logger.error({ err, stream, consumerGroup, msgId }, 'Error processing event message');
               }
             }
           }

@@ -1,5 +1,5 @@
-import { motion } from 'motion/react';
 import { AlertCircle } from 'lucide-react';
+import { motion } from 'motion/react';
 
 type Props = {
   title?: string;

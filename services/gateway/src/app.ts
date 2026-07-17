@@ -1,22 +1,21 @@
-import express from 'express';
-import cookieParser from 'cookie-parser';
-import jwt from 'jsonwebtoken';
-import { createProxyMiddleware } from 'http-proxy-middleware';
+import fs from 'node:fs';
+import os from 'node:os';
+import path, { dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import type { Config } from '@rlgl/shared';
 import {
-  requestContextMiddleware,
   createLogger,
   createMetricsCollector,
-  metricsMiddleware,
-  requestLoggingMiddleware,
   errorHandlerMiddleware,
-  setupSwagger
+  metricsMiddleware,
+  requestContextMiddleware,
+  requestLoggingMiddleware,
+  setupSwagger,
 } from '@rlgl/shared';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
-import os from 'os';
+import cookieParser from 'cookie-parser';
+import express from 'express';
+import { createProxyMiddleware } from 'http-proxy-middleware';
+import jwt from 'jsonwebtoken';
 
 const logger = createLogger({ service: 'api-gateway' });
 const metrics = createMetricsCollector({ serviceName: 'api-gateway' }, logger);
@@ -41,15 +40,17 @@ const cookieUserContextMiddleware = (jwtSecret: string) => {
       if (req.headers['x-user-id']) return next();
       const cookies = (req as any).cookies;
       const token = cookies?.accessToken as string | undefined;
-      
+
       // Debug logging for auth issues
       if (process.env.NODE_ENV === 'development') {
-        logger.debug(`[Gateway Debug] ${req.method} ${req.path} - Cookies: ${Object.keys(cookies || {}).join(', ')}, Token exists: ${!!token}`);
+        logger.debug(
+          `[Gateway Debug] ${req.method} ${req.path} - Cookies: ${Object.keys(cookies || {}).join(', ')}, Token exists: ${!!token}`,
+        );
         logger.debug(`[Gateway Debug] JWT_SECRET hash: ${jwtSecret.slice(0, 5)}...${jwtSecret.slice(-5)}`);
       }
-      
+
       if (!token) return next();
-      
+
       try {
         const payload = jwt.verify(token, jwtSecret) as { userId?: number | string };
         if (payload?.userId) {
@@ -123,12 +124,12 @@ export const createApp = (config: Config, redis: import('ioredis').default) => {
   // ─── Health ──────────────────────────────────────────────────────────────────
   app.get('/health', async (_req, res) => {
     const redisStatus = redis.status === 'ready' ? 'connected' : 'disconnected';
-    res.json({ 
-      status: 'ok', 
+    res.json({
+      status: 'ok',
       service: 'api-gateway',
       dependencies: { redis: redisStatus },
       timestamp: new Date().toISOString(),
-      host: os.hostname()
+      host: os.hostname(),
     });
   });
 
@@ -220,7 +221,7 @@ export const createApp = (config: Config, redis: import('ioredis').default) => {
               target,
               proxyTimeoutMs,
             },
-            'Gateway proxy error (upstream timeout or connection failure)'
+            'Gateway proxy error (upstream timeout or connection failure)',
           );
           if (!out.headersSent) {
             out.status(504).json({
@@ -253,19 +254,22 @@ export const createApp = (config: Config, redis: import('ioredis').default) => {
           // Add transparency headers
           proxyRes.headers['x-proxied-by'] = 'api-gateway';
           if (proxyRes.statusCode !== 404) {
-             proxyRes.headers['Sunset'] = '2026-12-31T23:59:59Z';
-             proxyRes.headers['Deprecated'] = 'true';
+            proxyRes.headers.Sunset = '2026-12-31T23:59:59Z';
+            proxyRes.headers.Deprecated = 'true';
           }
-        }
+        },
       },
     });
 
   // Services
-  app.use('/api/v1/auth',      makeProxy('auth-service',    config.AUTH_SERVICE_URL,    { '^/api/v1/auth': '' }));
-  app.use('/api/v1/users',     makeProxy('auth-service',    config.AUTH_SERVICE_URL,    { '^/': '/users' }));
-  app.use('/api/v1/projects',  makeProxy('project-service', config.PROJECT_SERVICE_URL, { '^/api/v1/projects': '' }));
-  app.use('/api/v1/testcases', makeProxy('testcase-service', config.TESTCASE_SERVICE_URL, { '^/api/v1/testcases': '' }));
-  app.use('/api/v1/testruns',  makeProxy('testrun-service',  config.TESTRUN_SERVICE_URL,  { '^/api/v1/testruns': '' }));
+  app.use('/api/v1/auth', makeProxy('auth-service', config.AUTH_SERVICE_URL, { '^/api/v1/auth': '' }));
+  app.use('/api/v1/users', makeProxy('auth-service', config.AUTH_SERVICE_URL, { '^/': '/users' }));
+  app.use('/api/v1/projects', makeProxy('project-service', config.PROJECT_SERVICE_URL, { '^/api/v1/projects': '' }));
+  app.use(
+    '/api/v1/testcases',
+    makeProxy('testcase-service', config.TESTCASE_SERVICE_URL, { '^/api/v1/testcases': '' }),
+  );
+  app.use('/api/v1/testruns', makeProxy('testrun-service', config.TESTRUN_SERVICE_URL, { '^/api/v1/testruns': '' }));
 
   // 404 Handler
   app.use((_req, res) => {

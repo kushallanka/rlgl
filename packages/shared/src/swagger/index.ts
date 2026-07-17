@@ -23,7 +23,7 @@ export interface SwaggerOptions {
 
 /**
  * Sets up Swagger UI and OpenAPI documentation for an Express application.
- * 
+ *
  * @param app - The Express application instance
  * @param config - The application configuration (uses ENABLE_SWAGGER flag)
  * @param options - Configuration options for Swagger
@@ -36,57 +36,64 @@ export const setupSwagger = (app: Express, config: Config, options: SwaggerOptio
 
   // Serve a pre-built spec verbatim when supplied (e.g. the gateway's merged
   // platform spec); otherwise build one by scanning annotations.
-  const swaggerSpec = options.spec ?? swaggerJsdoc({
-    definition: {
-      openapi: '3.0.0',
-      info: {
-        title: options.title,
-        version: options.version,
-        description: options.description,
-        contact: {
-          name: 'Red Light Green Light Support',
-        },
-      },
-      servers: options.basePath ? [
-        {
-          url: options.basePath,
-          description: 'Service Base Path',
-        },
-      ] : [
-        {
-          url: '/',
-          description: 'Root',
-        }
-      ],
-      components: {
-        securitySchemes: {
-          BearerAuth: {
-            type: 'http',
-            scheme: 'bearer',
-            bearerFormat: 'JWT',
+  const swaggerSpec =
+    options.spec ??
+    swaggerJsdoc({
+      definition: {
+        openapi: '3.0.0',
+        info: {
+          title: options.title,
+          version: options.version,
+          description: options.description,
+          contact: {
+            name: 'Red Light Green Light Support',
           },
         },
-      },
-      // Globally apply security to all endpoints by default
-      // Individual endpoints can override this
-      security: [
-        {
-          BearerAuth: [],
+        servers: options.basePath
+          ? [
+              {
+                url: options.basePath,
+                description: 'Service Base Path',
+              },
+            ]
+          : [
+              {
+                url: '/',
+                description: 'Root',
+              },
+            ],
+        components: {
+          securitySchemes: {
+            BearerAuth: {
+              type: 'http',
+              scheme: 'bearer',
+              bearerFormat: 'JWT',
+            },
+          },
         },
-      ],
-    },
-    apis: options.apis ?? [],
-  });
+        // Globally apply security to all endpoints by default
+        // Individual endpoints can override this
+        security: [
+          {
+            BearerAuth: [],
+          },
+        ],
+      },
+      apis: options.apis ?? [],
+    });
 
   const route = options.swaggerRoute || (options.title === 'API Gateway' ? '/api-docs' : '/docs');
 
-  app.use(route, swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
-    customSiteTitle: `${options.title} | RLGL Documentation`,
-    swaggerOptions: {
-      persistAuthorization: true,
-      displayRequestDuration: true,
-      filter: true,
-    },
-  }));
-
+  app.use(
+    route,
+    swaggerUi.serve,
+    swaggerUi.setup(swaggerSpec, {
+      customSiteTitle: `${options.title} | RLGL Documentation`,
+      swaggerOptions: {
+        persistAuthorization: true,
+        displayRequestDuration: true,
+        filter: true,
+      },
+    }),
+  );
 };

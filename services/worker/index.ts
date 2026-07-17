@@ -1,7 +1,7 @@
-import { Worker, Job } from 'bullmq';
-import Redis from 'ioredis';
-import { createLogger, createEventBus } from '@rlgl/shared';
 import type { DomainEvent, EventType } from '@rlgl/shared';
+import { createEventBus, createLogger } from '@rlgl/shared';
+import { Job, Worker } from 'bullmq';
+import Redis from 'ioredis';
 
 const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379';
 const connection = new Redis(REDIS_URL, { maxRetriesPerRequest: null });
@@ -26,7 +26,7 @@ const worker = new Worker(
   'system-tasks',
   async (job: Job) => {
     logger.info({ jobId: job.id, jobName: job.name }, 'Processing job');
-    
+
     try {
       switch (job.name) {
         case 'cleanup-audit-logs':
@@ -38,16 +38,16 @@ const worker = new Worker(
         default:
           logger.warn({ jobName: job.name }, 'Unknown job type');
       }
-      
+
       // Simulate artificial delay
-      await new Promise(r => setTimeout(r, 2000));
+      await new Promise((r) => setTimeout(r, 2000));
       logger.info({ jobId: job.id }, 'Job completed successfully');
     } catch (err) {
       logger.error({ err, jobId: job.id }, 'Job processing error');
       throw err;
     }
   },
-  { connection }
+  { connection },
 );
 
 worker.on('failed', (job, err) => {
@@ -66,7 +66,7 @@ async function setupEventProcessing() {
         redisUrl: REDIS_URL,
         serviceName: SERVICE_NAME,
       },
-      logger
+      logger,
     );
 
     // Handle domain events

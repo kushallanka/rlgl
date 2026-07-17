@@ -1,11 +1,11 @@
+import { motion } from 'motion/react';
 import type { ReactNode } from 'react';
 import { useLocation } from 'react-router-dom';
-import { motion } from 'motion/react';
-import { useAuthStore } from '../../stores/auth.store';
 import ThemeSwitch from '../../shared/components/ThemeSwitch';
-import { Navbar } from './Navbar';
+import { useAuthStore } from '../../stores/auth.store';
 import { CommandPalette } from '../commands/CommandPalette';
 import { useGlobalShortcuts } from '../commands/useGlobalShortcuts';
+import { Navbar } from './Navbar';
 
 /**
  * Authenticated application chrome: navbar, command palette, keyboard

@@ -70,10 +70,5 @@ export const SignupRequestSchema = z.object({
 
 // ─── Type Guards ────────────────────────────────────────────────────────────
 export function isAuthUserDTO(obj: any): obj is AuthUserDTO {
-  return (
-    obj &&
-    typeof obj.id === 'number' &&
-    typeof obj.email === 'string' &&
-    typeof obj.role === 'string'
-  );
+  return obj && typeof obj.id === 'number' && typeof obj.email === 'string' && typeof obj.role === 'string';
 }

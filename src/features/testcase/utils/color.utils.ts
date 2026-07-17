@@ -6,9 +6,14 @@ export function getColorWithOpacity(color: string, opacity: number): string {
     return `rgba(${r}, ${g}, ${b}, ${opacity})`;
   }
   const colorMap: Record<string, string> = {
-    red: '#EF4444', orange: '#F97316', yellow: '#EAB308',
-    green: '#22C55E', blue: '#3B82F6', purple: '#A855F7',
-    pink: '#EC4899', gray: '#6B7280',
+    red: '#EF4444',
+    orange: '#F97316',
+    yellow: '#EAB308',
+    green: '#22C55E',
+    blue: '#3B82F6',
+    purple: '#A855F7',
+    pink: '#EC4899',
+    gray: '#6B7280',
   };
   const hex = colorMap[color?.toLowerCase()] || '#8B5CF6';
   const r = parseInt(hex.slice(1, 3), 16);

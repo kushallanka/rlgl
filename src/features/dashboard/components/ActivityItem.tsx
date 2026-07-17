@@ -1,5 +1,5 @@
-import { motion } from 'motion/react';
 import { Clock } from 'lucide-react';
+import { motion } from 'motion/react';
 
 interface ActivityItemProps {
   type: string;

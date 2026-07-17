@@ -1,5 +1,5 @@
+import path from 'node:path';
 import { defineConfig } from 'vitest/config';
-import path from 'path';
 
 export default defineConfig({
   test: {
@@ -15,13 +15,7 @@ export default defineConfig({
     },
     // Playwright owns tests/e2e; k6 owns tests/performance; MemLab owns
     // tests/memlab. Vitest must not collect those.
-    exclude: [
-      '**/node_modules/**',
-      '**/dist/**',
-      'tests/e2e/**',
-      'tests/performance/**',
-      'tests/memlab/**',
-    ],
+    exclude: ['**/node_modules/**', '**/dist/**', 'tests/e2e/**', 'tests/performance/**', 'tests/memlab/**'],
     reporters: ['verbose', 'json'],
     outputFile: {
       json: './test-results/vitest-results.json',

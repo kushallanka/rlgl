@@ -7,7 +7,7 @@
  *
  * Usage: npm run hooks:install   (run once after `git init` / clone)
  */
-import { existsSync, mkdirSync, writeFileSync, chmodSync } from 'node:fs';
+import { chmodSync, existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 const gitDir = join(process.cwd(), '.git');

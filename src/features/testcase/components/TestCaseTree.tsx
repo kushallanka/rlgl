@@ -1,7 +1,7 @@
-import { motion, AnimatePresence } from 'motion/react';
-import { ChevronRight, ChevronDown, Layers, Layout, MoreVertical, Edit2, Trash2, Plus } from 'lucide-react';
-import { TestCase, TestSuite, TestSection } from '../types/testcase.types';
+import { ChevronDown, ChevronRight, Edit2, Layers, Layout, MoreVertical, Plus, Trash2 } from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
 import { DropdownPortal } from '../../../shared/components/DropdownPortal';
+import { TestCase, TestSection, TestSuite } from '../types/testcase.types';
 import { VirtualTestCaseList } from './VirtualTestCaseList';
 
 interface TestCaseTreeProps {
@@ -92,17 +92,11 @@ export function TestCaseTree({
 
   if (suites.length === 0) {
     return (
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="text-center py-16"
-      >
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center py-16">
         <div className="animate-float w-20 h-20 accent-purple rounded-3xl flex items-center justify-center glass-shadow mx-auto mb-6">
           <Layers className="w-10 h-10 text-gray-400 dark:text-white/70" />
         </div>
-        <h3 className="text-xl font-heading font-semibold text-gray-900 dark:text-white mb-2">
-          No test suites yet
-        </h3>
+        <h3 className="text-xl font-heading font-semibold text-gray-900 dark:text-white mb-2">No test suites yet</h3>
         <p className="text-gray-500 dark:text-white/40 font-body text-sm">
           Create your first suite to organize your test cases
         </p>
@@ -116,10 +110,7 @@ export function TestCaseTree({
       {suites.map((suite, idx) => {
         const gradient = cardGradients[idx % cardGradients.length] ?? cardGradients[0]!;
         const suiteSections = sections[suite.id] || [];
-        const totalCasesInSuite = suiteSections.reduce(
-          (sum, sec) => sum + (cases[sec.id] || []).length,
-          0
-        );
+        const totalCasesInSuite = suiteSections.reduce((sum, sec) => sum + (cases[sec.id] || []).length, 0);
 
         return (
           <motion.div
@@ -132,12 +123,10 @@ export function TestCaseTree({
           >
             {/* Suite header */}
             <div className="w-full flex items-center justify-between p-5 hover:bg-black/[0.02] dark:hover:bg-white/5 transition-ui">
-              <div
+              <button
+                type="button"
                 onClick={() => onToggleSuite(suite.id)}
                 className="flex-1 flex items-center gap-4 text-left cursor-pointer min-w-0"
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => e.key === 'Enter' && onToggleSuite(suite.id)}
               >
                 <motion.div
                   whileHover={{ scale: 1.1, rotate: 5 }}
@@ -162,7 +151,7 @@ export function TestCaseTree({
                     </p>
                   )}
                 </div>
-              </div>
+              </button>
 
               <div className="flex items-center gap-2 flex-shrink-0">
                 <motion.div
@@ -203,6 +192,7 @@ export function TestCaseTree({
                     >
                       {canEditSuite && (
                         <button
+                          type="button"
                           onClick={(e) => {
                             e.stopPropagation();
                             closeMenu();
@@ -216,6 +206,7 @@ export function TestCaseTree({
                       )}
                       {canDeleteSuite && (
                         <button
+                          type="button"
                           onClick={(e) => {
                             e.stopPropagation();
                             closeMenu();
@@ -274,14 +265,10 @@ export function TestCaseTree({
 
                         {/* Section header */}
                         <div className="flex items-center justify-between px-4 py-3 hover:bg-black/[0.015] dark:hover:bg-white/5 transition-ui">
-                          <div
+                          <button
+                            type="button"
                             onClick={() => onToggleSection(section.id, suite.id)}
                             className="flex-1 flex items-center gap-3 text-left cursor-pointer min-w-0"
-                            role="button"
-                            tabIndex={0}
-                            onKeyDown={(e) =>
-                              e.key === 'Enter' && onToggleSection(section.id, suite.id)
-                            }
                           >
                             <motion.div
                               whileHover={{ scale: 1.1, rotate: 5 }}
@@ -296,11 +283,9 @@ export function TestCaseTree({
 
                             {/* Case count pill */}
                             <span className="text-[10px] font-semibold text-gray-400 dark:text-white/30 bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/8 rounded-full px-2 py-0.5 flex-shrink-0 ml-0.5 whitespace-nowrap">
-                              {caseCount === 0
-                                ? 'empty'
-                                : `${caseCount} ${caseCount === 1 ? 'case' : 'cases'}`}
+                              {caseCount === 0 ? 'empty' : `${caseCount} ${caseCount === 1 ? 'case' : 'cases'}`}
                             </span>
-                          </div>
+                          </button>
 
                           <div className="flex items-center gap-2 flex-shrink-0">
                             <motion.div
@@ -314,9 +299,7 @@ export function TestCaseTree({
                             {(canEditSection || canDeleteSection) && (
                               <>
                                 <motion.div
-                                  ref={(el) =>
-                                    registerTriggerRef(`section-${section.id}`, el)
-                                  }
+                                  ref={(el) => registerTriggerRef(`section-${section.id}`, el)}
                                   whileHover={{ scale: 1.1, rotate: 90 }}
                                   whileTap={{ scale: 0.9 }}
                                   onClick={(e) => {
@@ -330,9 +313,7 @@ export function TestCaseTree({
                                   }`}
                                   role="button"
                                   tabIndex={0}
-                                  onKeyDown={(e) =>
-                                    e.key === 'Enter' && toggleMenu(`section-${section.id}`)
-                                  }
+                                  onKeyDown={(e) => e.key === 'Enter' && toggleMenu(`section-${section.id}`)}
                                 >
                                   <MoreVertical className="w-4 h-4" />
                                 </motion.div>
@@ -345,6 +326,7 @@ export function TestCaseTree({
                                 >
                                   {canEditSection && (
                                     <button
+                                      type="button"
                                       onClick={(e) => {
                                         e.stopPropagation();
                                         closeMenu();
@@ -358,6 +340,7 @@ export function TestCaseTree({
                                   )}
                                   {canDeleteSection && (
                                     <button
+                                      type="button"
                                       onClick={(e) => {
                                         e.stopPropagation();
                                         closeMenu();

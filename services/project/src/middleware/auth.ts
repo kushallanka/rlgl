@@ -1,7 +1,7 @@
 import { initAuthMiddleware, setAuthLogger } from '@rlgl/shared';
-import { JWT_SECRET, PROJECT_SERVICE_URL, CACHE_TTL_MS } from '../config/constants.js';
+import { CACHE_TTL_MS, JWT_SECRET, PROJECT_SERVICE_URL } from '../config/constants.js';
 
-export { verifyToken, requirePermission, invalidateProjectCache, invalidateUserCache } from '@rlgl/shared';
+export { invalidateProjectCache, invalidateUserCache, requirePermission, verifyToken } from '@rlgl/shared';
 
 export function initAuth(logger: any) {
   initAuthMiddleware(
@@ -10,7 +10,7 @@ export function initAuth(logger: any) {
       projectServiceUrl: PROJECT_SERVICE_URL,
       cacheTtlMs: CACHE_TTL_MS,
     },
-    logger
+    logger,
   );
   setAuthLogger(logger);
 }

@@ -1,6 +1,6 @@
+import * as path from 'node:path';
 import axios from 'axios';
 import * as dotenv from 'dotenv';
-import * as path from 'path';
 
 // Load environment variables
 const envPath = path.join(import.meta.dirname, '..', '.env');
@@ -21,16 +21,7 @@ const config = {
   projectServiceUrl: process.env.PROJECT_SERVICE_URL || 'http://localhost:3002',
 };
 
-const ALL_PERMISSIONS = [
-  'testcase.view', 'testcase.create', 'testcase.edit', 'testcase.delete',
-  'testrun.view', 'testrun.create', 'testrun.update',
-  'config.manage', 'project.manage', 'member.manage',
-];
-
-const TESTER_PERMISSIONS = [
-  'testcase.view', 'testcase.create',
-  'testrun.view', 'testrun.create', 'testrun.update',
-];
+const TESTER_PERMISSIONS = ['testcase.view', 'testcase.create', 'testrun.view', 'testrun.create', 'testrun.update'];
 
 async function signupOrLogin(email: string, password: string, name: string): Promise<string> {
   try {
@@ -59,7 +50,7 @@ async function seed() {
     // Get tester's userId (needed for role assignment)
     const testerToken = await signupOrLogin(config.testerEmail, config.testerPassword, config.testerName);
     const testerMe = await axios.get(`${config.authServiceUrl}/me`, {
-      headers: { Authorization: `Bearer ${testerToken}` }
+      headers: { Authorization: `Bearer ${testerToken}` },
     });
     const testerUserId = testerMe.data.id;
     console.log(`  ✓ Tester userId: ${testerUserId}\n`);
@@ -73,29 +64,29 @@ async function seed() {
       const projectRes = await axios.post(
         `${config.projectServiceUrl}/`,
         { name: 'Demo Project', description: 'Sample project for development & testing' },
-        { headers: { Authorization: `Bearer ${adminToken}` } }
+        { headers: { Authorization: `Bearer ${adminToken}` } },
       );
       projectId = projectRes.data.id;
       console.log(`  ✓ Project created: Demo Project (${projectId})\n`);
 
       // Fetch the auto-created Project Admin role
       const rolesRes = await axios.get(`${config.projectServiceUrl}/${projectId}/roles`, {
-        headers: { Authorization: `Bearer ${adminToken}`, 'x-project-id': projectId }
+        headers: { Authorization: `Bearer ${adminToken}`, 'x-project-id': projectId },
       });
       const projectAdminRole = rolesRes.data.find((r: any) => r.name === 'Project Admin');
       adminRoleId = projectAdminRole?.id;
       console.log(`  ✓ Project Admin role found: ${adminRoleId}`);
-    } catch (err: any) {
+    } catch {
       // Project may already exist — fetch existing
       const listRes = await axios.get(`${config.projectServiceUrl}/`, {
-        headers: { Authorization: `Bearer ${adminToken}` }
+        headers: { Authorization: `Bearer ${adminToken}` },
       });
       const existing = listRes.data.data?.[0] || listRes.data[0];
       if (!existing) throw new Error('No project found and could not create one');
       projectId = existing.id;
       console.log(`  ℹ Using existing project: ${existing.name} (${projectId})\n`);
       const rolesRes = await axios.get(`${config.projectServiceUrl}/${projectId}/roles`, {
-        headers: { Authorization: `Bearer ${adminToken}`, 'x-project-id': projectId }
+        headers: { Authorization: `Bearer ${adminToken}`, 'x-project-id': projectId },
       });
       const projectAdminRole = rolesRes.data.find((r: any) => r.name === 'Project Admin');
       adminRoleId = projectAdminRole?.id;
@@ -109,14 +100,14 @@ async function seed() {
       const roleRes = await axios.post(
         `${config.projectServiceUrl}/${projectId}/roles`,
         { name: 'Tester', description: 'Can view and execute test cases', permissions: TESTER_PERMISSIONS },
-        { headers: { Authorization: `Bearer ${adminToken}`, 'x-project-id': projectId } }
+        { headers: { Authorization: `Bearer ${adminToken}`, 'x-project-id': projectId } },
       );
       testerRoleId = roleRes.data.id;
       console.log(`  ✓ Tester role created (${testerRoleId})`);
     } catch (err: any) {
       if (err.response?.status === 400) {
         const rolesRes = await axios.get(`${config.projectServiceUrl}/${projectId}/roles`, {
-          headers: { Authorization: `Bearer ${adminToken}`, 'x-project-id': projectId }
+          headers: { Authorization: `Bearer ${adminToken}`, 'x-project-id': projectId },
         });
         const testerRole = rolesRes.data.find((r: any) => r.name === 'Tester');
         testerRoleId = testerRole?.id;
@@ -130,7 +121,7 @@ async function seed() {
       await axios.post(
         `${config.projectServiceUrl}/${projectId}/users/${testerUserId}/roles`,
         { roleId: testerRoleId },
-        { headers: { Authorization: `Bearer ${adminToken}`, 'x-project-id': projectId } }
+        { headers: { Authorization: `Bearer ${adminToken}`, 'x-project-id': projectId } },
       );
       console.log(`  ✓ ${config.testerName} → Tester role`);
     } catch (err: any) {
@@ -143,32 +134,36 @@ async function seed() {
     const types = [
       { name: 'Functional', color: 'blue', description: 'Functional test cases' },
       { name: 'Regression', color: 'purple', description: 'Regression test cases' },
-      { name: 'Smoke',      color: 'orange', description: 'Smoke test cases' },
-      { name: 'Performance',color: 'red',    description: 'Performance test cases' },
+      { name: 'Smoke', color: 'orange', description: 'Smoke test cases' },
+      { name: 'Performance', color: 'red', description: 'Performance test cases' },
     ];
     for (const t of types) {
       try {
         await axios.post(`${config.projectServiceUrl}/${projectId}/config/types`, t, {
-          headers: { Authorization: `Bearer ${adminToken}`, 'x-project-id': projectId }
+          headers: { Authorization: `Bearer ${adminToken}`, 'x-project-id': projectId },
         });
         console.log(`  ✓ Type: ${t.name}`);
-      } catch { console.log(`  ℹ Type exists: ${t.name}`); }
+      } catch {
+        console.log(`  ℹ Type exists: ${t.name}`);
+      }
     }
 
     // ── Step 6: Seed config: Priorities ──────────────────────────────────────
     const priorities = [
       { name: 'Critical', level: 1, color: 'red' },
-      { name: 'High',     level: 2, color: 'orange' },
-      { name: 'Medium',   level: 3, color: 'yellow' },
-      { name: 'Low',      level: 4, color: 'blue' },
+      { name: 'High', level: 2, color: 'orange' },
+      { name: 'Medium', level: 3, color: 'yellow' },
+      { name: 'Low', level: 4, color: 'blue' },
     ];
     for (const p of priorities) {
       try {
         await axios.post(`${config.projectServiceUrl}/${projectId}/config/priorities`, p, {
-          headers: { Authorization: `Bearer ${adminToken}`, 'x-project-id': projectId }
+          headers: { Authorization: `Bearer ${adminToken}`, 'x-project-id': projectId },
         });
         console.log(`  ✓ Priority: ${p.name}`);
-      } catch { console.log(`  ℹ Priority exists: ${p.name}`); }
+      } catch {
+        console.log(`  ℹ Priority exists: ${p.name}`);
+      }
     }
 
     // ── Done ──────────────────────────────────────────────────────────────────
@@ -177,7 +172,6 @@ async function seed() {
     console.log(`    Admin  → ${config.adminEmail} / ${config.adminPassword}`);
     console.log(`    Tester → ${config.testerEmail} / ${config.testerPassword}`);
     console.log(`  Project: Demo Project (${projectId})\n`);
-
   } catch (error: any) {
     console.error('\n✗ Seed error:', error.message);
     if (error.response?.data) console.error('  API response:', error.response.data);

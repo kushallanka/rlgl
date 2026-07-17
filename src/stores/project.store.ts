@@ -1,7 +1,7 @@
 import { create } from 'zustand';
-import { queryClient } from '../lib/queryClient';
 import { PROJECTS_QUERY_KEY } from '../features/project/queryKeys';
 import type { Project } from '../features/project/types/project.types';
+import { queryClient } from '../lib/queryClient';
 
 let _fetchProjectPermissions: ((projectId: string) => void) | null = null;
 let _clearProjectPermissions: (() => void) | null = null;

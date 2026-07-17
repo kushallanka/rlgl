@@ -1,10 +1,12 @@
-import axiosLib, { InternalAxiosRequestConfig, AxiosError } from 'axios';
+import axiosLib, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 
 let isRefreshing = false;
 let refreshSubscribers: Array<(err: unknown) => void> = [];
 
 function onRefreshComplete(err: unknown) {
-  refreshSubscribers.forEach((cb) => cb(err));
+  refreshSubscribers.forEach((cb) => {
+    cb(err);
+  });
   refreshSubscribers = [];
 }
 
@@ -28,9 +30,7 @@ const createApiClient = () => {
   instance.interceptors.request.use(
     (config: InternalAxiosRequestConfig) => {
       const requestId =
-        typeof crypto !== 'undefined' && crypto.randomUUID
-          ? crypto.randomUUID()
-          : `${Date.now()}-${Math.random()}`;
+        typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`;
       if (config.headers) {
         config.headers['x-request-id'] = requestId;
         config.headers['x-request-sent-at'] = new Date().toISOString();
@@ -59,14 +59,13 @@ const createApiClient = () => {
 
       return config;
     },
-    (error) => Promise.reject(error)
+    (error) => Promise.reject(error),
   );
 
   // Response interceptor: handle auth
   instance.interceptors.response.use(
     (response) => response,
     async (error: AxiosError) => {
-
       const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
       const message = error.response?.data
         ? typeof error.response.data === 'string'
@@ -75,8 +74,11 @@ const createApiClient = () => {
         : 'An unexpected error occurred';
 
       // Skip token refresh for auth endpoints to prevent interference with login mutation
-      const isAuthEndpoint = originalRequest?.url?.includes('/auth/login') || originalRequest?.url?.includes('/auth/refresh') || originalRequest?.url?.includes('/auth/signup');
-      
+      const isAuthEndpoint =
+        originalRequest?.url?.includes('/auth/login') ||
+        originalRequest?.url?.includes('/auth/refresh') ||
+        originalRequest?.url?.includes('/auth/signup');
+
       if (error.response?.status === 401 && originalRequest && !originalRequest._retry && !isAuthEndpoint) {
         originalRequest._retry = true;
 
@@ -113,7 +115,7 @@ const createApiClient = () => {
         ...error,
         message,
       });
-    }
+    },
   );
 
   return instance;

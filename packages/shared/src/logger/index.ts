@@ -30,9 +30,12 @@ export const createLogger = ({ service, level = 'info', samplingRate = 1 }: Logg
 
 // Standardized Audit Log levels for migrations/security
 export const logAudit = (logger: pino.Logger, action: string, meta: Record<string, any>) => {
-  logger.info({
-    type: 'AUDIT',
-    action,
-    ...meta,
-  }, `Audit Event: ${action}`);
+  logger.info(
+    {
+      type: 'AUDIT',
+      action,
+      ...meta,
+    },
+    `Audit Event: ${action}`,
+  );
 };

@@ -1,5 +1,5 @@
-import { motion, AnimatePresence } from 'motion/react';
-import { X, Layers } from 'lucide-react';
+import { Layers, X } from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
 import { SuiteFormData } from '../types/testcase.types';
 
 interface SuiteModalProps {
@@ -69,20 +69,33 @@ export function SuiteModal({
 
           <form onSubmit={onSubmit} className="space-y-4">
             <div className="space-y-2">
-              <label className="text-[11px] font-body font-medium text-gray-500 dark:text-white/60 uppercase tracking-wider">Suite Name</label>
+              <label
+                htmlFor="suite-name"
+                className="text-[11px] font-body font-medium text-gray-500 dark:text-white/60 uppercase tracking-wider"
+              >
+                Suite Name
+              </label>
               <input
+                id="suite-name"
                 type="text"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 placeholder="e.g. User Authentication"
                 className="w-full px-4 py-3.5 liquid-glass rounded-xl focus:ring-2 focus:ring-violet-500/50 outline-none transition-ui text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/30"
+                // biome-ignore lint/a11y/noAutofocus: focuses the first field of an explicitly user-triggered modal, not on page load
                 autoFocus
               />
             </div>
 
             <div className="space-y-2">
-              <label className="text-[11px] font-body font-medium text-gray-500 dark:text-white/60 uppercase tracking-wider">Description</label>
+              <label
+                htmlFor="suite-description"
+                className="text-[11px] font-body font-medium text-gray-500 dark:text-white/60 uppercase tracking-wider"
+              >
+                Description
+              </label>
               <textarea
+                id="suite-description"
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 placeholder="Describe the test suite..."
@@ -108,7 +121,7 @@ export function SuiteModal({
                 disabled={isLoading}
                 className="flex-1 py-3 rounded-xl accent-purple text-white font-body font-medium glow-purple shadow-lg transition-ui disabled:opacity-50"
               >
-                {isLoading ? 'Saving...' : (isEditing ? 'Update Suite' : 'Create Suite')}
+                {isLoading ? 'Saving...' : isEditing ? 'Update Suite' : 'Create Suite'}
               </motion.button>
             </div>
           </form>

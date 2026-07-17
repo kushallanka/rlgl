@@ -52,17 +52,11 @@ export interface CursorMeta {
 
 // ─── Envelope Factories ───────────────────────────────────────────────────────
 
-export function paginatedOk<T>(
-  data: T[],
-  meta: OffsetMeta
-): PaginatedResponse<T> {
+export function paginatedOk<T>(data: T[], meta: OffsetMeta): PaginatedResponse<T> {
   return { data, pagination: meta };
 }
 
-export function cursorOk<T>(
-  data: T[],
-  meta: CursorMeta
-): CursorPaginatedResponse<T> {
+export function cursorOk<T>(data: T[], meta: CursorMeta): CursorPaginatedResponse<T> {
   return { data, pagination: meta };
 }
 
@@ -70,11 +64,7 @@ export function ok<T>(data: T, extraMeta?: Record<string, unknown>): SuccessResp
   return extraMeta ? { data, meta: extraMeta } : { data };
 }
 
-export function err(
-  message: string,
-  code?: string,
-  requestId?: string
-): ErrorResponse {
+export function err(message: string, code?: string, requestId?: string): ErrorResponse {
   return { error: message, ...(code ? { code } : {}), ...(requestId ? { requestId } : {}) };
 }
 
@@ -137,7 +127,7 @@ export function decodeCursor(cursor: string): Record<string, unknown> {
 export function buildCursorPage<T>(
   rawRows: T[],
   limit: number,
-  getCursorFields: (row: T) => Record<string, unknown>
+  getCursorFields: (row: T) => Record<string, unknown>,
 ): { data: T[]; meta: CursorMeta } {
   const hasMore = rawRows.length > limit;
   const data = hasMore ? rawRows.slice(0, limit) : rawRows;

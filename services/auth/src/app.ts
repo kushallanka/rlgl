@@ -1,14 +1,23 @@
-import express from 'express';
+import path, { dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import {
+  Config,
+  createHealthChecker,
+  createLogger,
+  createMetricsCollector,
+  errorHandlerMiddleware,
+  metricsMiddleware,
+  requestContextMiddleware,
+  requestLoggingMiddleware,
+  setupSwagger,
+} from '@rlgl/shared';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
+import express from 'express';
 import helmet from 'helmet';
-import { requestContextMiddleware, createLogger, createMetricsCollector, metricsMiddleware, requestLoggingMiddleware, errorHandlerMiddleware, createHealthChecker, setupSwagger, Config } from '@rlgl/shared';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
+import type { PrismaClient } from '../generated/client/index.js';
 import { AuthController } from './controllers/auth.controller.js';
 import { OrgController } from './controllers/org.controller.js';
-import type { PrismaClient } from '../generated/client/index.js';
 
 const logger = createLogger({ service: 'auth-service' });
 const metrics = createMetricsCollector({ serviceName: 'auth-service' }, logger);
@@ -16,7 +25,13 @@ const metrics = createMetricsCollector({ serviceName: 'auth-service' }, logger);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-export const createApp = (config: Config, controller: AuthController, prisma?: PrismaClient, healthChecker?: ReturnType<typeof createHealthChecker>, orgController?: OrgController) => {
+export const createApp = (
+  config: Config,
+  controller: AuthController,
+  prisma?: PrismaClient,
+  healthChecker?: ReturnType<typeof createHealthChecker>,
+  orgController?: OrgController,
+) => {
   const app = express();
   const hc = healthChecker || createHealthChecker('auth-service', logger);
 
@@ -38,10 +53,7 @@ export const createApp = (config: Config, controller: AuthController, prisma?: P
     version: '1.0.0',
     description: 'Authentication and Identity Management Service',
     swaggerRoute: '/docs',
-    apis: [
-      path.join(__dirname, './controllers/*.js'),
-      path.join(__dirname, './controllers/*.ts'),
-    ],
+    apis: [path.join(__dirname, './controllers/*.js'), path.join(__dirname, './controllers/*.ts')],
   });
 
   app.get('/health', async (_req, res) => {
@@ -72,9 +84,9 @@ export const createApp = (config: Config, controller: AuthController, prisma?: P
 
   app.post('/signup', controller.signup);
   app.post('/login', controller.login);
-  app.get('/me',      controller.me);
+  app.get('/me', controller.me);
   app.post('/refresh', controller.refresh);
-  app.post('/logout',  controller.logout);
+  app.post('/logout', controller.logout);
 
   // Users
   app.get('/users', controller.listUsers);

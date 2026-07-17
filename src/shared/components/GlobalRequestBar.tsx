@@ -1,5 +1,5 @@
-import { motion } from 'motion/react';
 import { useIsFetching, useIsMutating } from '@tanstack/react-query';
+import { motion } from 'motion/react';
 
 export function GlobalRequestBar() {
   const fetching = useIsFetching();
@@ -7,10 +7,7 @@ export function GlobalRequestBar() {
   const active = fetching + mutating > 0;
 
   return (
-    <div
-      className="pointer-events-none fixed top-0 left-0 right-0 z-[200] h-0.5"
-      aria-hidden={!active}
-    >
+    <div className="pointer-events-none fixed top-0 left-0 right-0 z-[200] h-0.5" aria-hidden={!active}>
       <motion.div
         initial={{ scaleX: 0 }}
         animate={{ scaleX: active ? 1 : 0 }}

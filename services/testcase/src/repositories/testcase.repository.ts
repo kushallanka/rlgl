@@ -19,7 +19,8 @@ type CreateData = {
 // under exactOptionalPropertyTypes.
 type UpdateData = {
   [K in keyof (Omit<CreateData, 'projectId' | 'suiteId' | 'sectionId' | 'createdBy'> & { updatedBy?: string })]?:
-    (Omit<CreateData, 'projectId' | 'suiteId' | 'sectionId' | 'createdBy'> & { updatedBy?: string })[K] | undefined;
+    | (Omit<CreateData, 'projectId' | 'suiteId' | 'sectionId' | 'createdBy'> & { updatedBy?: string })[K]
+    | undefined;
 };
 
 type Filters = { suiteId?: number | undefined; sectionId?: number | undefined; search?: string | undefined };

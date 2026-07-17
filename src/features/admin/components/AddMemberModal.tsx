@@ -1,6 +1,6 @@
-import { motion } from 'motion/react';
 import { UserPlus, X } from 'lucide-react';
-import { GlassDropdown, type DropdownOption } from '../../../shared/components';
+import { motion } from 'motion/react';
+import { type DropdownOption, GlassDropdown } from '../../../shared/components';
 
 interface AddMemberModalProps {
   isOpen: boolean;
@@ -18,8 +18,18 @@ interface AddMemberModalProps {
 }
 
 export function AddMemberModal({
-  isOpen, onClose, selectedUser, onUserChange, selectedRole, onRoleChange,
-  userOptions, roleOptions, fetchError, error, isLoading, onSubmit,
+  isOpen,
+  onClose,
+  selectedUser,
+  onUserChange,
+  selectedRole,
+  onRoleChange,
+  userOptions,
+  roleOptions,
+  fetchError,
+  error,
+  isLoading,
+  onSubmit,
 }: AddMemberModalProps) {
   if (!isOpen) return null;
 
@@ -42,26 +52,66 @@ export function AddMemberModal({
               <h3 className="text-xl font-bold text-gray-900 dark:text-white">Assign Role</h3>
               <p className="text-sm text-gray-500 dark:text-white/50">Add a user to this project</p>
             </div>
-            <button onClick={onClose} className="p-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-xl text-gray-400 dark:text-white/40 hover:text-gray-900 dark:hover:text-white transition-ui">
+            <button
+              type="button"
+              onClick={onClose}
+              className="p-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-xl text-gray-400 dark:text-white/40 hover:text-gray-900 dark:hover:text-white transition-ui"
+            >
               <X className="w-5 h-5" />
             </button>
           </div>
 
           <div className="space-y-5">
-            <GlassDropdown label="User" value={selectedUser} options={userOptions} onChange={onUserChange} placeholder="Select User" zIndex={20} emptyMessage={fetchError || 'No users available'} />
-            <GlassDropdown label="Role" value={selectedRole} options={roleOptions} onChange={onRoleChange} placeholder="Select Role" zIndex={10} emptyMessage="No roles available" />
+            <GlassDropdown
+              label="User"
+              value={selectedUser}
+              options={userOptions}
+              onChange={onUserChange}
+              placeholder="Select User"
+              zIndex={20}
+              emptyMessage={fetchError || 'No users available'}
+            />
+            <GlassDropdown
+              label="Role"
+              value={selectedRole}
+              options={roleOptions}
+              onChange={onRoleChange}
+              placeholder="Select Role"
+              zIndex={10}
+              emptyMessage="No roles available"
+            />
 
             {error && (
-              <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="p-3 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20">
-                <p className="text-sm text-red-600 dark:text-red-400 flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-red-500 dark:bg-red-400" />{error}</p>
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="p-3 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20"
+              >
+                <p className="text-sm text-red-600 dark:text-red-400 flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-red-500 dark:bg-red-400" />
+                  {error}
+                </p>
               </motion.div>
             )}
 
             <div className="flex gap-3 pt-2">
-              <motion.button type="button" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={onClose} className="flex-1 py-3.5 rounded-xl bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-white/70 font-medium hover:bg-gray-200 dark:hover:bg-white/10 hover:text-gray-900 dark:hover:text-white transition-ui border border-gray-200 dark:border-white/10">
+              <motion.button
+                type="button"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={onClose}
+                className="flex-1 py-3.5 rounded-xl bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-white/70 font-medium hover:bg-gray-200 dark:hover:bg-white/10 hover:text-gray-900 dark:hover:text-white transition-ui border border-gray-200 dark:border-white/10"
+              >
                 Cancel
               </motion.button>
-              <motion.button type="button" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={onSubmit} disabled={isLoading || !selectedUser || !selectedRole} className="flex-1 py-3.5 rounded-xl bg-gradient-to-r from-purple-500 to-blue-500 text-white font-medium shadow-lg shadow-purple-500/25 transition-ui disabled:opacity-40 disabled:cursor-not-allowed hover:shadow-purple-500/40">
+              <motion.button
+                type="button"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={onSubmit}
+                disabled={isLoading || !selectedUser || !selectedRole}
+                className="flex-1 py-3.5 rounded-xl bg-gradient-to-r from-purple-500 to-blue-500 text-white font-medium shadow-lg shadow-purple-500/25 transition-ui disabled:opacity-40 disabled:cursor-not-allowed hover:shadow-purple-500/40"
+              >
                 {isLoading ? 'Assigning...' : 'Assign Role'}
               </motion.button>
             </div>

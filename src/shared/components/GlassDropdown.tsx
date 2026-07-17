@@ -1,6 +1,6 @@
-import { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
 import { ChevronDown } from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
+import { useEffect, useRef, useState } from 'react';
 
 export interface DropdownOption {
   id: string;
@@ -29,8 +29,8 @@ export function GlassDropdown({
 }: GlassDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  
-  const selectedOption = options.find(o => o.id === value);
+
+  const selectedOption = options.find((o) => o.id === value);
   const displayLabel = selectedOption?.label || placeholder;
   const displaySubtitle = selectedOption?.subtitle;
 
@@ -41,11 +41,11 @@ export function GlassDropdown({
         setIsOpen(false);
       }
     };
-    
+
     if (isOpen) {
       document.addEventListener('mousedown', handleClickOutside);
     }
-    
+
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
@@ -53,10 +53,8 @@ export function GlassDropdown({
 
   return (
     <div className="space-y-2 relative" style={{ zIndex }} ref={containerRef}>
-      <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-        {label}
-      </label>
-      
+      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{label}</span>
+
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
@@ -65,9 +63,7 @@ export function GlassDropdown({
         <span className={value ? 'text-gray-900 dark:text-white' : 'text-gray-400 dark:text-white/40'}>
           {displaySubtitle ? `${displayLabel} • ${displaySubtitle}` : displayLabel}
         </span>
-        <ChevronDown
-          className={`w-4 h-4 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}
-        />
+        <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
       <AnimatePresence>

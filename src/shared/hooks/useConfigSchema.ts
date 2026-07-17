@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
-import { axios } from '../api/api';
 import { API_ENDPOINTS } from '../../constants';
 import type { ConfigSchema } from '../../utils';
+import { axios } from '../api/api';
 
 export function useConfigSchema(projectId: string | null) {
   return useQuery<ConfigSchema | null>({

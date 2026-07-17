@@ -7,13 +7,13 @@
  * - Error rate stays under 1%
  * - No data corruption under concurrent writes (CAS enforcement)
  */
+
+import { check, group, sleep } from 'k6';
 import http from 'k6/http';
-import { check, sleep, group } from 'k6';
 import { Rate, Trend } from 'k6/metrics';
 
 const errorRate = new Rate('error_rate');
 const createLatency = new Trend('create_run_latency', true);
-const updateLatency = new Trend('update_result_latency', true);
 const listLatency = new Trend('list_runs_latency', true);
 
 const BASE_URL = __ENV.BASE_URL || 'http://localhost:3000';
@@ -49,19 +49,24 @@ const HEADERS = {
 
 export default function () {
   group('List test runs', () => {
-    const res = http.get(
-      `${BASE_URL}/api/v1/projects/${PROJECT_ID}/testruns?page=1&limit=20`,
-      { headers: HEADERS }
-    );
+    const res = http.get(`${BASE_URL}/api/v1/projects/${PROJECT_ID}/testruns?page=1&limit=20`, { headers: HEADERS });
 
     listLatency.add(res.timings.duration);
     const ok = check(res, {
       'list: status 200': (r) => r.status === 200,
       'list: has data array': (r) => {
-        try { return Array.isArray(JSON.parse(r.body).data); } catch { return false; }
+        try {
+          return Array.isArray(JSON.parse(r.body).data);
+        } catch {
+          return false;
+        }
       },
       'list: has pagination': (r) => {
-        try { return typeof JSON.parse(r.body).pagination === 'object'; } catch { return false; }
+        try {
+          return typeof JSON.parse(r.body).pagination === 'object';
+        } catch {
+          return false;
+        }
       },
     });
     errorRate.add(!ok);
@@ -84,7 +89,7 @@ export default function () {
           ...HEADERS,
           'Idempotency-Key': idempotencyKey,
         },
-      }
+      },
     );
 
     createLatency.add(res.timings.duration);
@@ -109,12 +114,11 @@ export default function () {
             ...HEADERS,
             'Idempotency-Key': idempotencyKey,
           },
-        }
+        },
       );
 
       check(replay, {
-        'idempotent replay: same status as original': (r) =>
-          r.status === res.status || r.status === 200,
+        'idempotent replay: same status as original': (r) => r.status === res.status || r.status === 200,
       });
     }
   });

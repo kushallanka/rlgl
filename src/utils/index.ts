@@ -13,7 +13,7 @@ export function getStatusColorClass(status: string): string {
     NotApplicable: 'text-gray-500 bg-gray-500/10 border-gray-500/20',
     Untested: 'text-blue-500 bg-blue-500/10 border-blue-500/20',
   };
-  return STATUS_COLORS[status] ?? STATUS_COLORS['Untested'] ?? '';
+  return STATUS_COLORS[status] ?? STATUS_COLORS.Untested ?? '';
 }
 
 /**
@@ -27,7 +27,7 @@ export function getStatusIndicatorColor(status: string): string {
     NotApplicable: 'bg-gray-500',
     Untested: 'bg-blue-500',
   };
-  return STATUS_INDICATORS[status] ?? STATUS_INDICATORS['Untested'] ?? '';
+  return STATUS_INDICATORS[status] ?? STATUS_INDICATORS.Untested ?? '';
 }
 
 /**
@@ -116,19 +116,19 @@ export function validateCustomFieldValue(field: CustomField, value: any): { vali
 
   switch (field.fieldType) {
     case 'number':
-      if (value && isNaN(Number(value))) {
+      if (value && Number.isNaN(Number(value))) {
         return { valid: false, error: `${field.name} must be a number` };
       }
       break;
 
     case 'date':
-      if (value && isNaN(new Date(value).getTime())) {
+      if (value && Number.isNaN(new Date(value).getTime())) {
         return { valid: false, error: `${field.name} must be a valid date` };
       }
       break;
 
     case 'select':
-      if (value && field.options && !field.options.some(opt => opt.value === value)) {
+      if (value && field.options && !field.options.some((opt) => opt.value === value)) {
         return { valid: false, error: `Invalid option selected for ${field.name}` };
       }
       break;
@@ -140,10 +140,13 @@ export function validateCustomFieldValue(field: CustomField, value: any): { vali
 /**
  * Validate all custom field values
  */
-export function validateCustomFieldValues(fields: CustomField[], values: Record<string, any>): { valid: boolean; errors: Record<string, string> } {
+export function validateCustomFieldValues(
+  fields: CustomField[],
+  values: Record<string, any>,
+): { valid: boolean; errors: Record<string, string> } {
   const errors: Record<string, string> = {};
 
-  fields.forEach(field => {
+  fields.forEach((field) => {
     const validation = validateCustomFieldValue(field, values[field.id] || values[field.name]);
     if (!validation.valid && validation.error) {
       errors[field.id] = validation.error;
@@ -152,7 +155,7 @@ export function validateCustomFieldValues(fields: CustomField[], values: Record<
 
   return {
     valid: Object.keys(errors).length === 0,
-    errors
+    errors,
   };
 }
 
@@ -169,7 +172,7 @@ export function getItemColorClass(color?: string): string {
     purple: 'bg-purple-500/10 border-purple-500/20 text-purple-400',
     pink: 'bg-pink-500/10 border-pink-500/20 text-pink-400',
   };
-  return colorMap[color || 'blue'] ?? colorMap['blue'] ?? '';
+  return colorMap[color || 'blue'] ?? colorMap.blue ?? '';
 }
 
 /**
@@ -192,4 +195,3 @@ export const AVAILABLE_PERMISSIONS = [
   { action: 'testrun.update', label: 'Update Test Runs', resource: 'testrun' },
   { action: 'testrun.delete', label: 'Delete Test Runs', resource: 'testrun' },
 ] as const;
-

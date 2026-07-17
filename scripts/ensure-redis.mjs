@@ -43,10 +43,7 @@ async function main() {
   }
 
   try {
-    execSync(
-      `docker run -d --name ${DEV_CONTAINER} -p ${REDIS_PORT}:6379 redis:7-alpine`,
-      { stdio: 'inherit' },
-    );
+    execSync(`docker run -d --name ${DEV_CONTAINER} -p ${REDIS_PORT}:6379 redis:7-alpine`, { stdio: 'inherit' });
     console.log(`[dev-prep] Created ${DEV_CONTAINER} (redis:7-alpine) on host port ${REDIS_PORT}`);
   } catch {
     console.warn(

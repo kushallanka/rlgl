@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useRef, Dispatch, SetStateAction } from 'react';
+import { Dispatch, SetStateAction, useCallback, useMemo, useRef, useState } from 'react';
 
 export interface UseToggleSetReturn<T> {
   set: Set<T>;
@@ -17,7 +17,7 @@ export function useToggleSet<T>(initialValue?: Set<T>): UseToggleSetReturn<T> {
   setRef.current = internalSet;
 
   const toggle = useCallback((item: T) => {
-    setSet(prev => {
+    setSet((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(item)) {
         newSet.delete(item);
@@ -29,11 +29,11 @@ export function useToggleSet<T>(initialValue?: Set<T>): UseToggleSetReturn<T> {
   }, []);
 
   const add = useCallback((item: T) => {
-    setSet(prev => new Set(prev).add(item));
+    setSet((prev) => new Set(prev).add(item));
   }, []);
 
   const remove = useCallback((item: T) => {
-    setSet(prev => {
+    setSet((prev) => {
       const newSet = new Set(prev);
       newSet.delete(item);
       return newSet;
@@ -50,14 +50,14 @@ export function useToggleSet<T>(initialValue?: Set<T>): UseToggleSetReturn<T> {
 
   const size = useMemo(() => internalSet.size, [internalSet]);
 
-  return { 
-    set: internalSet, 
-    toggle, 
-    add, 
-    remove, 
-    has, 
-    clear, 
-    setSet, 
-    size 
+  return {
+    set: internalSet,
+    toggle,
+    add,
+    remove,
+    has,
+    clear,
+    setSet,
+    size,
   };
 }

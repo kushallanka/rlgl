@@ -1,12 +1,12 @@
-import { z } from 'zod';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import * as dotenv from 'dotenv';
-import * as path from 'path';
-import * as fs from 'fs';
+import { z } from 'zod';
 
 const configSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
-  APP_ENV:  z.enum(['dev', 'staging', 'prod']).default('dev'),
-  PORT:     z.coerce.number().default(3000),
+  APP_ENV: z.enum(['dev', 'staging', 'prod']).default('dev'),
+  PORT: z.coerce.number().default(3000),
   REDIS_URL: z.string().url().default('redis://localhost:6379'),
   JWT_SECRET: z.string().min(10).default('auth-secret-key-change-in-prod'),
   DATABASE_URL: z.string().optional(),
@@ -20,17 +20,17 @@ const configSchema = z.object({
     .string()
     .default('true')
     .transform((v) => !['false', '0', 'no', 'off'].includes(String(v).trim().toLowerCase())),
-  
+
   // Service Discovery
-  AUTH_SERVICE_URL:     z.string().url().default('http://localhost:3001'),
-  PROJECT_SERVICE_URL:  z.string().url().default('http://localhost:3002'),
+  AUTH_SERVICE_URL: z.string().url().default('http://localhost:3001'),
+  PROJECT_SERVICE_URL: z.string().url().default('http://localhost:3002'),
   TESTCASE_SERVICE_URL: z.string().url().default('http://localhost:3003'),
-  TESTRUN_SERVICE_URL:  z.string().url().default('http://localhost:3004'),
-  
+  TESTRUN_SERVICE_URL: z.string().url().default('http://localhost:3004'),
+
   // Database Aliases
-  AUTH_DATABASE_URL:    z.string().optional(),
+  AUTH_DATABASE_URL: z.string().optional(),
   PROJECT_DATABASE_URL: z.string().optional(),
-  
+
   LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']).default('info'),
   LOG_SAMPLING_RATE: z.coerce.number().min(0).max(1).default(0.2),
   ENABLE_SWAGGER: z
@@ -88,7 +88,9 @@ export const loadConfig = (overrides: Partial<Config> = {}): Config => {
 
   // 3. Warn if default JWT_SECRET is used
   if (config.JWT_SECRET === 'auth-secret-key-change-in-prod') {
-    console.warn(`[${serviceName || 'app'}] ⚠️  WARNING: Using default JWT_SECRET. This is insecure for production. Set JWT_SECRET in .env`);
+    console.warn(
+      `[${serviceName || 'app'}] ⚠️  WARNING: Using default JWT_SECRET. This is insecure for production. Set JWT_SECRET in .env`,
+    );
   }
 
   return config;

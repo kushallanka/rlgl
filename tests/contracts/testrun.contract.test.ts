@@ -7,9 +7,10 @@
  *
  * Every endpoint is covered: success, error, auth, and validation paths.
  */
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import request from 'supertest';
+
 import express, { type Express } from 'express';
+import request from 'supertest';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createTestRunDb, type TestDb } from '../helpers/testrun-db.js';
 
 // ---------------------------------------------------------------------------
@@ -37,7 +38,7 @@ beforeAll(async () => {
   const prisma = db.prisma;
 
   await prisma.$executeRawUnsafe(
-    `INSERT OR IGNORE INTO Project (id, name) VALUES (${TEST_PROJECT_ID}, 'Contract Test Project')`
+    `INSERT OR IGNORE INTO Project (id, name) VALUES (${TEST_PROJECT_ID}, 'Contract Test Project')`,
   );
 
   // Build a minimal express app wired exactly like the real one: the
@@ -95,9 +96,7 @@ afterAll(async () => {
 
 describe('GET /api/v1/projects/:projectId/testruns', () => {
   it('200 — returns paginated list with correct envelope shape', async () => {
-    const res = await request(app)
-      .get(`/api/v1/projects/${TEST_PROJECT_ID}/testruns`)
-      .set(AUTH_HEADERS);
+    const res = await request(app).get(`/api/v1/projects/${TEST_PROJECT_ID}/testruns`).set(AUTH_HEADERS);
 
     expect(res.status).toBe(200);
     // Contract: must have data array + pagination metadata
@@ -112,9 +111,7 @@ describe('GET /api/v1/projects/:projectId/testruns', () => {
   });
 
   it('400 — rejects invalid pagination params', async () => {
-    const res = await request(app)
-      .get(`/api/v1/projects/${TEST_PROJECT_ID}/testruns?page=-1`)
-      .set(AUTH_HEADERS);
+    const res = await request(app).get(`/api/v1/projects/${TEST_PROJECT_ID}/testruns?page=-1`).set(AUTH_HEADERS);
 
     expect(res.status).toBe(400);
     expect(res.body).toHaveProperty('error');
@@ -174,9 +171,7 @@ describe('POST /api/v1/projects/:projectId/testruns', () => {
 
 describe('GET /api/v1/projects/:projectId/testruns/:id', () => {
   it('404 — returns structured error for nonexistent run', async () => {
-    const res = await request(app)
-      .get(`/api/v1/projects/${TEST_PROJECT_ID}/testruns/999999`)
-      .set(AUTH_HEADERS);
+    const res = await request(app).get(`/api/v1/projects/${TEST_PROJECT_ID}/testruns/999999`).set(AUTH_HEADERS);
 
     expect(res.status).toBe(404);
     expect(res.body).toHaveProperty('error');

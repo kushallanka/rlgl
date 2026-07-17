@@ -1,6 +1,6 @@
-import { ProjectRepository } from '../repositories/project.repository.js';
 import { AppError, EventBus, RequestContext } from '@rlgl/shared';
 import axios from 'axios';
+import { ProjectRepository } from '../repositories/project.repository.js';
 
 export class ProjectService {
   constructor(
@@ -9,7 +9,7 @@ export class ProjectService {
     private readonly eventBus: EventBus,
     private readonly testcaseServiceUrl: string = process.env.TESTCASE_SERVICE_URL || 'http://testcase-service:3002',
     private readonly testrunServiceUrl: string = process.env.TESTRUN_SERVICE_URL || 'http://testrun-service:3004',
-    private readonly logger?: any
+    private readonly logger?: any,
   ) {}
 
   async listAll() {
@@ -22,7 +22,7 @@ export class ProjectService {
     // Actually, we'll fetch from the legacy bridge or IAM
     const resp = await axios.get(`${this.iamServiceUrl}/users/${userId}/projects`);
     const projectIds = resp.data.projectIds;
-    
+
     return this.repo.findAllForUser(projectIds);
   }
 
@@ -34,18 +34,27 @@ export class ProjectService {
 
   async createProject(userId: number, data: { name: string; description?: string }, context: RequestContext) {
     const { name, description } = data;
-    
+
     const ALL_PERMISSIONS = [
-      'testcase.view','testcase.create','testcase.edit','testcase.delete',
-      'testrun.view','testrun.create','testrun.update',
-      'config.manage','project.manage','member.manage',
+      'testcase.view',
+      'testcase.create',
+      'testcase.edit',
+      'testcase.delete',
+      'testrun.view',
+      'testrun.create',
+      'testrun.update',
+      'config.manage',
+      'project.manage',
+      'member.manage',
     ];
 
     const project = await this.repo.createWithAdminRole(name, description, userId, ALL_PERMISSIONS);
 
     // Sync project admin to IAM service so it appears in user's project list
     try {
-      await axios.post(`${this.iamServiceUrl}/internal/projects/${project.id}/init-admin`, { userId: userId.toString() });
+      await axios.post(`${this.iamServiceUrl}/internal/projects/${project.id}/init-admin`, {
+        userId: userId.toString(),
+      });
     } catch (err) {
       this.logger?.error({ err, projectId: project.id, userId }, 'Failed to init project admin in IAM');
       // Don't throw - project is already created, IAM sync failure shouldn't break the flow
@@ -62,7 +71,7 @@ export class ProjectService {
         requestId: context.requestId,
         userId: userId.toString(),
         projectId: project.id.toString(),
-      }
+      },
     );
 
     // Sync project to testcase and testrun services for referential integrity
@@ -85,7 +94,7 @@ export class ProjectService {
         requestId: context.requestId,
         userId: context.userId,
         projectId: id.toString(),
-      }
+      },
     );
 
     return project;
@@ -106,7 +115,7 @@ export class ProjectService {
       await axios.post(
         `${this.testcaseServiceUrl}/sync/project`,
         { projectId, name: projectName },
-        { headers: { 'Content-Type': 'application/json', 'x-request-id': requestId } }
+        { headers: { 'Content-Type': 'application/json', 'x-request-id': requestId } },
       );
     } catch (err: any) {
       syncErrors.push(`testcase-service: ${err.message}`);
@@ -117,7 +126,7 @@ export class ProjectService {
       await axios.post(
         `${this.testrunServiceUrl}/sync/project`,
         { projectId, name: projectName },
-        { headers: { 'Content-Type': 'application/json', 'x-request-id': requestId } }
+        { headers: { 'Content-Type': 'application/json', 'x-request-id': requestId } },
       );
     } catch (err: any) {
       syncErrors.push(`testrun-service: ${err.message}`);
@@ -158,11 +167,11 @@ export class ProjectService {
   async getMyPermissions(userId: number, projectId: number) {
     const userRoles = await this.repo.getUserRoles(projectId);
     const userRole = userRoles.find((ur: any) => ur.userId === userId);
-    
+
     if (!userRole) {
       return { permissions: [] };
     }
-    
+
     const permissions = userRole.role.permissions.map((p: any) => p.action);
     return { permissions };
   }
@@ -175,7 +184,11 @@ export class ProjectService {
     return this.repo.createRole(projectId, data);
   }
 
-  async updateRole(roleId: number, projectId: number, data: { name?: string; description?: string; permissions?: string[] }) {
+  async updateRole(
+    roleId: number,
+    projectId: number,
+    data: { name?: string; description?: string; permissions?: string[] },
+  ) {
     return this.repo.updateRole(roleId, projectId, data);
   }
 
@@ -202,7 +215,7 @@ export class ProjectService {
         requestId: context.requestId,
         userId: context.userId,
         projectId: projectId.toString(),
-      }
+      },
     );
 
     return membership;
@@ -223,7 +236,7 @@ export class ProjectService {
         requestId: context.requestId,
         userId: context.userId,
         projectId: projectId.toString(),
-      }
+      },
     );
   }
 
@@ -249,7 +262,7 @@ export class ProjectService {
           });
         });
       }
-    } catch { }
+    } catch {}
 
     try {
       const { data: response } = await axios.get(`${testRunServiceUrl}/?limit=5`, { headers });
@@ -264,7 +277,7 @@ export class ProjectService {
           });
         });
       }
-    } catch { }
+    } catch {}
 
     return activities.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).slice(0, 10);
   }
@@ -296,11 +309,17 @@ export class ProjectService {
   }
 
   // Custom Fields
-  async createCustomField(projectId: number, data: { name: string; fieldType: string; required?: boolean; description?: string }) {
+  async createCustomField(
+    projectId: number,
+    data: { name: string; fieldType: string; required?: boolean; description?: string },
+  ) {
     return this.repo.createCustomField(projectId, data);
   }
 
-  async updateCustomField(fieldId: number, data: { name?: string; fieldType?: string; required?: boolean; description?: string }) {
+  async updateCustomField(
+    fieldId: number,
+    data: { name?: string; fieldType?: string; required?: boolean; description?: string },
+  ) {
     return this.repo.updateCustomField(fieldId, data);
   }
 

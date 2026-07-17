@@ -1,5 +1,5 @@
+import { ClipboardList, Plus, Search } from 'lucide-react';
 import { motion } from 'motion/react';
-import { Plus, Search, ClipboardList } from 'lucide-react';
 
 interface TestCaseHeaderProps {
   projectName: string;
@@ -26,8 +26,7 @@ export function TestCaseHeader({ projectName, canCreateTestCase, onAddSuite }: T
             Test Repository
           </h1>
           <p className="text-gray-500 dark:text-white/50 font-body text-sm truncate">
-            Suites, sections, and test cases for{' '}
-            <span className="text-gray-700 dark:text-white/70">{projectName}</span>
+            Suites, sections, and test cases for <span className="text-gray-700 dark:text-white/70">{projectName}</span>
           </p>
         </div>
       </div>

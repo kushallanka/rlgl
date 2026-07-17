@@ -7,12 +7,12 @@ const prisma = new PrismaClient();
     const projectCount = await prisma.project.count();
     const suiteCount = await prisma.suite.count();
     const caseCount = await prisma.testCase.count();
-    
+
     console.log('📊 Database Statistics:');
     console.log('  Projects:', projectCount);
     console.log('  Suites:', suiteCount);
     console.log('  Test Cases:', caseCount);
-    
+
     if (projectCount === 0) {
       console.log('\n⚠️  No projects found. Need to create or sync projects from project-service.');
     } else {

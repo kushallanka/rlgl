@@ -1,5 +1,5 @@
-import { motion, AnimatePresence } from 'motion/react';
-import { X, FolderKanban } from 'lucide-react';
+import { FolderKanban, X } from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
 
 interface CreateProjectModalProps {
   isOpen: boolean;
@@ -68,21 +68,34 @@ export function CreateProjectModal({
 
           <form onSubmit={onSubmit} className="space-y-4">
             <div className="space-y-2">
-              <label className="text-[11px] font-body font-medium text-gray-500 dark:text-white/60 uppercase tracking-wider">Project Name</label>
+              <label
+                htmlFor="project-name"
+                className="text-[11px] font-body font-medium text-gray-500 dark:text-white/60 uppercase tracking-wider"
+              >
+                Project Name
+              </label>
               <input
+                id="project-name"
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="e.g. E-commerce Platform"
                 className="w-full px-4 py-3.5 liquid-glass rounded-xl focus:ring-2 focus:ring-blue-500/50 outline-none transition-ui text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/30"
+                // biome-ignore lint/a11y/noAutofocus: focuses the first field of an explicitly user-triggered modal, not on page load
                 autoFocus
                 required
               />
             </div>
 
             <div className="space-y-2">
-              <label className="text-[11px] font-body font-medium text-gray-500 dark:text-white/60 uppercase tracking-wider">Description</label>
+              <label
+                htmlFor="project-description"
+                className="text-[11px] font-body font-medium text-gray-500 dark:text-white/60 uppercase tracking-wider"
+              >
+                Description
+              </label>
               <textarea
+                id="project-description"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Describe your project and its purpose..."

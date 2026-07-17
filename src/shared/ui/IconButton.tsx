@@ -1,13 +1,10 @@
-import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from 'react';
+import { type ButtonHTMLAttributes, forwardRef, type ReactNode } from 'react';
 import { cn } from '../../lib/cn';
 
 const variants = {
-  ghost:
-    'text-fg-muted hover:text-fg hover:bg-surface-2 dark:hover:bg-white/[0.06]',
-  secondary:
-    'bg-surface text-fg-secondary border border-edge hover:border-edge-strong shadow-card',
-  danger:
-    'text-fg-muted hover:text-rose-600 hover:bg-rose-500/10 dark:hover:text-rose-400',
+  ghost: 'text-fg-muted hover:text-fg hover:bg-surface-2 dark:hover:bg-white/[0.06]',
+  secondary: 'bg-surface text-fg-secondary border border-edge hover:border-edge-strong shadow-card',
+  danger: 'text-fg-muted hover:text-rose-600 hover:bg-rose-500/10 dark:hover:text-rose-400',
 } as const;
 
 const sizes = {

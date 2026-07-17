@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { X, Save, PlayCircle } from 'lucide-react';
+import { PlayCircle, Save, X } from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
+import { useEffect, useState } from 'react';
 import type { TestRun } from '../types';
 
 interface EditTestRunModalProps {
@@ -29,7 +29,11 @@ export function EditTestRunModal({ isOpen, run, onClose, onSave, isSaving }: Edi
     if (!name.trim()) return;
     // Pass the version we loaded so the server can reject the save if the
     // run changed underneath us (409) instead of silently overwriting.
-    onSave(run.id, { name: name.trim(), description: description.trim(), ...(run.version !== undefined ? { version: run.version } : {}) });
+    onSave(run.id, {
+      name: name.trim(),
+      description: description.trim(),
+      ...(run.version !== undefined ? { version: run.version } : {}),
+    });
   };
 
   return (
@@ -60,6 +64,7 @@ export function EditTestRunModal({ isOpen, run, onClose, onSave, isSaving }: Edi
                 <p className="text-gray-400 dark:text-white/40 text-sm font-body">Update name and description</p>
               </div>
               <button
+                type="button"
                 onClick={onClose}
                 className="p-2 rounded-xl text-gray-400 dark:text-white/40 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/[0.08] transition-ui"
               >
@@ -70,10 +75,14 @@ export function EditTestRunModal({ isOpen, run, onClose, onSave, isSaving }: Edi
             <form onSubmit={handleSubmit} className="space-y-5">
               {/* Name */}
               <div className="space-y-2">
-                <label className="text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-white/40">
+                <label
+                  htmlFor="edit-run-name"
+                  className="text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-white/40"
+                >
                   Name <span className="text-red-500 dark:text-red-400">*</span>
                 </label>
                 <input
+                  id="edit-run-name"
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
@@ -85,10 +94,14 @@ export function EditTestRunModal({ isOpen, run, onClose, onSave, isSaving }: Edi
 
               {/* Description */}
               <div className="space-y-2">
-                <label className="text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-white/40">
+                <label
+                  htmlFor="edit-run-description"
+                  className="text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-white/40"
+                >
                   Description
                 </label>
                 <textarea
+                  id="edit-run-description"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Optional description"

@@ -1,5 +1,5 @@
+import { Edit2, Plus, Tag, Trash2 } from 'lucide-react';
 import { motion } from 'motion/react';
-import { Plus, Edit2, Trash2, Tag } from 'lucide-react';
 
 interface TypesTabProps {
   items: any[];
@@ -49,18 +49,11 @@ export function TypesTab({ items, canEdit, onAdd, onEdit, onDelete }: TypesTabPr
       </div>
 
       {items.length === 0 ? (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="text-center py-12"
-        >
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-12">
           <Tag className="w-16 h-16 text-gray-400 dark:text-white/30 mx-auto mb-4" />
           <p className="text-gray-500 dark:text-white/50">No test case types configured</p>
           {canEdit && (
-            <button
-              onClick={onAdd}
-              className="mt-4 text-blue-400 hover:text-blue-300"
-            >
+            <button type="button" onClick={onAdd} className="mt-4 text-blue-400 hover:text-blue-300">
               Add your first type
             </button>
           )}

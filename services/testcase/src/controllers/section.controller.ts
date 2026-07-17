@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
-import { SectionService } from '../services/section.service.js';
-import { IdempotencyService } from '../middleware/idempotency.js';
-import { SectionSchema } from '../validators/schemas.js';
 import { z } from 'zod';
+import { IdempotencyService } from '../middleware/idempotency.js';
+import { SectionService } from '../services/section.service.js';
+import { SectionSchema } from '../validators/schemas.js';
 
 const UpdateSectionSchema = SectionSchema.partial().extend({
   projectId: z.string().optional(),
@@ -75,7 +75,7 @@ export class SectionController {
     let suiteId: number | undefined;
     if (suiteIdStr) {
       suiteId = parseInt(suiteIdStr, 10);
-      if (isNaN(suiteId)) return res.status(400).json({ error: 'Invalid suite ID' });
+      if (Number.isNaN(suiteId)) return res.status(400).json({ error: 'Invalid suite ID' });
     }
 
     try {
@@ -165,7 +165,7 @@ export class SectionController {
     const requestId = (req as any).requestId;
     const projectId = (req as any).projectId;
     const sectionId = parseInt(req.params.id ?? '', 10);
-    if (isNaN(sectionId)) return res.status(400).json({ error: 'Invalid section ID' });
+    if (Number.isNaN(sectionId)) return res.status(400).json({ error: 'Invalid section ID' });
 
     const parsed = UpdateSectionSchema.safeParse(req.body);
     if (!parsed.success) {
@@ -187,7 +187,7 @@ export class SectionController {
     const requestId = (req as any).requestId;
     const projectId = (req as any).projectId;
     const sectionId = parseInt(req.params.id ?? '', 10);
-    if (isNaN(sectionId)) return res.status(400).json({ error: 'Invalid section ID' });
+    if (Number.isNaN(sectionId)) return res.status(400).json({ error: 'Invalid section ID' });
 
     try {
       await this.sectionService.deleteSection(sectionId, projectId);

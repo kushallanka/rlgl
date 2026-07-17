@@ -1,17 +1,17 @@
-import { loadConfig, createLogger, setupProcessHandlers, createEventBus, createHealthChecker } from '@rlgl/shared';
+import { createEventBus, createHealthChecker, createLogger, loadConfig, setupProcessHandlers } from '@rlgl/shared';
 import { PrismaClient } from '../generated/client/index.js';
-import { ProjectRepository } from './repositories/project.repository.js';
-import { ProjectService } from './services/project.service.js';
-import { ProjectController } from './controllers/project.controller.js';
 import { createApp } from './app.js';
-import { startServer } from './server.js';
+import { ProjectController } from './controllers/project.controller.js';
 import { initAuth } from './middleware/auth.js';
+import { ProjectRepository } from './repositories/project.repository.js';
+import { startServer } from './server.js';
+import { ProjectService } from './services/project.service.js';
 
 const config = loadConfig();
-const logger = createLogger({ 
-  service: 'project-service', 
-  level: config.LOG_LEVEL, 
-  samplingRate: config.LOG_SAMPLING_RATE 
+const logger = createLogger({
+  service: 'project-service',
+  level: config.LOG_LEVEL,
+  samplingRate: config.LOG_SAMPLING_RATE,
 });
 
 // 1. Process Resilience
@@ -24,9 +24,7 @@ async function main() {
       process.exit(1);
     }
 
-    const prisma = config.DATABASE_URL
-      ? new PrismaClient({ datasourceUrl: config.DATABASE_URL })
-      : new PrismaClient();
+    const prisma = config.DATABASE_URL ? new PrismaClient({ datasourceUrl: config.DATABASE_URL }) : new PrismaClient();
 
     // 2. Startup Guard: Verify Database
     logger.info('🔍 Verifying database connectivity...');
@@ -56,7 +54,7 @@ async function main() {
         redisUrl: config.REDIS_URL,
         serviceName: 'project-service',
       },
-      logger
+      logger,
     );
 
     // 4. Initialize shared auth middleware
@@ -70,19 +68,18 @@ async function main() {
       eventBus,
       config.TESTCASE_SERVICE_URL,
       config.TESTRUN_SERVICE_URL,
-      logger
+      logger,
     );
     const controller = new ProjectController(service, eventBus);
 
     const app = createApp(config, controller, healthChecker);
-    
+
     // 7. Final startup
     startServer(app, config.PORT, async () => {
       await eventBus.shutdown();
       await prisma.$disconnect();
       logger.info('Shutdown complete');
     });
-
   } catch (err: any) {
     logger.error({ err, stack: err.stack }, 'Fatal error during startup');
     process.exit(1);

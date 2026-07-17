@@ -7,9 +7,10 @@
  * - Idempotent re-delivery (CI retries) never duplicates results
  * - Error rate stays under 1% with 100 concurrent submitters
  */
+
+import { check, group, sleep } from 'k6';
 import http from 'k6/http';
-import { check, sleep, group } from 'k6';
-import { Rate, Trend, Counter } from 'k6/metrics';
+import { Counter, Rate, Trend } from 'k6/metrics';
 
 const errorRate = new Rate('error_rate');
 const submitLatency = new Trend('submit_result_latency', true);
@@ -74,7 +75,7 @@ export default function () {
     const res = http.patch(
       `${BASE_URL}/api/v1/projects/${PROJECT_ID}/testruns/${RUN_ID}/results/${resultId}`,
       payload,
-      { headers: { ...HEADERS, 'Idempotency-Key': idempotencyKey } }
+      { headers: { ...HEADERS, 'Idempotency-Key': idempotencyKey } },
     );
 
     submitLatency.add(res.timings.duration);
@@ -90,7 +91,7 @@ export default function () {
       const replay = http.patch(
         `${BASE_URL}/api/v1/projects/${PROJECT_ID}/testruns/${RUN_ID}/results/${resultId}`,
         payload,
-        { headers: { ...HEADERS, 'Idempotency-Key': idempotencyKey } }
+        { headers: { ...HEADERS, 'Idempotency-Key': idempotencyKey } },
       );
       const replayed = replay.headers['X-Idempotent-Replay'] === 'true';
       if (replayed) replayCounter.add(1);

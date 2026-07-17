@@ -1,25 +1,25 @@
-import { loadConfig, createLogger, setupProcessHandlers, createEventBus } from '@rlgl/shared';
+import { createEventBus, createLogger, loadConfig, setupProcessHandlers } from '@rlgl/shared';
 import { PrismaClient } from '../generated/client/index.js';
-import { SuiteRepository, SectionRepository, SyncRepository, TestCaseRepository } from './repositories/index.js';
-import { SuiteService } from './services/suite.service.js';
-import { SectionService } from './services/section.service.js';
-import { SyncService } from './services/sync.service.js';
-import { TestCaseService } from './services/testcase.service.js';
-import { SuiteController } from './controllers/suite.controller.js';
+import { createApp } from './app.js';
+import { PORT, PROJECT_SERVICE_URL, REDIS_URL, SERVICE_NAME } from './config/constants.js';
 import { SectionController } from './controllers/section.controller.js';
+import { SuiteController } from './controllers/suite.controller.js';
 import { SyncController } from './controllers/sync.controller.js';
 import { TestCaseController } from './controllers/testcase.controller.js';
-import { IdempotencyService } from './middleware/idempotency.js';
-import { createApp } from './app.js';
-import { startServer } from './server.js';
 import { initAuth } from './middleware/auth.js';
-import { PORT, REDIS_URL, SERVICE_NAME, PROJECT_SERVICE_URL } from './config/constants.js';
+import { IdempotencyService } from './middleware/idempotency.js';
+import { SectionRepository, SuiteRepository, SyncRepository, TestCaseRepository } from './repositories/index.js';
+import { startServer } from './server.js';
+import { SectionService } from './services/section.service.js';
+import { SuiteService } from './services/suite.service.js';
+import { SyncService } from './services/sync.service.js';
+import { TestCaseService } from './services/testcase.service.js';
 
 const config = loadConfig();
-const logger = createLogger({ 
+const logger = createLogger({
   service: SERVICE_NAME,
   level: config.LOG_LEVEL,
-  samplingRate: config.LOG_SAMPLING_RATE
+  samplingRate: config.LOG_SAMPLING_RATE,
 });
 
 setupProcessHandlers(logger);
@@ -38,7 +38,7 @@ async function main() {
     try {
       const res = await fetch(`${PROJECT_SERVICE_URL}/internal/projects`);
       if (res.ok) {
-        const projects = await res.json() as { id: number; name: string }[];
+        const projects = (await res.json()) as { id: number; name: string }[];
         for (const p of projects) {
           await prisma.project.upsert({
             where: { id: p.id },
@@ -66,10 +66,7 @@ async function main() {
 
   initAuth(logger);
 
-  const eventBus = await createEventBus(
-    { redisUrl: REDIS_URL, serviceName: SERVICE_NAME },
-    logger,
-  );
+  const eventBus = await createEventBus({ redisUrl: REDIS_URL, serviceName: SERVICE_NAME }, logger);
 
   const suiteRepo = new SuiteRepository(prisma);
   const sectionRepo = new SectionRepository(prisma);

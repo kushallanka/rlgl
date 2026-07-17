@@ -3,13 +3,13 @@
  * Renders form fields based on configuration schema
  */
 
+import type { CustomField } from '../../utils';
+import { Checkbox } from './Checkbox';
 // Direct module imports — going through the './index' barrel creates a
 // circular dependency (the barrel re-exports this file).
 import { FormInput } from './FormInput';
-import { FormTextarea } from './FormTextarea';
 import { SimpleSelect } from './FormSelect';
-import { Checkbox } from './Checkbox';
-import type { CustomField } from '../../utils';
+import { FormTextarea } from './FormTextarea';
 
 interface DynamicFormFieldProps {
   field: CustomField;
@@ -18,12 +18,7 @@ interface DynamicFormFieldProps {
   error?: string | undefined;
 }
 
-export const DynamicFormField: React.FC<DynamicFormFieldProps> = ({ 
-  field, 
-  value, 
-  onChange, 
-  error 
-}) => {
+export const DynamicFormField: React.FC<DynamicFormFieldProps> = ({ field, value, onChange, error }) => {
   const label = `${field.name}${field.required ? ' *' : ''}`;
 
   switch (field.fieldType) {
@@ -63,25 +58,13 @@ export const DynamicFormField: React.FC<DynamicFormFieldProps> = ({
     case 'checkbox':
       return (
         <div className="p-3 rounded-xl hover:bg-white/5 transition-colors">
-          <Checkbox
-            checked={value || false}
-            onChange={onChange}
-            label={label}
-          />
+          <Checkbox checked={value || false} onChange={onChange} label={label} />
           {error && <span className="text-xs text-red-400 mt-1 block">{error}</span>}
         </div>
       );
 
     case 'date':
-      return (
-        <FormInput
-          label={label}
-          type="date"
-          value={value || ''}
-          onChange={onChange}
-          error={error}
-        />
-      );
+      return <FormInput label={label} type="date" value={value || ''} onChange={onChange} error={error} />;
 
     case 'number':
       return (
@@ -107,15 +90,10 @@ interface DynamicFormFieldsProps {
   errors?: Record<string, string>;
 }
 
-export const DynamicFormFields: React.FC<DynamicFormFieldsProps> = ({
-  fields,
-  values,
-  onChange,
-  errors = {}
-}) => {
+export const DynamicFormFields: React.FC<DynamicFormFieldsProps> = ({ fields, values, onChange, errors = {} }) => {
   return (
     <div className="space-y-4">
-      {fields.map(field => (
+      {fields.map((field) => (
         <DynamicFormField
           key={field.id}
           field={field}

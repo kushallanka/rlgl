@@ -1,61 +1,43 @@
 # RLGL Test Management Platform - Development Commands
-.PHONY: help install build dev docker-up docker-down logs clean test lint migrate
+.PHONY: help install dev build test lint docker-up docker-down logs clean migrate seed monitoring health setup
 
 # Default target
 help:
 	@echo "Available commands:"
-	@echo "  make install          - Install all dependencies"
-	@echo "  make build            - Build all packages and services"
-	@echo "  make dev              - Start development environment"
-	@echo "  make docker-up        - Start all services with Docker Compose (SQLite/dev)"
+	@echo "  make install          - Install all workspace dependencies"
+	@echo "  make dev              - Start all services + frontend (hot reload)"
+	@echo "  make build            - Build the frontend for production"
+	@echo "  make test             - Run the test suite"
+	@echo "  make lint             - Typecheck the workspace"
+	@echo "  make docker-up        - Start the full stack with Docker Compose (SQLite/dev)"
 	@echo "  make docker-down      - Stop all Docker services"
 	@echo "  make logs             - View Docker logs"
-	@echo "  make clean            - Clean build artifacts and node_modules"
-	@echo "  make test             - Run all tests"
-	@echo "  make lint             - Run linter on all projects"
-	@echo "  make migrate          - Run database migrations"
-	@echo "  make seed             - Seed database with initial data"
+	@echo "  make migrate          - Apply Prisma migrations for all services"
+	@echo "  make seed             - Seed demo data (services must already be running)"
 	@echo "  make monitoring       - Open monitoring dashboards"
+	@echo "  make health           - Check gateway + downstream service health"
+	@echo "  make clean            - Remove build artifacts and node_modules"
+	@echo "  make setup            - install + docker-up + migrate + seed"
 
-# Install dependencies
+# Install workspace dependencies
 install:
-	@echo "Installing shared package dependencies..."
-	cd packages/shared && npm install
-	@echo "Installing gateway dependencies..."
-	cd services/gateway && npm install
-	@echo "Installing auth service dependencies..."
-	cd services/auth && npm install
-	@echo "Installing project service dependencies..."
-	cd services/project && npm install
-	@echo "Installing testcase service dependencies..."
-	cd services/testcase && npm install
-	cd services/testcase/generated/client && npm install
-	@echo "Installing testrun service dependencies..."
-	cd services/testrun && npm install
-	cd services/testrun/generated/client && npm install
-	@echo "Installing worker dependencies..."
-	cd services/worker && npm install
-	@echo "Installing frontend dependencies..."
-	cd src && npm install
+	npm install
 
-# Build shared package
-build-shared:
-	cd packages/shared && npm run build
+# Start development environment
+dev:
+	npm run dev
 
-# Build all services
-build: build-shared
-	@echo "Building auth service..."
-	cd services/auth && npm run build
-	@echo "Building project service..."
-	cd services/project && npm run build
-	@echo "Building gateway..."
-	cd services/gateway && npm run build
-	@echo "Building worker..."
-	cd services/worker && npm run build
+# Build the frontend
+build:
+	npm run build
 
-# Development mode - start infrastructure only
-dev-infra:
-	docker-compose up -d redis
+# Run the test suite
+test:
+	npm test
+
+# Typecheck the workspace
+lint:
+	npm run lint
 
 # Full Docker Compose startup
 docker-up:
@@ -72,33 +54,24 @@ logs:
 # Clean everything
 clean:
 	docker-compose down -v
-	find . -name "node_modules" -type d -exec rm -rf {} + 2>/dev/null || true
-	find . -name "dist" -type d -exec rm -rf {} + 2>/dev/null || true
+	find . -name "node_modules" -type d -prune -exec rm -rf {} + 2>/dev/null || true
+	find . -name "dist" -type d -prune -exec rm -rf {} + 2>/dev/null || true
 	find . -name "*.log" -delete 2>/dev/null || true
 
-# Run tests
-test:
-	cd services/auth && npm test
-	cd services/project && npm test
-
-# Lint all projects
-lint:
-	cd packages/shared && npm run lint
-	cd services/auth && npm run lint
-	cd services/project && npm run lint
-	cd services/gateway && npm run lint
-
-# Database migrations
+# Database migrations (each service owns its own Prisma schema)
 migrate:
 	@echo "Running auth service migrations..."
 	cd services/auth && npx prisma migrate deploy
 	@echo "Running project service migrations..."
 	cd services/project && npx prisma migrate deploy
+	@echo "Running testcase service migrations..."
+	cd services/testcase && npx prisma migrate deploy
+	@echo "Running testrun service migrations..."
+	cd services/testrun && npx prisma migrate deploy
 
-# Seed databases
+# Seed demo data via the gateway API (see README > Seed Demo Data)
 seed:
-	@echo "Seeding auth database..."
-	cd services/auth && npm run seed
+	npm run seed
 
 # Open monitoring dashboards
 monitoring:
@@ -106,14 +79,10 @@ monitoring:
 	@echo "Opening Prometheus... http://localhost:9090"
 	@open http://localhost:3001 || xdg-open http://localhost:3001 || echo "Please open http://localhost:3001 manually"
 
-# Health check all services
+# Health check via the gateway's aggregate readiness endpoint
 health:
 	@echo "Checking service health..."
 	@curl -s http://localhost:3000/health/ready | jq . || echo "Gateway: Not responding"
-	@curl -s http://localhost:3001/health | jq . || echo "Auth: Not responding"
-	@curl -s http://localhost:3002/health | jq . || echo "Project: Not responding"
-	@curl -s http://localhost:3003/health | jq . || echo "TestCase: Not responding"
-	@curl -s http://localhost:3004/health | jq . || echo "TestRun: Not responding"
 
 # Quick start - setup everything
 setup: install docker-up migrate seed
@@ -121,4 +90,3 @@ setup: install docker-up migrate seed
 	@echo "Gateway: http://localhost:3000"
 	@echo "Grafana: http://localhost:3001 (admin/admin)"
 	@echo "Prometheus: http://localhost:9090"
-

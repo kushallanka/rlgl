@@ -10,9 +10,10 @@
  * relative to that service. The gateway is the public entry point, so the
  * merged spec re-keys every path under the gateway mount that proxies to it.
  */
+
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import swaggerJsdoc from 'swagger-jsdoc';
-import * as fs from 'fs';
-import * as path from 'path';
 
 // swagger-jsdoc's transitive dep (@apidevtools/json-schema-ref-parser) still
 // calls the deprecated url.parse(), which spams DEP0169 on Node 24. Suppress
@@ -20,7 +21,7 @@ import * as path from 'path';
 const emitWarning = process.emitWarning.bind(process);
 process.emitWarning = ((warning: string | Error, ...args: unknown[]) => {
   const carrier = [warning, ...args]
-    .map((a) => (typeof a === 'string' ? a : (a as { code?: string } | null)?.code ?? ''))
+    .map((a) => (typeof a === 'string' ? a : ((a as { code?: string } | null)?.code ?? '')))
     .join(' ');
   if (carrier.includes('DEP0169') || carrier.includes('url.parse')) return;
   (emitWarning as (...a: unknown[]) => void)(warning, ...args);
@@ -39,10 +40,10 @@ interface ServiceSource {
 }
 
 const SERVICES: ServiceSource[] = [
-  { name: 'auth',     basePath: '/api/v1/auth',      apis: ['services/auth/src/controllers/*.ts'] },
-  { name: 'project',  basePath: '/api/v1/projects',  apis: ['services/project/src/controllers/*.ts'] },
+  { name: 'auth', basePath: '/api/v1/auth', apis: ['services/auth/src/controllers/*.ts'] },
+  { name: 'project', basePath: '/api/v1/projects', apis: ['services/project/src/controllers/*.ts'] },
   { name: 'testcase', basePath: '/api/v1/testcases', apis: ['services/testcase/src/controllers/*.ts'] },
-  { name: 'testrun',  basePath: '/api/v1/testruns',  apis: ['services/testrun/src/controllers/*.ts'] },
+  { name: 'testrun', basePath: '/api/v1/testruns', apis: ['services/testrun/src/controllers/*.ts'] },
 ];
 
 type AnyRecord = Record<string, unknown>;
@@ -51,8 +52,7 @@ type AnyRecord = Record<string, unknown>;
 const toGlob = (rel: string) => path.join(ROOT, rel).replace(/\\/g, '/');
 
 /** Re-key a service's local paths under its gateway mount ("/" collapses to the bare prefix). */
-const prefixPath = (basePath: string, localPath: string) =>
-  localPath === '/' ? basePath : `${basePath}${localPath}`;
+const prefixPath = (basePath: string, localPath: string) => (localPath === '/' ? basePath : `${basePath}${localPath}`);
 
 /** Recursively sort object keys so JSON output is stable across runs. */
 function sortDeep<T>(value: T): T {
@@ -130,7 +130,7 @@ function main() {
   const spec = build();
   const pathCount = Object.keys(spec.paths).length;
   fs.mkdirSync(path.dirname(OUT_FILE), { recursive: true });
-  fs.writeFileSync(OUT_FILE, JSON.stringify(spec, null, 2) + '\n', 'utf8');
+  fs.writeFileSync(OUT_FILE, `${JSON.stringify(spec, null, 2)}\n`, 'utf8');
   console.log(`[generate-openapi] wrote ${pathCount} paths to ${path.relative(ROOT, OUT_FILE)}`);
 }
 

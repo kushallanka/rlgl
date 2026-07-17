@@ -1,23 +1,22 @@
-import express, { Request, Response, NextFunction } from 'express';
-import cors from 'cors';
-import helmet from 'helmet';
-import { 
-  requestContextMiddleware, 
+import path, { dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import {
+  Config,
+  createHealthChecker,
   createLogger,
   createMetricsCollector,
-  metricsMiddleware,
-  requestLoggingMiddleware,
   errorHandlerMiddleware,
-  createHealthChecker,
+  metricsMiddleware,
+  requestContextMiddleware,
+  requestLoggingMiddleware,
   setupSwagger,
-  Config
 } from '@rlgl/shared';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
-import { verifyToken } from './middleware/auth.js';
+import cors from 'cors';
+import express, { NextFunction, Request, Response } from 'express';
+import helmet from 'helmet';
+import { CORS_ORIGIN, SERVICE_NAME } from './config/constants.js';
 import { ProjectController } from './controllers/project.controller.js';
-import { SERVICE_NAME, CORS_ORIGIN } from './config/constants.js';
+import { verifyToken } from './middleware/auth.js';
 
 const logger = createLogger({ service: 'project-service' });
 const metrics = createMetricsCollector({ serviceName: 'project-service' }, logger);
@@ -25,7 +24,11 @@ const metrics = createMetricsCollector({ serviceName: 'project-service' }, logge
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-export const createApp = (config: Config, controller: ProjectController, healthChecker?: ReturnType<typeof createHealthChecker>) => {
+export const createApp = (
+  config: Config,
+  controller: ProjectController,
+  healthChecker?: ReturnType<typeof createHealthChecker>,
+) => {
   const app = express();
   const hc = healthChecker || createHealthChecker('project-service', logger);
 
@@ -43,10 +46,7 @@ export const createApp = (config: Config, controller: ProjectController, healthC
     version: '1.0.0',
     description: 'Project and Configuration Management Service',
     swaggerRoute: '/docs',
-    apis: [
-      path.join(__dirname, './controllers/*.js'),
-      path.join(__dirname, './controllers/*.ts'),
-    ],
+    apis: [path.join(__dirname, './controllers/*.js'), path.join(__dirname, './controllers/*.ts')],
   });
 
   // Context adapter: maps shared verifyToken's req.user into req.context
@@ -72,10 +72,10 @@ export const createApp = (config: Config, controller: ProjectController, healthC
   });
 
   app.get('/health/live', (_req, res) => {
-    res.status(200).json({ 
-      status: 'live', 
-      service: 'project-service', 
-      timestamp: new Date().toISOString() 
+    res.status(200).json({
+      status: 'live',
+      service: 'project-service',
+      timestamp: new Date().toISOString(),
     });
   });
 

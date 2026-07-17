@@ -9,9 +9,11 @@ export class IdempotencyService {
     if (!key) return null;
     try {
       return await this.prisma.idempotencyKey.findUnique({
-        where: { key_service: { key, service: SERVICE_NAME } }
+        where: { key_service: { key, service: SERVICE_NAME } },
       });
-    } catch { return null; }
+    } catch {
+      return null;
+    }
   }
 
   async storeIdempotency(key: string, endpoint: string, statusCode: number, response: any) {
@@ -23,9 +25,11 @@ export class IdempotencyService {
           service: SERVICE_NAME,
           endpoint,
           response: JSON.stringify(response),
-          statusCode
-        }
+          statusCode,
+        },
       });
-    } catch { /* duplicate key, ignore */ }
+    } catch {
+      /* duplicate key, ignore */
+    }
   }
 }

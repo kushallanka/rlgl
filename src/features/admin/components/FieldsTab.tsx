@@ -1,5 +1,5 @@
+import { Edit2, FileText, Plus, Trash2 } from 'lucide-react';
 import { motion } from 'motion/react';
-import { Plus, Edit2, Trash2, FileText } from 'lucide-react';
 
 interface FieldsTabProps {
   items: any[];
@@ -43,18 +43,11 @@ export function FieldsTab({ items, canEdit, onAdd, onEdit, onDelete }: FieldsTab
       </div>
 
       {items.length === 0 ? (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="text-center py-12"
-        >
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-12">
           <FileText className="w-16 h-16 text-gray-400 dark:text-white/30 mx-auto mb-4" />
           <p className="text-gray-500 dark:text-white/50">No custom fields configured</p>
           {canEdit && (
-            <button
-              onClick={onAdd}
-              className="mt-4 text-purple-400 hover:text-purple-300"
-            >
+            <button type="button" onClick={onAdd} className="mt-4 text-purple-400 hover:text-purple-300">
               Add your first field
             </button>
           )}
@@ -71,7 +64,9 @@ export function FieldsTab({ items, canEdit, onAdd, onEdit, onDelete }: FieldsTab
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className={`w-8 h-8 ${getFieldTypeColor(item.type)} rounded-lg flex items-center justify-center`}>
+                  <div
+                    className={`w-8 h-8 ${getFieldTypeColor(item.type)} rounded-lg flex items-center justify-center`}
+                  >
                     <FileText className="w-4 h-4 text-white" />
                   </div>
                   <div>
@@ -82,9 +77,7 @@ export function FieldsTab({ items, canEdit, onAdd, onEdit, onDelete }: FieldsTab
                         <span className="text-xs px-2 py-0.5 bg-red-500/20 text-red-300 rounded-full">Required</span>
                       )}
                       {item.options && item.options.length > 0 && (
-                        <span className="text-xs text-gray-400 dark:text-white/50">
-                          {item.options.length} options
-                        </span>
+                        <span className="text-xs text-gray-400 dark:text-white/50">{item.options.length} options</span>
                       )}
                     </div>
                   </div>

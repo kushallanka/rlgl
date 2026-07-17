@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
+import type { TestRunDto } from '../api/testruns.api';
 import { testrunsApi } from '../api/testruns.api';
 import { TESTRUN_QUERY_KEYS } from '../constants';
-import type { TestRunDto } from '../api/testruns.api';
 
 export function useTestRunsList(projectId: string | null) {
   return useQuery({

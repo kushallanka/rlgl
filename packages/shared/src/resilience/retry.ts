@@ -17,55 +17,53 @@ const defaultOptions: RetryOptions = {
 export async function retryWithBackoff<T>(
   fn: () => Promise<T>,
   options: Partial<RetryOptions> = {},
-  operationName: string = 'operation'
+  operationName: string = 'operation',
 ): Promise<T> {
   const opts = { ...defaultOptions, ...options };
   const logger = createLogger({ service: 'retry-util' });
-  
+
   let lastError: Error | undefined;
   let delay = opts.delayMs;
 
   for (let attempt = 1; attempt <= opts.maxAttempts; attempt++) {
     try {
       const result = await fn();
-      
+
       if (attempt > 1) {
         logger.info(
           { operation: operationName, attempt, maxAttempts: opts.maxAttempts },
-          'Operation succeeded after retry'
+          'Operation succeeded after retry',
         );
       }
-      
+
       return result;
     } catch (error: any) {
       lastError = error;
-      
+
       const errorCode = error.code || error.message;
-      const isRetryable = opts.retryableErrors.some(e => 
-        errorCode?.includes(e) || error.message?.includes(e)
-      );
+      const isRetryable = opts.retryableErrors.some((e) => errorCode?.includes(e) || error.message?.includes(e));
 
       if (!isRetryable || attempt === opts.maxAttempts) {
         logger.error(
-          { 
-            operation: operationName, 
-            attempt, 
+          {
+            operation: operationName,
+            attempt,
             error: error.message,
-            code: error.code 
+            code: error.code,
           },
-          'Operation failed, no more retries'
+          'Operation failed, no more retries',
         );
         throw error;
       }
 
       logger.warn(
-        { 
-          operation: operationName, 
-          attempt, 
+        {
+          operation: operationName,
+          attempt,
           nextAttemptInMs: delay,
-          error: error.message 
+          error: error.message,
         },
-        'Operation failed, will retry'
+        'Operation failed, will retry',
       );
 
       await sleep(delay);
@@ -77,5 +75,5 @@ export async function retryWithBackoff<T>(
 }
 
 function sleep(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }

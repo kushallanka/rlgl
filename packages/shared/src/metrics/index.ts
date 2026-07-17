@@ -177,9 +177,6 @@ export class MetricsCollector {
   }
 }
 
-export function createMetricsCollector(
-  options: MetricsOptions,
-  logger: pino.Logger,
-): MetricsCollector {
+export function createMetricsCollector(options: MetricsOptions, logger: pino.Logger): MetricsCollector {
   return new MetricsCollector(options, logger);
 }

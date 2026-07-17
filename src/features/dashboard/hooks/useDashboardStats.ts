@@ -28,7 +28,10 @@ export function useDashboardStats({ runs, cases, projects, activeProject }: Dash
           .map((p) => {
             const projectRuns = runList.filter((r: any) => r.projectId === p.id);
             const totalResults = projectRuns.reduce((sum: number, r: any) => sum + (r.results?.length ?? 0), 0);
-            const passedResults = projectRuns.reduce((sum: number, r: any) => sum + (r.results?.filter((res: any) => res.status === 'Passed').length ?? 0), 0);
+            const passedResults = projectRuns.reduce(
+              (sum: number, r: any) => sum + (r.results?.filter((res: any) => res.status === 'Passed').length ?? 0),
+              0,
+            );
             return {
               id: p.id,
               name: p.name,

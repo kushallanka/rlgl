@@ -1,7 +1,7 @@
-import { motion, AnimatePresence } from 'motion/react';
-import { X, Layout } from 'lucide-react';
+import { Layout, X } from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
+import { type DropdownOption, GlassDropdown } from '../../../shared/components';
 import { SectionFormData, TestSuite } from '../types/testcase.types';
-import { GlassDropdown, type DropdownOption } from '../../../shared/components';
 
 interface SectionModalProps {
   isOpen: boolean;
@@ -61,7 +61,11 @@ export function SectionModal({
                 {isEditing ? 'Edit Section' : 'Create New Section'}
               </h2>
             </div>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
+            <button
+              type="button"
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+            >
               <X className="w-6 h-6" />
             </button>
           </div>
@@ -71,10 +75,12 @@ export function SectionModal({
               <GlassDropdown
                 label="Suite"
                 value={selectedSuite || ''}
-                options={suites.map((suite): DropdownOption => ({
-                  id: suite.id,
-                  label: suite.name,
-                }))}
+                options={suites.map(
+                  (suite): DropdownOption => ({
+                    id: suite.id,
+                    label: suite.name,
+                  }),
+                )}
                 onChange={setSelectedSuite}
                 placeholder="Select a suite"
                 zIndex={20}
@@ -83,12 +89,16 @@ export function SectionModal({
             )}
 
             <div className="space-y-2">
-              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Section Name</label>
+              <label htmlFor="section-name" className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                Section Name
+              </label>
               <input
+                id="section-name"
                 type="text"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 placeholder="e.g. Authentication, Profile Settings"
+                // biome-ignore lint/a11y/noAutofocus: focuses the first field of an explicitly user-triggered modal, not on page load
                 autoFocus
                 className="w-full px-4 py-3 glass-input rounded-2xl focus:ring-2 focus:ring-violet-500 outline-none transition-ui text-gray-900 dark:text-white"
                 required
@@ -108,7 +118,7 @@ export function SectionModal({
                 disabled={isLoading}
                 className="flex-1 py-3 bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white font-bold rounded-2xl shadow-lg shadow-violet-500/20 hover:shadow-violet-500/40 transition-ui disabled:opacity-50"
               >
-                {isLoading ? 'Saving...' : (isEditing ? 'Update Section' : 'Create Section')}
+                {isLoading ? 'Saving...' : isEditing ? 'Update Section' : 'Create Section'}
               </button>
             </div>
           </form>

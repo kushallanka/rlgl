@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { TestCaseFormData, SuiteFormData, SectionFormData } from '../types/testcase.types';
+import { SectionFormData, SuiteFormData, TestCaseFormData } from '../types/testcase.types';
 
 export function useTestCaseForms(configSchema?: any) {
   // Suite form state
@@ -94,12 +94,12 @@ export function useTestCaseForms(configSchema?: any) {
     setDeletingCase(null);
     setDeleteCaseSuccess(false);
     setDeleteCaseError(null);
-    
+
     setIsDeletingSuite(false);
     setDeletingSuite(null);
     setDeleteSuiteSuccess(false);
     setDeleteSuiteError(null);
-    
+
     setIsDeletingSection(false);
     setDeletingSection(null);
     setDeleteSectionSuccess(false);

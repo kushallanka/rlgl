@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { Activity, Calendar, Search } from 'lucide-react';
 import { motion } from 'motion/react';
-import { Search, Calendar, Activity } from 'lucide-react';
+import { useState } from 'react';
 import { GlassDropdown } from '../../../shared/components';
 import { useAuditLogsQuery } from '../hooks/useAuditLogs';
 
@@ -23,21 +23,24 @@ export function AuditTab({ projectId }: AuditTabProps) {
         try {
           const meta = JSON.parse(log.metadata);
           if (meta.name) details += ` - ${meta.name}`;
-        } catch { /* ignore */ }
+        } catch {
+          /* ignore */
+        }
       }
       return details;
     }
     return log.metadata ? JSON.parse(log.metadata || '{}') : 'No details';
   };
 
-  const filteredLogs = auditLogs.filter(log => {
-    const matchesSearch = !searchTerm || 
+  const filteredLogs = auditLogs.filter((log) => {
+    const matchesSearch =
+      !searchTerm ||
       log.userEmail?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       log.action?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       log.resourceType?.toLowerCase().includes(searchTerm.toLowerCase());
-    
+
     const matchesFilter = !filterAction || log.action === filterAction;
-    
+
     return matchesSearch && matchesFilter;
   });
 
@@ -112,11 +115,7 @@ export function AuditTab({ projectId }: AuditTabProps) {
       </div>
 
       {filteredLogs.length === 0 ? (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="text-center py-12"
-        >
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-12">
           <Activity className="w-16 h-16 text-gray-400 dark:text-white/30 mx-auto mb-4" />
           <p className="text-gray-500 dark:text-white/50">
             {auditLogs.length === 0 ? 'No audit logs found' : 'No logs match your search criteria'}

@@ -13,7 +13,10 @@ const user = { userId: 1, email: 'smoke@test.local', firstName: 'Smoke', lastNam
 // 1. Create a run snapshotting real cases
 const created = await service.createRun(
   { name: 'SMOKE snapshot run', description: 'temp', projectId: 1, caseIds: [4, 5, 6, 7] },
-  user, 1, 'smoke-req-1', 'unused-token'
+  user,
+  1,
+  'smoke-req-1',
+  'unused-token',
 );
 if (created.error) throw new Error(`createRun failed: ${created.error}`);
 const run = created.data!;
@@ -25,14 +28,24 @@ for (const r of run.results) {
   }
 }
 console.log('PASS: all results carry full snapshots (title/steps/snapshottedAt)');
-console.log('sample snapshot:', JSON.stringify({
-  testCaseId: run.results[0].testCaseId, title: run.results[0].title,
-  steps: run.results[0].steps, priority: run.results[0].priority, type: run.results[0].type,
-}));
+console.log(
+  'sample snapshot:',
+  JSON.stringify({
+    testCaseId: run.results[0].testCaseId,
+    title: run.results[0].title,
+    steps: run.results[0].steps,
+    priority: run.results[0].priority,
+    type: run.results[0].type,
+  }),
+);
 
 // 2. Invalid case id must 400 with the missing ids
 const bad = await service.createRun(
-  { name: 'SMOKE bad run', projectId: 1, caseIds: [99999] }, user, 1, 'smoke-req-2', 'unused-token'
+  { name: 'SMOKE bad run', projectId: 1, caseIds: [99999] },
+  user,
+  1,
+  'smoke-req-2',
+  'unused-token',
 );
 if (bad.status !== 400) throw new Error(`expected 400 for missing case, got ${bad.status}`);
 console.log('PASS: missing case ids rejected with 400');
@@ -42,7 +55,7 @@ const ok = await service.updateRun(run.id, 1, { name: 'renamed once', version: 1
 if (ok.status !== 200) throw new Error(`expected 200 on matching version, got ${ok.status}`);
 const conflict = await service.updateRun(run.id, 1, { name: 'stale write', version: 1 }, 'smoke-req-4');
 if (conflict.status !== 409) throw new Error(`expected 409 on stale version, got ${conflict.status}`);
-console.log(`PASS: CAS update (version 1 -> ok, stale version -> 409 ${'' + (conflict as any).code})`);
+console.log(`PASS: CAS update (version 1 -> ok, stale version -> 409 ${`${(conflict as any).code}`})`);
 
 // 4. Result update with version
 const result = run.results[0];

@@ -1,12 +1,18 @@
-import { useState } from 'react';
 import { UserPlus } from 'lucide-react';
-import { useProjectStore } from '../../../stores/project.store';
+import { useState } from 'react';
 import { Button, type DropdownOption } from '../../../shared/components';
-import { MemberList } from './MemberList';
+import { useToast } from '../../../shared/hooks/useToast';
+import { useProjectStore } from '../../../stores/project.store';
+import {
+  useAddMemberRoleMutation,
+  useAllUsersQuery,
+  useProjectMembersQuery,
+  useRemoveMemberRoleMutation,
+  useUpdateMemberRoleMutation,
+} from '../hooks/useProjectMembers';
 import { AddMemberModal } from './AddMemberModal';
 import { EditMemberModal } from './EditMemberModal';
-import { useProjectMembersQuery, useAllUsersQuery, useAddMemberRoleMutation, useRemoveMemberRoleMutation, useUpdateMemberRoleMutation } from '../hooks/useProjectMembers';
-import { useToast } from '../../../shared/hooks/useToast';
+import { MemberList } from './MemberList';
 
 interface MembersTabProps {
   roles: any[];
@@ -31,19 +37,19 @@ export function MembersTab({ roles }: MembersTabProps) {
   const [selectedRole, setSelectedRole] = useState('');
   const [error, setError] = useState<string | null>(null);
 
-  const userOptions: DropdownOption[] = users.map(u => ({
+  const userOptions: DropdownOption[] = users.map((u) => ({
     id: u.id,
     label: u.firstName && u.lastName ? `${u.firstName} ${u.lastName}` : u.email,
     subtitle: u.email,
   }));
 
-  const roleOptions: DropdownOption[] = roles.map(r => ({
+  const roleOptions: DropdownOption[] = roles.map((r) => ({
     id: r.id,
     label: r.name,
   }));
 
   const getUserDisplayName = (userId: string) => {
-    const user = users.find(u => u.id === userId);
+    const user = users.find((u) => u.id === userId);
     if (user?.firstName && user?.lastName) {
       return `${user.firstName} ${user.lastName}`;
     }
@@ -105,7 +111,7 @@ export function MembersTab({ roles }: MembersTabProps) {
     try {
       await removeMemberMutation.mutateAsync({ userId, roleId });
       toast.success('Role removed successfully');
-    } catch (err) {
+    } catch {
       toast.error('Failed to remove role');
     }
   };
@@ -114,7 +120,10 @@ export function MembersTab({ roles }: MembersTabProps) {
     <div className="space-y-4">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-bold text-gray-900 dark:text-white">Project Members</h2>
-        <Button onClick={() => setShowAddMember(true)} className="flex items-center gap-2 px-4 py-2 accent-blue text-white rounded-lg text-sm font-medium">
+        <Button
+          onClick={() => setShowAddMember(true)}
+          className="flex items-center gap-2 px-4 py-2 accent-blue text-white rounded-lg text-sm font-medium"
+        >
           <UserPlus className="w-4 h-4" /> Add Member Role
         </Button>
       </div>
@@ -129,7 +138,10 @@ export function MembersTab({ roles }: MembersTabProps) {
 
       <AddMemberModal
         isOpen={showAddMember}
-        onClose={() => { setShowAddMember(false); setError(null); }}
+        onClose={() => {
+          setShowAddMember(false);
+          setError(null);
+        }}
         selectedUser={selectedUser}
         onUserChange={setSelectedUser}
         selectedRole={selectedRole}
@@ -144,7 +156,10 @@ export function MembersTab({ roles }: MembersTabProps) {
 
       <EditMemberModal
         isOpen={showEditMember}
-        onClose={() => { setShowEditMember(false); setError(null); }}
+        onClose={() => {
+          setShowEditMember(false);
+          setError(null);
+        }}
         member={editingMember}
         selectedRole={selectedRole}
         onRoleChange={setSelectedRole}

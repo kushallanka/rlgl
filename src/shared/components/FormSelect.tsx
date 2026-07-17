@@ -1,5 +1,6 @@
-import { motion, AnimatePresence } from 'motion/react';
 import { ChevronDown } from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
+import { useId } from 'react';
 
 export interface SelectOption {
   id?: string;
@@ -36,21 +37,31 @@ export function FormSelect({
 
   const getOptionId = (opt: SelectOption) => opt.id ?? opt.value ?? '';
   const getOptionName = (opt: SelectOption) => opt.name ?? opt.label ?? '';
-  const selectedName = value ? options.find(o => getOptionId(o) === value)?.name || options.find(o => getOptionId(o) === value)?.label || placeholder : placeholder;
+  const selectedName = value
+    ? options.find((o) => getOptionId(o) === value)?.name ||
+      options.find((o) => getOptionId(o) === value)?.label ||
+      placeholder
+    : placeholder;
 
   const hasDropdown = isOpen !== undefined && onToggle !== undefined && onSelect !== undefined;
+  const selectId = useId();
 
   if (!hasDropdown) {
     return (
       <div className="space-y-2">
-        {label && <label className="text-[13px] font-medium text-white/60 tracking-wide pl-1">{label}</label>}
+        {label && (
+          <label htmlFor={selectId} className="text-[13px] font-medium text-white/60 tracking-wide pl-1">
+            {label}
+          </label>
+        )}
         <select
+          id={selectId}
           value={value}
           onChange={(e) => handleSelect(e.target.value)}
           className="w-full px-4 py-3.5 glass-input outline-none transition-ui text-white appearance-none cursor-pointer"
         >
           <option value="">{placeholder}</option>
-          {options.map(option => (
+          {options.map((option) => (
             <option key={getOptionId(option)} value={getOptionId(option)}>
               {getOptionName(option)}
             </option>
@@ -62,7 +73,7 @@ export function FormSelect({
 
   return (
     <div className="space-y-2 relative z-30">
-      {label && <label className="text-[13px] font-medium text-white/60 tracking-wide pl-1">{label}</label>}
+      {label && <span className="text-[13px] font-medium text-white/60 tracking-wide pl-1">{label}</span>}
       <motion.button
         type="button"
         onClick={onToggle}
@@ -71,10 +82,7 @@ export function FormSelect({
         className="w-full flex items-center justify-between px-4 py-3.5 glass-input text-white text-sm"
       >
         <span className={value ? 'text-white' : 'text-white/40'}>{selectedName}</span>
-        <motion.div
-          animate={{ rotate: isOpen ? 180 : 0 }}
-          transition={{ duration: 0.2 }}
-        >
+        <motion.div animate={{ rotate: isOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
           <ChevronDown className="w-4 h-4 text-white/50" />
         </motion.div>
       </motion.button>
@@ -88,7 +96,7 @@ export function FormSelect({
             transition={{ duration: 0.2 }}
             className="absolute top-full left-0 right-0 mt-2 glass-card rounded-2xl overflow-hidden z-50 max-h-52 overflow-y-auto"
           >
-            {options.map(option => (
+            {options.map((option) => (
               <motion.button
                 key={getOptionId(option)}
                 type="button"
@@ -116,24 +124,25 @@ interface SimpleSelectProps {
   options: SelectOption[];
 }
 
-export function SimpleSelect({
-  label,
-  value,
-  onChange,
-  options,
-}: SimpleSelectProps) {
+export function SimpleSelect({ label, value, onChange, options }: SimpleSelectProps) {
   const getOptionId = (opt: SelectOption) => opt.id ?? opt.value ?? '';
   const getOptionName = (opt: SelectOption) => opt.name ?? opt.label ?? '';
+  const selectId = useId();
 
   return (
     <div className="space-y-2">
-      {label && <label className="text-[13px] font-medium text-white/60 tracking-wide pl-1">{label}</label>}
+      {label && (
+        <label htmlFor={selectId} className="text-[13px] font-medium text-white/60 tracking-wide pl-1">
+          {label}
+        </label>
+      )}
       <select
+        id={selectId}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         className="w-full px-4 py-3.5 glass-input outline-none transition-ui text-white appearance-none cursor-pointer"
       >
-        {options.map(option => (
+        {options.map((option) => (
           <option key={getOptionId(option)} value={getOptionId(option)}>
             {getOptionName(option)}
           </option>

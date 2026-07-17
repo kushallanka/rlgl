@@ -1,7 +1,7 @@
+import { X } from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
 import { ReactNode, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { motion, AnimatePresence } from 'motion/react';
-import { X } from 'lucide-react';
 import { IconButton } from '../ui/IconButton';
 
 interface ModalProps {
@@ -105,9 +105,7 @@ export function Modal({ isOpen, onClose, title, children, maxWidth = 'max-w-2xl'
               {children}
 
               {footer && (
-                <div className="flex items-center justify-end gap-3 mt-6 pt-5 border-t border-edge">
-                  {footer}
-                </div>
+                <div className="flex items-center justify-end gap-3 mt-6 pt-5 border-t border-edge">{footer}</div>
               )}
             </motion.div>
           </div>

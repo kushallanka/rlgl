@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 import { API_BASE_URL } from './fixtures/api';
 
 /**
@@ -16,9 +16,7 @@ test.describe('smoke', () => {
     await expect(page.locator('#root')).not.toBeEmpty();
 
     // Filter network noise (backend may not be fully seeded in all environments)
-    const fatal = consoleErrors.filter(
-      (e) => !e.includes('Failed to load resource') && !e.includes('net::')
-    );
+    const fatal = consoleErrors.filter((e) => !e.includes('Failed to load resource') && !e.includes('net::'));
     expect(fatal).toEqual([]);
   });
 

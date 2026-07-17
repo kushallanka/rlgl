@@ -7,8 +7,9 @@
  * - Cursor-based pagination (when implemented) vs offset
  * - Large dataset filtering performance
  */
+
+import { check, group, sleep } from 'k6';
 import http from 'k6/http';
-import { check, sleep, group } from 'k6';
 import { Rate, Trend } from 'k6/metrics';
 
 const errorRate = new Rate('pagination_error_rate');
@@ -46,10 +47,9 @@ export default function () {
   const limit = [10, 20, 50][Math.floor(Math.random() * 3)];
 
   group('Paginated list', () => {
-    const res = http.get(
-      `${BASE_URL}/api/v1/projects/${PROJECT_ID}/testruns?page=${page}&limit=${limit}`,
-      { headers: HEADERS }
-    );
+    const res = http.get(`${BASE_URL}/api/v1/projects/${PROJECT_ID}/testruns?page=${page}&limit=${limit}`, {
+      headers: HEADERS,
+    });
 
     pageLatency.add(res.timings.duration);
     const ok = check(res, {
@@ -65,10 +65,9 @@ export default function () {
     const terms = ['login', 'checkout', 'api', 'performance', 'regression'];
     const search = terms[Math.floor(Math.random() * terms.length)];
 
-    const res = http.get(
-      `${BASE_URL}/api/v1/projects/${PROJECT_ID}/testruns?page=1&limit=20&search=${search}`,
-      { headers: HEADERS }
-    );
+    const res = http.get(`${BASE_URL}/api/v1/projects/${PROJECT_ID}/testruns?page=1&limit=20&search=${search}`, {
+      headers: HEADERS,
+    });
 
     filterLatency.add(res.timings.duration);
     check(res, {

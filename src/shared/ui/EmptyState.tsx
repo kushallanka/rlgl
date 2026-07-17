@@ -1,5 +1,5 @@
-import type { ComponentType, ReactNode } from 'react';
 import { motion } from 'motion/react';
+import type { ComponentType, ReactNode } from 'react';
 import { cn } from '../../lib/cn';
 
 interface EmptyStateProps {
@@ -24,9 +24,7 @@ export function EmptyState({ icon: Icon, title, description, action, className }
         <Icon className="w-7 h-7 text-accent dark:text-indigo-300" strokeWidth={1.75} />
       </div>
       <h3 className="text-base font-semibold text-fg">{title}</h3>
-      {description && (
-        <p className="text-sm text-fg-muted mt-1.5 max-w-sm leading-relaxed">{description}</p>
-      )}
+      {description && <p className="text-sm text-fg-muted mt-1.5 max-w-sm leading-relaxed">{description}</p>}
       {action && <div className="mt-5">{action}</div>}
     </motion.div>
   );

@@ -1,6 +1,6 @@
+import { Moon, Sun } from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
 import { useThemeStore } from '../../stores/theme.store';
-import { motion, AnimatePresence } from 'motion/react';
-import { Sun, Moon } from 'lucide-react';
 
 export default function ThemeSwitch() {
   const { theme, toggleTheme } = useThemeStore();

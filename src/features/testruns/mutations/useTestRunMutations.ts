@@ -1,5 +1,5 @@
-import { useMutation, useQueryClient, type QueryClient } from '@tanstack/react-query';
-import { testrunsApi, CreateTestRunInput, type TestRunDto } from '../api/testruns.api';
+import { type QueryClient, useMutation, useQueryClient } from '@tanstack/react-query';
+import { CreateTestRunInput, type TestRunDto, testrunsApi } from '../api/testruns.api';
 
 // All cached run lists (one per project) — narrower than ['testruns'] so we
 // don't needlessly refetch suites/cases queries.
@@ -37,7 +37,9 @@ function snapshotLists(queryClient: QueryClient): ListSnapshot {
 }
 
 function restoreLists(queryClient: QueryClient, snapshot: ListSnapshot | undefined) {
-  snapshot?.forEach(([key, data]) => queryClient.setQueryData(key, data));
+  snapshot?.forEach(([key, data]) => {
+    queryClient.setQueryData(key, data);
+  });
 }
 
 export function useCreateTestRun() {
@@ -109,9 +111,7 @@ export function useBulkUpdateTestRunResults() {
 
   return useMutation({
     mutationFn: async ({ resultIds, status }: { resultIds: string[]; status: string }) => {
-      const updatePromises = resultIds.map(resultId =>
-        testrunsApi.updateResult(resultId, status)
-      );
+      const updatePromises = resultIds.map((resultId) => testrunsApi.updateResult(resultId, status));
       const results = await Promise.all(updatePromises);
       return { updated: results.length };
     },

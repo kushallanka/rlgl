@@ -22,6 +22,7 @@ export function ErrorAlert({ message, onDismiss, onClose, className = '' }: Erro
       </div>
       {handleDismiss && (
         <button
+          type="button"
           onClick={handleDismiss}
           className="text-red-300 hover:text-red-200 transition-colors ml-4 flex-shrink-0"
         >

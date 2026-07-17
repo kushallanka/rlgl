@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState, ReactNode } from 'react';
-import { createPortal } from 'react-dom';
 import { motion } from 'motion/react';
+import { ReactNode, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 interface DropdownPortalProps {
   isOpen: boolean;
@@ -12,13 +12,7 @@ interface DropdownPortalProps {
 
 const ESTIMATED_MENU_HEIGHT = 150; // Used for initial positioning
 
-export function DropdownPortal({
-  isOpen,
-  triggerRef,
-  children,
-  onClose,
-  width = 160,
-}: DropdownPortalProps) {
+export function DropdownPortal({ isOpen, triggerRef, children, onClose, width = 160 }: DropdownPortalProps) {
   const [position, setPosition] = useState<{ top: number; left: number } | null>(null);
   const [isAbove, setIsAbove] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -131,10 +125,8 @@ export function DropdownPortal({
       onClick={(e) => e.stopPropagation()}
       onMouseDown={(e) => e.stopPropagation()}
     >
-      <div className="rounded-xl overflow-hidden dropdown-surface">
-        {children}
-      </div>
+      <div className="rounded-xl overflow-hidden dropdown-surface">{children}</div>
     </motion.div>,
-    document.body
+    document.body,
   );
 }

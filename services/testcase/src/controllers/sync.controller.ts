@@ -13,7 +13,9 @@ export class SyncController {
 
     const result = await this.syncService.syncProject(projectId, name, requestId);
     if (result.error) {
-      return res.status(result.status).json({ error: result.error, ...('details' in result ? { details: result.details } : {}) });
+      return res
+        .status(result.status)
+        .json({ error: result.error, ...('details' in result ? { details: result.details } : {}) });
     }
     return res.status(200).json(result.data);
   };
@@ -22,7 +24,7 @@ export class SyncController {
     const requestId = (req as any).requestId || `tc-sync-${Date.now()}`;
     const projectId = parseInt(req.params.projectId ?? '', 10);
 
-    if (isNaN(projectId)) {
+    if (Number.isNaN(projectId)) {
       return res.status(400).json({ error: 'Invalid projectId' });
     }
 

@@ -11,7 +11,7 @@
  *
  * These tests mechanically enforce that invariant.
  */
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { PrismaClient } from '../../services/testrun/generated/client/index.js';
 import { createTestRunDb, type TestDb } from '../helpers/testrun-db.js';
 
@@ -31,16 +31,19 @@ afterEach(async () => {
 // Helpers
 // ---------------------------------------------------------------------------
 
-async function seedProjectAndRun(prismaClient: PrismaClient, opts: {
-  projectId: number;
-  snapshotTitle: string;
-  snapshotSteps: string;
-  snapshotExpected: string;
-  priority: string;
-  testCaseId: number;
-}) {
+async function seedProjectAndRun(
+  prismaClient: PrismaClient,
+  opts: {
+    projectId: number;
+    snapshotTitle: string;
+    snapshotSteps: string;
+    snapshotExpected: string;
+    priority: string;
+    testCaseId: number;
+  },
+) {
   await prismaClient.$executeRawUnsafe(
-    `INSERT OR IGNORE INTO Project (id, name) VALUES (${opts.projectId}, 'Invariant Test Project')`
+    `INSERT OR IGNORE INTO Project (id, name) VALUES (${opts.projectId}, 'Invariant Test Project')`,
   );
 
   const run = await prismaClient.testRun.create({
@@ -186,7 +189,7 @@ describe('Invariant: test runs are soft-deleted, results survive', () => {
 
     const PROJECT_ID = 8005;
     await prisma.$executeRawUnsafe(
-      `INSERT OR IGNORE INTO Project (id, name) VALUES (${PROJECT_ID}, 'Soft Delete Query Test')`
+      `INSERT OR IGNORE INTO Project (id, name) VALUES (${PROJECT_ID}, 'Soft Delete Query Test')`,
     );
 
     // Create and soft-delete a run
@@ -197,7 +200,7 @@ describe('Invariant: test runs are soft-deleted, results survive', () => {
 
     // List should not include the deleted run
     const [, runs] = await repo.findRuns(PROJECT_ID, 0, 100, 'desc');
-    const ids = runs.map(r => r.id);
+    const ids = runs.map((r) => r.id);
     expect(ids).not.toContain(run.id);
   });
 });

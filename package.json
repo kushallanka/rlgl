@@ -1,7 +1,8 @@
 {
-  "name": "react-example",
+  "name": "rlgl",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
+  "license": "MIT",
   "type": "module",
   "workspaces": [
     "packages/*",
@@ -16,7 +17,9 @@
     "build": "vite build",
     "start": "concurrently \"npm start --workspace=@rlgl/auth\" \"npm start --workspace=@rlgl/project\" \"npm start --workspace=@rlgl/gateway\" \"npm start --workspace=@rlgl/testcase\" \"npm start --workspace=@rlgl/testrun\" \"npm start --workspace=@rlgl/worker\"",
     "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
-    "lint": "tsc --noEmit",
+    "typecheck": "tsc --noEmit",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
     "lint:arch": "depcruise --config .dependency-cruiser.cjs src",
     "lint:arch:summary": "depcruise --config .dependency-cruiser.cjs --output-type err-html src > arch-report.html",
     "lint:arch:graph": "depcruise --config .dependency-cruiser.cjs --output-type dot src | dot -T svg > arch-graph.svg",
@@ -29,8 +32,8 @@
     "test:permissions": "vitest run tests/permissions",
     "test:e2e": "playwright test",
     "test:e2e:permissions": "playwright test tests/e2e/permissions",
-    "validate": "npm run lint && npm run typecheck:services && npm run validate:architecture && npm run validate:semgrep && npm run test",
-    "validate:fast": "npm run lint && npm run typecheck:services && npm run validate:architecture && vitest run tests/invariants tests/contracts",
+    "validate": "npm run typecheck && npm run typecheck:services && npm run validate:architecture && npm run validate:semgrep && npm run test",
+    "validate:fast": "npm run typecheck && npm run typecheck:services && npm run validate:architecture && vitest run tests/invariants tests/contracts",
     "validate:contracts": "vitest run tests/contracts",
     "validate:architecture": "depcruise --config .dependency-cruiser.cjs src services/auth/src services/project/src services/testcase/src services/testrun/src services/gateway/src packages/shared/src packages/contracts/src",
     "validate:semgrep": "node scripts/run-semgrep.mjs",
@@ -81,6 +84,7 @@
     "npm": ">=10.0.0"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.5.4",
     "@playwright/test": "^1.52.0",
     "@types/bcryptjs": "^2.4.6",
     "@types/cookie-parser": "^1.4.10",

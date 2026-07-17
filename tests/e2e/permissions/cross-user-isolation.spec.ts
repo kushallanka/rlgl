@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 import { createUser } from '../fixtures/api';
 
 /**
@@ -58,9 +58,7 @@ test.describe('cross-user isolation', () => {
   });
 
   test('unauthenticated requests are rejected', async ({ request }) => {
-    const res = await request.get(
-      `${process.env.API_BASE_URL ?? 'http://localhost:3000'}/api/v1/auth/orgs`
-    );
+    const res = await request.get(`${process.env.API_BASE_URL ?? 'http://localhost:3000'}/api/v1/auth/orgs`);
     expect([401, 403]).toContain(res.status());
   });
 

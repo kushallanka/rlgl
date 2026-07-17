@@ -1,4 +1,4 @@
-import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from 'react';
+import { type ButtonHTMLAttributes, forwardRef, type ReactNode } from 'react';
 import { cn } from '../../lib/cn';
 import { Spinner } from './Spinner';
 
@@ -6,12 +6,9 @@ const variants = {
   primary:
     'bg-accent text-accent-fg shadow-accent hover:bg-accent-hover ' +
     'dark:bg-indigo-500 dark:hover:bg-indigo-400 dark:text-white',
-  secondary:
-    'bg-surface text-fg border border-edge hover:border-edge-strong hover:bg-surface-2 shadow-card',
-  ghost:
-    'text-fg-muted hover:text-fg hover:bg-surface-2 dark:hover:bg-white/[0.06]',
-  danger:
-    'bg-rose-600 text-white hover:bg-rose-500 shadow-[0_4px_14px_rgba(225,29,72,0.25)]',
+  secondary: 'bg-surface text-fg border border-edge hover:border-edge-strong hover:bg-surface-2 shadow-card',
+  ghost: 'text-fg-muted hover:text-fg hover:bg-surface-2 dark:hover:bg-white/[0.06]',
+  danger: 'bg-rose-600 text-white hover:bg-rose-500 shadow-[0_4px_14px_rgba(225,29,72,0.25)]',
   subtle:
     'bg-accent/10 text-accent hover:bg-accent/15 dark:bg-indigo-400/15 dark:text-indigo-300 dark:hover:bg-indigo-400/25',
 } as const;

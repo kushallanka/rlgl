@@ -1,7 +1,7 @@
+import { Lock, Mail, User } from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'motion/react';
-import { Mail, Lock, User } from 'lucide-react';
 import { useLogin, useSignup } from '../features/auth/hooks/useUser';
 import ThemeSwitch from '../shared/components/ThemeSwitch';
 import { useToast } from '../shared/hooks/useToast';
@@ -30,14 +30,15 @@ export default function Login() {
       navigate('/projects', { replace: true });
     } catch (err: unknown) {
       // Handle error directly and show toast
-      const error = err as { 
-        message?: string; 
-        response?: { status?: number; data?: { error?: string; message?: string } } 
+      const error = err as {
+        message?: string;
+        response?: { status?: number; data?: { error?: string; message?: string } };
       };
-      
+
       // First check if it's a 401 from response
       if (error.response?.status === 401) {
-        const msg = error.response.data?.error || error.response.data?.message || error.message || 'Incorrect email or password';
+        const msg =
+          error.response.data?.error || error.response.data?.message || error.message || 'Incorrect email or password';
         showError('Authentication Failed', msg);
       } else if (error.message) {
         // Use the error message directly if available
@@ -57,7 +58,10 @@ export default function Login() {
         className="w-full max-w-md"
       >
         <div className="glass-card p-10 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-64 h-64 rounded-full opacity-20 blur-[80px] bg-gradient-to-br from-indigo-500 to-violet-500" aria-hidden="true" />
+          <div
+            className="absolute top-0 right-0 w-64 h-64 rounded-full opacity-20 blur-[80px] bg-gradient-to-br from-indigo-500 to-violet-500"
+            aria-hidden="true"
+          />
 
           <div className="relative flex flex-col items-center mb-10">
             <motion.div
@@ -151,7 +155,6 @@ export default function Login() {
               />
             </div>
 
-
             <Button type="submit" size="lg" fullWidth loading={isPending}>
               {isPending ? 'Please wait…' : isLogin ? 'Sign in' : 'Create account'}
             </Button>
@@ -164,6 +167,7 @@ export default function Login() {
             className="mt-8 text-center"
           >
             <button
+              type="button"
               onClick={() => setIsLogin(!isLogin)}
               className="text-sm text-fg-muted hover:text-fg transition-colors cursor-pointer"
             >

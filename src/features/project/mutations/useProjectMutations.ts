@@ -42,8 +42,7 @@ export function useDeleteProjectMutation() {
 export function useUpdateProjectMutation() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<Project> }) =>
-      projectApi.update(id, data),
+    mutationFn: ({ id, data }: { id: string; data: Partial<Project> }) => projectApi.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: PROJECTS_QUERY_KEY });
     },

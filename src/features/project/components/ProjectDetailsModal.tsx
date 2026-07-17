@@ -1,5 +1,5 @@
-import { motion, AnimatePresence } from 'motion/react';
-import { X, FolderKanban, Calendar, Check } from 'lucide-react';
+import { Calendar, Check, FolderKanban, X } from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
 import { Project } from '../types/project.types';
 
 interface ProjectDetailsModalProps {
@@ -9,12 +9,7 @@ interface ProjectDetailsModalProps {
   activeProject: Project | null;
 }
 
-export function ProjectDetailsModal({
-  isOpen,
-  onClose,
-  selectedProject,
-  activeProject,
-}: ProjectDetailsModalProps) {
+export function ProjectDetailsModal({ isOpen, onClose, selectedProject, activeProject }: ProjectDetailsModalProps) {
   if (!isOpen || !selectedProject) return null;
 
   const formatDate = (dateString: string | undefined) => {
@@ -91,7 +86,9 @@ export function ProjectDetailsModal({
 
             {/* Description */}
             <div className="space-y-2">
-              <label className="text-[11px] font-body font-medium text-gray-500 dark:text-white/60 uppercase tracking-wider">Description</label>
+              <span className="text-[11px] font-body font-medium text-gray-500 dark:text-white/60 uppercase tracking-wider">
+                Description
+              </span>
               <p className="text-gray-700 dark:text-white/80 font-body">
                 {selectedProject.description || 'No description provided.'}
               </p>
@@ -99,25 +96,27 @@ export function ProjectDetailsModal({
 
             {/* Project ID */}
             <div className="space-y-2">
-              <label className="text-[11px] font-body font-medium text-gray-500 dark:text-white/60 uppercase tracking-wider">Project ID</label>
+              <span className="text-[11px] font-body font-medium text-gray-500 dark:text-white/60 uppercase tracking-wider">
+                Project ID
+              </span>
               <p className="text-gray-700 dark:text-white/80 font-mono text-sm">{selectedProject.id}</p>
             </div>
 
             {/* Created Date */}
             <div className="space-y-2">
-              <label className="text-[11px] font-body font-medium text-gray-500 dark:text-white/60 uppercase tracking-wider flex items-center gap-2">
+              <span className="text-[11px] font-body font-medium text-gray-500 dark:text-white/60 uppercase tracking-wider flex items-center gap-2">
                 <Calendar className="w-3 h-3" />
                 Created
-              </label>
+              </span>
               <p className="text-gray-700 dark:text-white/80 font-body">{formatDate(selectedProject.createdAt)}</p>
             </div>
 
             {/* Last Updated */}
             <div className="space-y-2">
-              <label className="text-[11px] font-body font-medium text-gray-500 dark:text-white/60 uppercase tracking-wider flex items-center gap-2">
+              <span className="text-[11px] font-body font-medium text-gray-500 dark:text-white/60 uppercase tracking-wider flex items-center gap-2">
                 <Calendar className="w-3 h-3" />
                 Last Updated
-              </label>
+              </span>
               <p className="text-gray-700 dark:text-white/80 font-body">{formatDate(selectedProject.updatedAt)}</p>
             </div>
           </div>

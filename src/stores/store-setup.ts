@@ -1,10 +1,14 @@
 import { useAuthStore } from './auth.store';
-import { useProjectStore, injectPermissionActions } from './project.store';
 import { usePermissionStore } from './permission.store';
+import { injectPermissionActions, useProjectStore } from './project.store';
 
 injectPermissionActions(
-  (projectId: string) => { usePermissionStore.getState().fetchPermissions(projectId); },
-  () => { usePermissionStore.getState().clearPermissions(); }
+  (projectId: string) => {
+    usePermissionStore.getState().fetchPermissions(projectId);
+  },
+  () => {
+    usePermissionStore.getState().clearPermissions();
+  },
 );
 
 useAuthStore.getState().onLogout(() => {

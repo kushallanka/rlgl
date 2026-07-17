@@ -1,13 +1,13 @@
-import { Request, Response, NextFunction } from 'express';
-import { ok, err } from '@rlgl/shared';
+import { err, ok } from '@rlgl/shared';
+import { NextFunction, Request, Response } from 'express';
 import { OrgService } from '../services/org.service.js';
 import {
-  CreateOrgSchema,
-  UpdateOrgSchema,
   AddMemberSchema,
-  OrgIdParamSchema,
-  MemberParamsSchema,
   AuditLogQuerySchema,
+  CreateOrgSchema,
+  MemberParamsSchema,
+  OrgIdParamSchema,
+  UpdateOrgSchema,
 } from '../validators/org.schemas.js';
 
 /**
@@ -77,7 +77,9 @@ export class OrgController {
         return res.status(result.status).json(err(result.error, result.code, requestId));
       }
       return res.status(201).json(ok(result.data));
-    } catch (e) { return next(e); }
+    } catch (e) {
+      return next(e);
+    }
   };
 
   /**
@@ -100,7 +102,9 @@ export class OrgController {
 
       const result = await this.orgService.listOrgsForUser(userId, requestId);
       return res.json(ok(result.data));
-    } catch (e) { return next(e); }
+    } catch (e) {
+      return next(e);
+    }
   };
 
   /**
@@ -139,7 +143,9 @@ export class OrgController {
         return res.status(result.status).json(err(result.error, result.code, requestId));
       }
       return res.json(ok(result.data));
-    } catch (e) { return next(e); }
+    } catch (e) {
+      return next(e);
+    }
   };
 
   /**
@@ -202,7 +208,9 @@ export class OrgController {
         return res.status(result.status).json(err(result.error, result.code, requestId));
       }
       return res.json(ok(result.data));
-    } catch (e) { return next(e); }
+    } catch (e) {
+      return next(e);
+    }
   };
 
   /**
@@ -253,13 +261,19 @@ export class OrgController {
       }
 
       const result = await this.orgService.addMember(
-        params.data.orgId, body.data.userId, body.data.role, userId, requestId
+        params.data.orgId,
+        body.data.userId,
+        body.data.role,
+        userId,
+        requestId,
       );
       if (!result.ok) {
         return res.status(result.status).json(err(result.error, result.code, requestId));
       }
       return res.status(201).json(ok(result.data));
-    } catch (e) { return next(e); }
+    } catch (e) {
+      return next(e);
+    }
   };
 
   /**
@@ -303,7 +317,9 @@ export class OrgController {
         return res.status(result.status).json(err(result.error, result.code, requestId));
       }
       return res.json(ok(result.data));
-    } catch (e) { return next(e); }
+    } catch (e) {
+      return next(e);
+    }
   };
 
   /**
@@ -348,14 +364,14 @@ export class OrgController {
         return res.status(400).json(err('Invalid pagination parameters', 'VALIDATION_ERROR', requestId));
       }
 
-      const result = await this.orgService.getAuditLog(
-        params.data.orgId, userId, query.data.page, query.data.limit
-      );
+      const result = await this.orgService.getAuditLog(params.data.orgId, userId, query.data.page, query.data.limit);
       if (!result.ok) {
         return res.status(result.status).json(err(result.error, result.code, requestId));
       }
       return res.json(ok(result.data, { page: query.data.page, limit: query.data.limit }));
-    } catch (e) { return next(e); }
+    } catch (e) {
+      return next(e);
+    }
   };
 
   private context(req: Request): { requestId: string } {
@@ -368,7 +384,7 @@ export class OrgController {
   private requireUser(req: Request, res: Response, requestId: string): number | null {
     const ctx = (req as { context?: { userId?: string } }).context;
     const userId = parseInt(ctx?.userId ?? '', 10);
-    if (isNaN(userId) || userId <= 0) {
+    if (Number.isNaN(userId) || userId <= 0) {
       res.status(401).json(err('Not authenticated', 'UNAUTHENTICATED', requestId));
       return null;
     }

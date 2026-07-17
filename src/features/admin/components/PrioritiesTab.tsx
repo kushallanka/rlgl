@@ -1,5 +1,5 @@
+import { Edit2, Flag, Plus, Trash2 } from 'lucide-react';
 import { motion } from 'motion/react';
-import { Plus, Edit2, Trash2, Flag } from 'lucide-react';
 
 interface PrioritiesTabProps {
   items: any[];
@@ -53,18 +53,11 @@ export function PrioritiesTab({ items, canEdit, onAdd, onEdit, onDelete }: Prior
       </div>
 
       {sortedItems.length === 0 ? (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="text-center py-12"
-        >
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-12">
           <Flag className="w-16 h-16 text-gray-400 dark:text-white/30 mx-auto mb-4" />
           <p className="text-gray-500 dark:text-white/50">No priorities configured</p>
           {canEdit && (
-            <button
-              onClick={onAdd}
-              className="mt-4 text-yellow-400 hover:text-yellow-300"
-            >
+            <button type="button" onClick={onAdd} className="mt-4 text-yellow-400 hover:text-yellow-300">
               Add your first priority
             </button>
           )}

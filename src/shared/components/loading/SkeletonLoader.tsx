@@ -8,13 +8,7 @@ interface SkeletonLoaderProps {
   lines?: number;
 }
 
-export function SkeletonLoader({
-  className = '',
-  variant = 'text',
-  width,
-  height,
-  lines = 1,
-}: SkeletonLoaderProps) {
+export function SkeletonLoader({ className = '', variant = 'text', width, height, lines = 1 }: SkeletonLoaderProps) {
   const getVariantClasses = () => {
     switch (variant) {
       case 'circular':
@@ -23,7 +17,6 @@ export function SkeletonLoader({
         return 'rounded-none';
       case 'rounded':
         return 'rounded-lg';
-      case 'text':
       default:
         return 'rounded';
     }
@@ -49,6 +42,7 @@ export function SkeletonLoader({
       <div className="space-y-2">
         {Array.from({ length: lines }).map((_, index) => (
           <SkeletonLoader
+            // biome-ignore lint/suspicious/noArrayIndexKey: static placeholder count, list never reorders
             key={index}
             variant="text"
             height="1rem"
@@ -87,16 +81,19 @@ export function TableSkeleton({ rows = 5 }: { rows?: number }) {
       <div className="liquid-glass p-4 rounded-xl border border-gray-200 dark:border-white/10">
         <div className="grid grid-cols-4 gap-4">
           {Array.from({ length: 4 }).map((_, index) => (
+            // biome-ignore lint/suspicious/noArrayIndexKey: static placeholder count, list never reorders
             <SkeletonLoader key={index} height="1rem" />
           ))}
         </div>
       </div>
-      
+
       {/* Rows */}
       {Array.from({ length: rows }).map((_, rowIndex) => (
+        // biome-ignore lint/suspicious/noArrayIndexKey: static placeholder count, list never reorders
         <div key={rowIndex} className="liquid-glass p-4 rounded-xl border border-gray-200 dark:border-white/10">
           <div className="grid grid-cols-4 gap-4">
             {Array.from({ length: 4 }).map((_, colIndex) => (
+              // biome-ignore lint/suspicious/noArrayIndexKey: static placeholder count, list never reorders
               <SkeletonLoader key={colIndex} height="1rem" />
             ))}
           </div>
@@ -110,7 +107,11 @@ export function ListSkeleton({ items = 3 }: { items?: number }) {
   return (
     <div className="space-y-3">
       {Array.from({ length: items }).map((_, index) => (
-        <div key={index} className="flex items-center gap-3 p-3 liquid-glass rounded-xl border border-gray-200 dark:border-white/10">
+        <div
+          // biome-ignore lint/suspicious/noArrayIndexKey: static placeholder count, list never reorders
+          key={index}
+          className="flex items-center gap-3 p-3 liquid-glass rounded-xl border border-gray-200 dark:border-white/10"
+        >
           <SkeletonLoader variant="circular" width={32} height={32} />
           <div className="flex-1 space-y-1">
             <SkeletonLoader height="1rem" width="40%" />

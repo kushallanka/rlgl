@@ -1,8 +1,8 @@
-import { motion, AnimatePresence } from 'motion/react';
-import { FolderKanban, Check, Plus, Sparkles } from 'lucide-react';
+import { Check, FolderKanban, Plus, Sparkles } from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
+import { Button, EmptyState } from '../../../shared/ui';
 import { Project } from '../types/project.types';
 import { ProjectDropdown } from './ProjectDropdown';
-import { Button, EmptyState } from '../../../shared/ui';
 
 interface ProjectsGridProps {
   projects: Project[];
@@ -103,7 +103,9 @@ export function ProjectsGrid({
                   className="absolute top-4 right-4"
                 >
                   <span className="flex h-3 w-3">
-                    <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${gradient.bg}`}></span>
+                    <span
+                      className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${gradient.bg}`}
+                    ></span>
                     <span className={`relative inline-flex rounded-full h-3 w-3 ${gradient.bg}`}></span>
                   </span>
                 </motion.div>
@@ -173,7 +175,7 @@ export function ProjectsGrid({
                         <motion.div
                           initial={{ scale: 0.8, opacity: 0 }}
                           animate={{ scale: 1, opacity: 1 }}
-                          transition={{ type: "spring", stiffness: 500, damping: 25 }}
+                          transition={{ type: 'spring', stiffness: 500, damping: 25 }}
                         >
                           <Check className="w-4 h-4" />
                         </motion.div>
@@ -183,7 +185,7 @@ export function ProjectsGrid({
                       <motion.span
                         initial={{ x: 0 }}
                         whileHover={{ x: 3 }}
-                        transition={{ type: "spring", stiffness: 400 }}
+                        transition={{ type: 'spring', stiffness: 400 }}
                       >
                         Select
                       </motion.span>

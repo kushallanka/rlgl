@@ -1,7 +1,7 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
-import { projectApi, type Project } from '../api/project.api';
 import { useProjectStore } from '../../../stores/project.store';
+import { type Project, projectApi } from '../api/project.api';
 import { PROJECTS_QUERY_KEY } from '../queryKeys';
 
 export function useProjectsList() {
@@ -59,8 +59,7 @@ export function useProjectsList() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<Project> }) =>
-      projectApi.update(id, data),
+    mutationFn: ({ id, data }: { id: string; data: Partial<Project> }) => projectApi.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: PROJECTS_QUERY_KEY });
     },

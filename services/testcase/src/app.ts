@@ -1,27 +1,27 @@
 // TestCase Service - Express App Factory
-import express, { Request, Response, NextFunction } from 'express';
-import cors from 'cors';
-import helmet from 'helmet';
-import morgan from 'morgan';
+
+import path, { dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import {
+  Config,
+  createHealthChecker,
   createLogger,
   createMetricsCollector,
   metricsMiddleware,
   requestLoggingMiddleware,
-  createHealthChecker,
+  requireIdempotency,
   setupSwagger,
-  Config
 } from '@rlgl/shared';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
-import { SuiteController } from './controllers/suite.controller.js';
+import cors from 'cors';
+import express, { NextFunction, Request, Response } from 'express';
+import helmet from 'helmet';
+import morgan from 'morgan';
+import { CORS_ORIGIN, SERVICE_NAME } from './config/constants.js';
 import { SectionController } from './controllers/section.controller.js';
+import { SuiteController } from './controllers/suite.controller.js';
 import { SyncController } from './controllers/sync.controller.js';
 import { TestCaseController } from './controllers/testcase.controller.js';
-import { verifyToken, requirePermission } from './middleware/auth.js';
-import { requireIdempotency } from '@rlgl/shared';
-import { SERVICE_NAME, CORS_ORIGIN } from './config/constants.js';
+import { requirePermission, verifyToken } from './middleware/auth.js';
 
 const logger = createLogger({ service: SERVICE_NAME });
 const metrics = createMetricsCollector({ serviceName: SERVICE_NAME }, logger);
@@ -56,10 +56,7 @@ export const createApp = (
     version: '1.0.0',
     description: 'Test Case and Hierarchy Management Service',
     swaggerRoute: '/docs',
-    apis: [
-      path.join(__dirname, './controllers/*.js'),
-      path.join(__dirname, './controllers/*.ts'),
-    ],
+    apis: [path.join(__dirname, './controllers/*.js'), path.join(__dirname, './controllers/*.ts')],
   });
 
   // Request ID middleware

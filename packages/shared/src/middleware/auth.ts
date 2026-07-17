@@ -1,6 +1,6 @@
-import { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
 import axios from 'axios';
+import { NextFunction, Request, Response } from 'express';
+import jwt from 'jsonwebtoken';
 import type { Logger } from 'pino';
 
 // Types for permission caching
@@ -59,7 +59,7 @@ export const verifyToken = (req: Request, res: Response, next: NextFunction) => 
     const decoded = jwt.verify(token, config.jwtSecret) as JwtUser;
     (req as any).user = decoded;
     return next();
-  } catch (err: any) {
+  } catch {
     return res.status(401).json({ error: 'Invalid or expired token' });
   }
 };
@@ -73,7 +73,7 @@ export const checkPermission = async (
   userId: number,
   projectId: number,
   permission: string,
-  requestId: string
+  requestId: string,
 ): Promise<boolean> => {
   const cacheKey = `${userId}:${projectId}`;
   const cached = localPermCache.get(cacheKey);
@@ -102,10 +102,7 @@ export const checkPermission = async (
       return false;
     }
     if (logger) {
-      logger.error(
-        { requestId, userId, projectId, error: err.message },
-        'Permission check call failed'
-      );
+      logger.error({ requestId, userId, projectId, error: err.message }, 'Permission check call failed');
     }
     // Default to deny on error
     return false;
@@ -116,37 +113,33 @@ export const checkPermission = async (
  * Middleware factory - requires specific permission
  * Must be used after verifyToken middleware
  */
-export const requirePermission = (permission: string) =>
-  async (req: Request, res: Response, next: NextFunction) => {
-    const projectIdStr = (req.headers['x-project-id'] as string) || req.params.projectId;
-    const requestId = (req as any).requestId;
-    const { userId: userIdStr } = (req as any).user || {};
-    const userId = parseInt(userIdStr, 10);
-    const projectId = parseInt(projectIdStr ?? '', 10);
+export const requirePermission = (permission: string) => async (req: Request, res: Response, next: NextFunction) => {
+  const projectIdStr = (req.headers['x-project-id'] as string) || req.params.projectId;
+  const requestId = (req as any).requestId;
+  const { userId: userIdStr } = (req as any).user || {};
+  const userId = parseInt(userIdStr, 10);
+  const projectId = parseInt(projectIdStr ?? '', 10);
 
-    if (!projectIdStr) {
-      return res.status(400).json({ error: 'x-project-id header is required' });
+  if (!projectIdStr) {
+    return res.status(400).json({ error: 'x-project-id header is required' });
+  }
+  if (Number.isNaN(projectId) || Number.isNaN(userId)) {
+    return res.status(400).json({ error: 'Invalid ID format' });
+  }
+
+  const token = req.headers.authorization?.split(' ')[1] ?? '';
+  const allowed = await checkPermission(token, userId, projectId, permission, requestId);
+
+  if (!allowed) {
+    if (logger) {
+      logger.warn({ requestId, userId, projectId, permission }, 'Permission denied');
     }
-    if (isNaN(projectId) || isNaN(userId)) {
-      return res.status(400).json({ error: 'Invalid ID format' });
-    }
+    return res.status(403).json({ error: `Permission denied: ${permission} required` });
+  }
 
-    const token = req.headers.authorization?.split(' ')[1] ?? '';
-    const allowed = await checkPermission(token, userId, projectId, permission, requestId);
-
-    if (!allowed) {
-      if (logger) {
-        logger.warn(
-          { requestId, userId, projectId, permission },
-          'Permission denied'
-        );
-      }
-      return res.status(403).json({ error: `Permission denied: ${permission} required` });
-    }
-
-    (req as any).projectId = projectId;
-    return next();
-  };
+  (req as any).projectId = projectId;
+  return next();
+};
 
 /**
  * Invalidate all cached permissions for a project

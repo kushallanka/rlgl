@@ -53,7 +53,9 @@ export class OrgRepository {
   findById(orgId: number) {
     return this.prisma.organization.findFirst({
       where: { id: orgId, deletedAt: null },
-      include: { members: { include: { User: { select: { id: true, email: true, firstName: true, lastName: true } } } } },
+      include: {
+        members: { include: { User: { select: { id: true, email: true, firstName: true, lastName: true } } } },
+      },
     });
   }
 

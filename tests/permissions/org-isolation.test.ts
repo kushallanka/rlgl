@@ -8,7 +8,7 @@
  * service layer (repository + service), independent of the gateway's
  * auth middleware.
  */
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { PrismaClient } from '../../services/testrun/generated/client/index.js';
 import { TestRunRepository } from '../../services/testrun/src/repositories/testrun.repository.js';
 import { createTestRunDb, type TestDb } from '../helpers/testrun-db.js';
@@ -26,7 +26,7 @@ beforeEach(async () => {
   repo = new TestRunRepository(prisma);
 
   await prisma.$executeRawUnsafe(
-    `INSERT OR IGNORE INTO Project (id, name) VALUES (${ORG_A_PROJECT}, 'Org A Project'), (${ORG_B_PROJECT}, 'Org B Project')`
+    `INSERT OR IGNORE INTO Project (id, name) VALUES (${ORG_A_PROJECT}, 'Org A Project'), (${ORG_B_PROJECT}, 'Org B Project')`,
   );
 
   // Seed one run in each org's project
@@ -49,14 +49,14 @@ afterEach(async () => {
 describe('Project boundary: list runs', () => {
   it('listing runs for org A project returns only org A runs', async () => {
     const [, runs] = await repo.findRuns(ORG_A_PROJECT, 0, 100, 'desc');
-    expect(runs.every(r => r.projectId === ORG_A_PROJECT)).toBe(true);
-    const hasOrgBRun = runs.some(r => r.projectId === ORG_B_PROJECT);
+    expect(runs.every((r) => r.projectId === ORG_A_PROJECT)).toBe(true);
+    const hasOrgBRun = runs.some((r) => r.projectId === ORG_B_PROJECT);
     expect(hasOrgBRun).toBe(false);
   });
 
   it('listing runs for org B project returns only org B runs', async () => {
     const [, runs] = await repo.findRuns(ORG_B_PROJECT, 0, 100, 'desc');
-    expect(runs.every(r => r.projectId === ORG_B_PROJECT)).toBe(true);
+    expect(runs.every((r) => r.projectId === ORG_B_PROJECT)).toBe(true);
   });
 });
 
@@ -91,7 +91,7 @@ describe('Project boundary: search isolation', () => {
   it('search within org A project does not return org B runs', async () => {
     // "Org" appears in both runs' names — only A should be returned for A's project
     const [, results] = await repo.findRuns(ORG_A_PROJECT, 0, 100, 'desc', 'Org');
-    expect(results.every(r => r.projectId === ORG_A_PROJECT)).toBe(true);
+    expect(results.every((r) => r.projectId === ORG_A_PROJECT)).toBe(true);
   });
 });
 

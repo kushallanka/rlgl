@@ -1,24 +1,24 @@
-import { motion } from 'motion/react';
 import { Settings } from 'lucide-react';
-import { useProjectStore } from '../../../stores/project.store';
-import { usePermissionStore } from '../../../stores/permission.store';
-import { useAdmin } from '../hooks/useAdmin';
-import type { TabType } from '../types/admin.types';
-import { AdminHeader } from '../components/AdminHeader';
-import { AdminTabs } from '../components/AdminTabs';
-import { TypesTab } from '../components/TypesTab';
-import { PrioritiesTab } from '../components/PrioritiesTab';
-import { FieldsTab } from '../components/FieldsTab';
-import { RolesTab } from '../components/RolesTab';
-import { MembersTab } from '../components/MembersTab';
-import { AuditTab } from '../components/AuditTab';
-import { ConfigModal } from '../components/ConfigModal';
+import { motion } from 'motion/react';
 import { ConfirmModal } from '../../../shared/components/ConfirmModal';
 import { FullPageSpinner } from '../../../shared/components/loading/FullPageSpinner';
+import { usePermissionStore } from '../../../stores/permission.store';
+import { useProjectStore } from '../../../stores/project.store';
+import { AdminHeader } from '../components/AdminHeader';
+import { AdminTabs } from '../components/AdminTabs';
+import { AuditTab } from '../components/AuditTab';
+import { ConfigModal } from '../components/ConfigModal';
+import { FieldsTab } from '../components/FieldsTab';
+import { MembersTab } from '../components/MembersTab';
+import { PrioritiesTab } from '../components/PrioritiesTab';
+import { RolesTab } from '../components/RolesTab';
+import { TypesTab } from '../components/TypesTab';
+import { useAdmin } from '../hooks/useAdmin';
+import type { TabType } from '../types/admin.types';
 
 export default function AdminConfigurationPage() {
   const { activeProject } = useProjectStore();
-  
+
   const {
     configSchema,
     userRoles,
@@ -57,7 +57,7 @@ export default function AdminConfigurationPage() {
   } = useAdmin(activeProject?.id || null);
 
   // Permissions
-  const hasPermission = usePermissionStore(s => s.hasPermission);
+  const hasPermission = usePermissionStore((s) => s.hasPermission);
   const canViewTypes = hasPermission('config.types.view');
   const canEditTypes = hasPermission('config.types.edit');
   const canViewPriorities = hasPermission('config.priorities.view');
@@ -93,6 +93,7 @@ export default function AdminConfigurationPage() {
       <div className="flex flex-col items-center justify-center py-20 space-y-4">
         <p className="text-red-500 dark:text-red-400">Failed to load configuration</p>
         <button
+          type="button"
           onClick={() => refetchSchema()}
           className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
         >
@@ -109,15 +110,10 @@ export default function AdminConfigurationPage() {
     { id: 'roles', label: 'Roles & Permissions', permission: canViewRoles },
     { id: 'members', label: 'Members', permission: canManageMembers },
     { id: 'audit', label: 'Audit Log', permission: canViewAudit },
-  ].filter(tab => tab.permission);
+  ].filter((tab) => tab.permission);
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="space-y-8"
-    >
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-8">
       <AdminHeader projectName={activeProject.name} />
 
       <AdminTabs
@@ -173,18 +169,16 @@ export default function AdminConfigurationPage() {
             onRemoveUserRole={(id: string) => removeUserRoleMutation.mutateAsync(id) as Promise<any>}
           />
         )}
-        {activeTab === 'members' && (
-          <MembersTab roles={configSchema?.roles || []} />
-        )}
-        {activeTab === 'audit' && (
-          <AuditTab projectId={activeProject.id} />
-        )}
+        {activeTab === 'members' && <MembersTab roles={configSchema?.roles || []} />}
+        {activeTab === 'audit' && <AuditTab projectId={activeProject.id} />}
       </motion.div>
 
       {/* Modals */}
       <ConfigModal
         isOpen={modalState.isOpen}
-        onClose={() => setModalState({ isOpen: false, isEditing: false, editingItem: null, editingItemType: undefined })}
+        onClose={() =>
+          setModalState({ isOpen: false, isEditing: false, editingItem: null, editingItemType: undefined })
+        }
         type={modalState.isEditing ? 'edit' : 'add'}
         itemType={modalState.editingItemType || activeTab.slice(0, -1)} // Use stored type when editing
         formData={formData}

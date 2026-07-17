@@ -1,5 +1,5 @@
-import { motion, AnimatePresence } from 'motion/react';
-import { Check, X, AlertTriangle, Info, AlertCircle } from 'lucide-react';
+import { AlertCircle, AlertTriangle, Check, Info, X } from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
 import { Toast } from '../hooks/useToast';
 
 interface ToastComponentProps {
@@ -10,11 +10,14 @@ interface ToastComponentProps {
 export function ToastComponent({ toast, onRemove }: ToastComponentProps) {
   const getIcon = () => {
     switch (toast.type) {
-      case 'success':  return <Check className="w-5 h-5" />;
-      case 'error':    return <AlertCircle className="w-5 h-5" />;
-      case 'warning':  return <AlertTriangle className="w-5 h-5" />;
-      case 'info':
-      default:         return <Info className="w-5 h-5" />;
+      case 'success':
+        return <Check className="w-5 h-5" />;
+      case 'error':
+        return <AlertCircle className="w-5 h-5" />;
+      case 'warning':
+        return <AlertTriangle className="w-5 h-5" />;
+      default:
+        return <Info className="w-5 h-5" />;
     }
   };
 
@@ -27,7 +30,6 @@ export function ToastComponent({ toast, onRemove }: ToastComponentProps) {
         return 'bg-red-50    dark:bg-red-500/20    border-red-200    dark:border-red-500/30';
       case 'warning':
         return 'bg-yellow-50 dark:bg-yellow-500/20 border-yellow-200 dark:border-yellow-500/30';
-      case 'info':
       default:
         return 'bg-blue-50   dark:bg-blue-500/20   border-blue-200   dark:border-blue-500/30';
     }
@@ -35,11 +37,14 @@ export function ToastComponent({ toast, onRemove }: ToastComponentProps) {
 
   const getIconColor = () => {
     switch (toast.type) {
-      case 'success':  return 'text-green-600  dark:text-green-400';
-      case 'error':    return 'text-red-600    dark:text-red-400';
-      case 'warning':  return 'text-yellow-600 dark:text-yellow-400';
-      case 'info':
-      default:         return 'text-blue-600   dark:text-blue-400';
+      case 'success':
+        return 'text-green-600  dark:text-green-400';
+      case 'error':
+        return 'text-red-600    dark:text-red-400';
+      case 'warning':
+        return 'text-yellow-600 dark:text-yellow-400';
+      default:
+        return 'text-blue-600   dark:text-blue-400';
     }
   };
 
@@ -64,6 +69,7 @@ export function ToastComponent({ toast, onRemove }: ToastComponentProps) {
           )}
         </div>
         <button
+          type="button"
           onClick={() => onRemove(toast.id)}
           className="flex-shrink-0 text-gray-400 dark:text-white/50 hover:text-gray-700 dark:hover:text-white transition-colors p-0.5 rounded min-w-[24px] min-h-[24px] flex items-center justify-center"
           aria-label="Dismiss notification"
@@ -83,9 +89,8 @@ interface ToastContainerProps {
 export function ToastContainer({ toasts, onRemove }: ToastContainerProps) {
   return (
     /* z-[200] clears the mobile menu (z-40) and modal overlays (z-[100]) */
-    <div
+    <section
       className="fixed top-4 right-4 z-[200] space-y-2 pointer-events-none w-[calc(100vw-2rem)] sm:w-auto sm:max-w-sm"
-      role="region"
       aria-label="Notifications"
       aria-live="polite"
     >
@@ -96,6 +101,6 @@ export function ToastContainer({ toasts, onRemove }: ToastContainerProps) {
           </div>
         ))}
       </AnimatePresence>
-    </div>
+    </section>
   );
 }

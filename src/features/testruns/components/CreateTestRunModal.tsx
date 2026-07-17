@@ -1,6 +1,6 @@
-import { Modal, FormInput, FormTextarea } from '../../../shared/components';
-import { GlassDropdown } from '../../../shared/components/GlassDropdown';
+import { FormInput, FormTextarea, Modal } from '../../../shared/components';
 import { Checkbox } from '../../../shared/components/Checkbox';
+import { GlassDropdown } from '../../../shared/components/GlassDropdown';
 
 interface CreateTestRunModalProps {
   isOpen: boolean;
@@ -21,9 +21,21 @@ interface CreateTestRunModalProps {
 }
 
 export function CreateTestRunModal({
-  isOpen, onClose, runName, onRunNameChange, runDescription, onRunDescriptionChange,
-  selectedSuite, onSuiteChange, suites, testCases, selectedCaseIds, onToggleCase,
-  error, onSubmit, onCancel,
+  isOpen,
+  onClose,
+  runName,
+  onRunNameChange,
+  runDescription,
+  onRunDescriptionChange,
+  selectedSuite,
+  onSuiteChange,
+  suites,
+  testCases,
+  selectedCaseIds,
+  onToggleCase,
+  error,
+  onSubmit,
+  onCancel,
 }: CreateTestRunModalProps) {
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Create New Test Run" maxWidth="max-w-2xl">
@@ -53,12 +65,15 @@ export function CreateTestRunModal({
         />
         {selectedSuite && testCases.length > 0 && (
           <div className="space-y-2">
-            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
               Select Test Cases ({selectedCaseIds.size} selected) *
-            </label>
+            </span>
             <div className="bg-gray-50 dark:bg-white/[0.02] border border-gray-200 dark:border-white/10 rounded-2xl p-4 max-h-64 overflow-y-auto space-y-2">
               {testCases.map((tc) => (
-                <div key={tc.id} className="px-2 py-1.5 hover:bg-gray-100 dark:hover:bg-white/5 rounded-lg transition-colors">
+                <div
+                  key={tc.id}
+                  className="px-2 py-1.5 hover:bg-gray-100 dark:hover:bg-white/5 rounded-lg transition-colors"
+                >
                   <Checkbox
                     checked={selectedCaseIds.has(tc.id)}
                     onChange={() => onToggleCase(tc.id)}
@@ -75,10 +90,17 @@ export function CreateTestRunModal({
           </div>
         )}
         <div className="flex gap-4 pt-4">
-          <button type="button" onClick={onCancel} className="flex-1 py-3 border border-gray-200 dark:border-white/10 text-gray-500 dark:text-gray-400 font-bold rounded-2xl hover:bg-gray-100 dark:hover:bg-white/5 transition-ui">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="flex-1 py-3 border border-gray-200 dark:border-white/10 text-gray-500 dark:text-gray-400 font-bold rounded-2xl hover:bg-gray-100 dark:hover:bg-white/5 transition-ui"
+          >
             Cancel
           </button>
-          <button type="submit" className="flex-1 py-3 bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white font-bold rounded-2xl shadow-lg shadow-violet-500/20 hover:shadow-violet-500/40 transition-ui disabled:opacity-50">
+          <button
+            type="submit"
+            className="flex-1 py-3 bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white font-bold rounded-2xl shadow-lg shadow-violet-500/20 hover:shadow-violet-500/40 transition-ui disabled:opacity-50"
+          >
             Create Test Run
           </button>
         </div>

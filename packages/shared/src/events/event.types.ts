@@ -33,9 +33,7 @@ export interface EventStreamGroup {
   group: string;
 }
 
-export interface EventSubscriptionHandler {
-  (event: DomainEvent): Promise<void>;
-}
+export type EventSubscriptionHandler = (event: DomainEvent) => Promise<void>;
 
 export interface EventBusConfig {
   redisUrl: string;

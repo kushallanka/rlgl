@@ -14,14 +14,12 @@ export class IAMRepository {
   async findUserPermissions(userId: number, projectId: number): Promise<string[]> {
     const roles = await this.prisma.projectUserRole.findMany({
       where: { userId, projectId },
-      include: { ProjectRole: { include: { ProjectPermission: true } } }
+      include: { ProjectRole: { include: { ProjectPermission: true } } },
     });
-    
+
     // Flatten and deduplicate permissions
-    const permissions = [...new Set(
-      roles.flatMap(r => r.ProjectRole.ProjectPermission.map(p => p.action))
-    )];
-    
+    const permissions = [...new Set(roles.flatMap((r) => r.ProjectRole.ProjectPermission.map((p) => p.action)))];
+
     return permissions;
   }
 
@@ -43,9 +41,17 @@ export class IAMRepository {
    */
   async initProjectAdmin(projectId: number, userId: number): Promise<void> {
     const ALL_PERMISSIONS = [
-      'testcase.view', 'testcase.create', 'testcase.edit', 'testcase.delete',
-      'testrun.view', 'testrun.create', 'testrun.update', 'testrun.delete',
-      'config.manage', 'project.manage', 'member.manage',
+      'testcase.view',
+      'testcase.create',
+      'testcase.edit',
+      'testcase.delete',
+      'testrun.view',
+      'testrun.create',
+      'testrun.update',
+      'testrun.delete',
+      'config.manage',
+      'project.manage',
+      'member.manage',
     ];
 
     await this.prisma.$transaction(async (tx) => {
@@ -72,7 +78,7 @@ export class IAMRepository {
   async findUserRole(userId: number, projectId: number) {
     return this.prisma.projectUserRole.findFirst({
       where: { userId, projectId },
-      include: { ProjectRole: { include: { ProjectPermission: true } } }
+      include: { ProjectRole: { include: { ProjectPermission: true } } },
     });
   }
 
@@ -81,7 +87,7 @@ export class IAMRepository {
    */
   async assignRoleToUser(userId: number, projectId: number, roleId: number) {
     return this.prisma.projectUserRole.create({
-      data: { userId, projectId, roleId }
+      data: { userId, projectId, roleId },
     });
   }
 
@@ -91,7 +97,7 @@ export class IAMRepository {
   async updateUserRole(userId: number, projectId: number, roleId: number) {
     return this.prisma.projectUserRole.updateMany({
       where: { userId, projectId },
-      data: { roleId }
+      data: { roleId },
     });
   }
 
@@ -100,7 +106,7 @@ export class IAMRepository {
    */
   async removeUserFromProject(userId: number, projectId: number) {
     return this.prisma.projectUserRole.deleteMany({
-      where: { userId, projectId }
+      where: { userId, projectId },
     });
   }
 }

@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
-import { SuiteService } from '../services/suite.service.js';
 import { IdempotencyService } from '../middleware/idempotency.js';
+import { SuiteService } from '../services/suite.service.js';
 import { PaginationSchema, SuiteSchema, UpdateSuiteSchema } from '../validators/schemas.js';
 
 /**
@@ -8,7 +8,7 @@ import { PaginationSchema, SuiteSchema, UpdateSuiteSchema } from '../validators/
  * tags:
  *   name: TestCases
  *   description: Test Case management (Suites, Sections, Cases)
- * 
+ *
  * components:
  *   schemas:
  *     Suite:
@@ -226,7 +226,7 @@ export class SuiteController {
     const requestId = (req as any).requestId;
     const projectId = (req as any).projectId;
     const suiteId = parseInt(req.params.id ?? '', 10);
-    if (isNaN(suiteId)) return res.status(400).json({ error: 'Invalid suite ID' });
+    if (Number.isNaN(suiteId)) return res.status(400).json({ error: 'Invalid suite ID' });
 
     const parsed = UpdateSuiteSchema.safeParse(req.body);
     if (!parsed.success) {
@@ -248,7 +248,7 @@ export class SuiteController {
     const requestId = (req as any).requestId;
     const projectId = (req as any).projectId;
     const suiteId = parseInt(req.params.id ?? '', 10);
-    if (isNaN(suiteId)) return res.status(400).json({ error: 'Invalid suite ID' });
+    if (Number.isNaN(suiteId)) return res.status(400).json({ error: 'Invalid suite ID' });
 
     try {
       await this.suiteService.deleteSuite(suiteId, projectId, requestId);
@@ -265,7 +265,7 @@ export class SuiteController {
     try {
       const suites = await this.suiteService.listAllSuites();
       return res.json(suites);
-    } catch (err: any) {
+    } catch {
       return res.status(500).json({ error: 'Failed to fetch suites' });
     }
   };

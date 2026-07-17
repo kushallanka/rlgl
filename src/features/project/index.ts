@@ -1,12 +1,12 @@
-export { default as ProjectsPage } from './pages/ProjectsPage';
-export { ProjectsGrid } from './components/ProjectsGrid';
-export { ProjectsHeader } from './components/ProjectsHeader';
+export { projectApi } from './api/project.api';
 export { CreateProjectModal } from './components/CreateProjectModal';
 export { DeleteProjectModal } from './components/DeleteProjectModal';
-export { ProjectDetailsModal } from './components/ProjectDetailsModal';
 export { EditProjectModal } from './components/EditProjectModal';
+export { ProjectDetailsModal } from './components/ProjectDetailsModal';
 export { ProjectDropdown } from './components/ProjectDropdown';
+export { ProjectsGrid } from './components/ProjectsGrid';
+export { ProjectsHeader } from './components/ProjectsHeader';
 export { useProjectsList } from './hooks/useProjectsList';
-export { projectApi } from './api/project.api';
+export { default as ProjectsPage } from './pages/ProjectsPage';
 export { PROJECTS_QUERY_KEY } from './queryKeys';
 export type { Project } from './types/project.types';

@@ -1,2 +1,2 @@
 export { FormEngine, type FormEngineProps } from './FormEngine';
-export { TextField, SelectField, TextareaField } from './fields';
+export { SelectField, TextareaField, TextField } from './fields';

@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import { TestRunService } from '../services/testrun.service.js';
 import { PaginationSchema, TestRunSchema, UpdateResultSchema, UpdateTestRunSchema } from '../validators/schemas.js';
 
@@ -7,7 +7,7 @@ import { PaginationSchema, TestRunSchema, UpdateResultSchema, UpdateTestRunSchem
  * tags:
  *   name: TestRuns
  *   description: Test Execution and Results management
- * 
+ *
  * components:
  *   schemas:
  *     TestRun:
@@ -114,11 +114,15 @@ export class TestRunController {
 
       const paginationResult = PaginationSchema.safeParse(req.query);
       if (!paginationResult.success) {
-        return res.status(400).json({ error: 'Invalid pagination parameters', details: paginationResult.error.flatten().fieldErrors });
+        return res
+          .status(400)
+          .json({ error: 'Invalid pagination parameters', details: paginationResult.error.flatten().fieldErrors });
       }
       const result = await this.service.listRuns(projectId, paginationResult.data, userId, requestId);
       return res.json(result);
-    } catch (err) { return next(err); }
+    } catch (err) {
+      return next(err);
+    }
   };
 
   /**
@@ -175,11 +179,16 @@ export class TestRunController {
       const result = await this.service.createRun(parsed.data, user, projectId, requestId, token);
 
       if (result.error) {
-        return res.status(result.status).json({ error: result.error, ...('invalidCaseIds' in result ? { invalidCaseIds: result.invalidCaseIds } : {}) });
+        return res.status(result.status).json({
+          error: result.error,
+          ...('invalidCaseIds' in result ? { invalidCaseIds: result.invalidCaseIds } : {}),
+        });
       }
 
       return res.status(201).json(result.data);
-    } catch (err) { return next(err); }
+    } catch (err) {
+      return next(err);
+    }
   };
 
   /**
@@ -214,12 +223,14 @@ export class TestRunController {
       const projectId = (req as any).projectId;
       const requestId = (req as any).requestId;
       const runId = parseInt(req.params.id ?? '', 10);
-      if (isNaN(runId)) return res.status(400).json({ error: 'Invalid run ID' });
+      if (Number.isNaN(runId)) return res.status(400).json({ error: 'Invalid run ID' });
 
       const run = await this.service.getRun(runId, projectId, requestId);
       if (!run) return res.status(404).json({ error: 'Test run not found' });
       return res.json(run);
-    } catch (err) { return next(err); }
+    } catch (err) {
+      return next(err);
+    }
   };
 
   /**
@@ -258,7 +269,7 @@ export class TestRunController {
       const projectId = (req as any).projectId;
       const requestId = (req as any).requestId;
       const runId = parseInt(req.params.id ?? '', 10);
-      if (isNaN(runId)) return res.status(400).json({ error: 'Invalid run ID' });
+      if (Number.isNaN(runId)) return res.status(400).json({ error: 'Invalid run ID' });
 
       const parsed = UpdateTestRunSchema.safeParse(req.body);
       if (!parsed.success) {
@@ -266,9 +277,14 @@ export class TestRunController {
       }
 
       const result = await this.service.updateRun(runId, projectId, parsed.data, requestId);
-      if (result.error) return res.status(result.status).json({ error: result.error, ...('code' in result && result.code ? { code: result.code } : {}) });
+      if (result.error)
+        return res
+          .status(result.status)
+          .json({ error: result.error, ...('code' in result && result.code ? { code: result.code } : {}) });
       return res.json(result.data);
-    } catch (err) { return next(err); }
+    } catch (err) {
+      return next(err);
+    }
   };
 
   /**
@@ -299,12 +315,14 @@ export class TestRunController {
       const projectId = (req as any).projectId;
       const requestId = (req as any).requestId;
       const runId = parseInt(req.params.id ?? '', 10);
-      if (isNaN(runId)) return res.status(400).json({ error: 'Invalid run ID' });
+      if (Number.isNaN(runId)) return res.status(400).json({ error: 'Invalid run ID' });
 
       const result = await this.service.deleteRun(runId, projectId, requestId);
       if (result.error) return res.status(result.status).json({ error: result.error });
       return res.status(204).send();
-    } catch (err) { return next(err); }
+    } catch (err) {
+      return next(err);
+    }
   };
 
   /**
@@ -348,7 +366,7 @@ export class TestRunController {
       const requestId = (req as any).requestId;
       const { userId } = (req as any).user;
       const resultId = parseInt(req.params.resultId ?? '', 10);
-      if (isNaN(resultId)) return res.status(400).json({ error: 'Invalid result ID' });
+      if (Number.isNaN(resultId)) return res.status(400).json({ error: 'Invalid result ID' });
 
       const parsed = UpdateResultSchema.safeParse(req.body);
       if (!parsed.success) {
@@ -356,9 +374,14 @@ export class TestRunController {
       }
 
       const result = await this.service.updateResult(resultId, projectId, parsed.data, userId, requestId);
-      if (result.error) return res.status(result.status).json({ error: result.error, ...('code' in result && result.code ? { code: result.code } : {}) });
+      if (result.error)
+        return res
+          .status(result.status)
+          .json({ error: result.error, ...('code' in result && result.code ? { code: result.code } : {}) });
       return res.json(result.data);
-    } catch (err) { return next(err); }
+    } catch (err) {
+      return next(err);
+    }
   };
 
   syncProject = async (req: Request, res: Response, next: NextFunction) => {
@@ -368,7 +391,9 @@ export class TestRunController {
       const result = await this.service.syncProject(projectId, name, requestId);
       if (result.error) return res.status(result.status).json({ error: result.error });
       return res.status(200).json(result.data);
-    } catch (err) { return next(err); }
+    } catch (err) {
+      return next(err);
+    }
   };
 
   syncSuite = async (req: Request, res: Response, next: NextFunction) => {
@@ -378,30 +403,36 @@ export class TestRunController {
       const result = await this.service.syncSuite(suiteId, projectId, name, requestId);
       if (result.error) return res.status(result.status).json({ error: result.error });
       return res.status(200).json(result.data);
-    } catch (err) { return next(err); }
+    } catch (err) {
+      return next(err);
+    }
   };
 
   deleteSyncedSuite = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const requestId = (req as any).requestId || `tr-sync-${Date.now()}`;
       const suiteId = parseInt(req.params.suiteId ?? '', 10);
-      if (isNaN(suiteId)) return res.status(400).json({ error: 'Invalid suiteId' });
+      if (Number.isNaN(suiteId)) return res.status(400).json({ error: 'Invalid suiteId' });
 
       const result = await this.service.deleteSyncedSuite(suiteId, requestId);
       if (result.error) return res.status(result.status).json({ error: result.error });
       return res.status(204).send();
-    } catch (err) { return next(err); }
+    } catch (err) {
+      return next(err);
+    }
   };
 
   deleteSyncedProject = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const requestId = (req as any).requestId || `tr-sync-${Date.now()}`;
       const projectId = parseInt(req.params.projectId ?? '', 10);
-      if (isNaN(projectId)) return res.status(400).json({ error: 'Invalid projectId' });
+      if (Number.isNaN(projectId)) return res.status(400).json({ error: 'Invalid projectId' });
 
       const result = await this.service.deleteSyncedProject(projectId, requestId);
       if (result.error) return res.status(result.status).json({ error: result.error });
       return res.status(204).send();
-    } catch (err) { return next(err); }
+    } catch (err) {
+      return next(err);
+    }
   };
 }

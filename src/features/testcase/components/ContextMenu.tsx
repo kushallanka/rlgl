@@ -17,10 +17,15 @@ interface ContextMenuProps {
 export function ContextMenu({ isOpen, triggerRef, onClose, items }: ContextMenuProps) {
   return (
     <DropdownPortal isOpen={isOpen} triggerRef={triggerRef} onClose={onClose} width={160}>
-      {items.map((item, i) => (
+      {items.map((item) => (
         <button
-          key={i}
-          onClick={(e) => { e.stopPropagation(); onClose(); item.onClick(); }}
+          type="button"
+          key={item.label}
+          onClick={(e) => {
+            e.stopPropagation();
+            onClose();
+            item.onClick();
+          }}
           className={`w-full px-4 py-3 flex items-center gap-3 text-sm transition-ui font-body ${
             item.variant === 'danger'
               ? 'text-red-600 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-500/30 dark:hover:text-red-200 border-t border-gray-100 dark:border-white/5'
@@ -43,21 +48,25 @@ interface MoreButtonProps {
 
 export function MoreButton({ isOpen, onToggle, registerRef }: MoreButtonProps) {
   return (
-    <div
-      ref={registerRef}
-      onClick={(e) => { e.stopPropagation(); onToggle(); }}
+    <button
+      type="button"
+      ref={registerRef as React.Ref<HTMLButtonElement>}
+      onClick={(e) => {
+        e.stopPropagation();
+        onToggle();
+      }}
       className={`p-2 rounded-lg transition-ui cursor-pointer ${
         isOpen
           ? 'bg-gray-100 dark:bg-white/10 text-gray-900 dark:text-white'
           : 'text-gray-500 dark:text-white/50 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10'
       }`}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => e.key === 'Enter' && onToggle()}
+      aria-label="More options"
     >
-      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-        <circle cx="12" cy="5" r="1" /><circle cx="12" cy="12" r="1" /><circle cx="12" cy="19" r="1" />
+      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+        <circle cx="12" cy="5" r="1" />
+        <circle cx="12" cy="12" r="1" />
+        <circle cx="12" cy="19" r="1" />
       </svg>
-    </div>
+    </button>
   );
 }

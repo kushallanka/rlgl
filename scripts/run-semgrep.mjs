@@ -17,10 +17,9 @@ if (probe.status !== 0) {
   process.exit(0);
 }
 
-const result = spawnSync(
-  'semgrep',
-  ['--config', '.semgrep.yml', '--error', 'services', 'packages', 'src'],
-  { shell: true, stdio: 'inherit' }
-);
+const result = spawnSync('semgrep', ['--config', '.semgrep.yml', '--error', 'services', 'packages', 'src'], {
+  shell: true,
+  stdio: 'inherit',
+});
 
 process.exit(result.status ?? 1);

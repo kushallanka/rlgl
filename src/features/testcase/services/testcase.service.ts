@@ -1,5 +1,5 @@
 import { testcaseApi } from '../api/testcase.api';
-import type { TestCase, TestSuite, TestSection } from '../types/testcase.types';
+import type { TestCase, TestSection, TestSuite } from '../types/testcase.types';
 
 export const testcaseService = {
   async getSuites(projectId: string): Promise<TestSuite[]> {

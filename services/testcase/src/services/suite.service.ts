@@ -1,6 +1,6 @@
-import { SuiteRepository } from '../repositories/suite.repository.js';
 import type { EventBus } from '@rlgl/shared';
 import { TESTRUN_SERVICE_URL } from '../config/constants.js';
+import { SuiteRepository } from '../repositories/suite.repository.js';
 
 export class SuiteService {
   constructor(
@@ -26,7 +26,13 @@ export class SuiteService {
       throw Object.assign(new Error('Project not found'), { statusCode: 404 });
     }
     const suite = await this.suiteRepo.create(data);
-    this.eventBus?.publishEvent('testcase.created', { suiteId: suite.id, name: suite.name }, { requestId, projectId: String(suite.projectId) }).catch(() => {});
+    this.eventBus
+      ?.publishEvent(
+        'testcase.created',
+        { suiteId: suite.id, name: suite.name },
+        { requestId, projectId: String(suite.projectId) },
+      )
+      .catch(() => {});
     fetch(`${TESTRUN_SERVICE_URL}/sync/suite`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -35,13 +41,20 @@ export class SuiteService {
     return suite;
   }
 
-  async updateSuite(id: number, projectId: number, data: { name?: string | undefined; description?: string | undefined }, requestId?: string) {
+  async updateSuite(
+    id: number,
+    projectId: number,
+    data: { name?: string | undefined; description?: string | undefined },
+    requestId?: string,
+  ) {
     const existing = await this.suiteRepo.findById(id);
     if (!existing || existing.projectId !== projectId) {
       throw Object.assign(new Error('Suite not found'), { statusCode: 404 });
     }
     const updated = await this.suiteRepo.update(id, data);
-    this.eventBus?.publishEvent('testcase.updated', { suiteId: id, changes: data }, { requestId, projectId: String(projectId) }).catch(() => {});
+    this.eventBus
+      ?.publishEvent('testcase.updated', { suiteId: id, changes: data }, { requestId, projectId: String(projectId) })
+      .catch(() => {});
     return updated;
   }
 
@@ -51,7 +64,9 @@ export class SuiteService {
       throw Object.assign(new Error('Suite not found'), { statusCode: 404 });
     }
     await this.suiteRepo.deleteWithCascade(id);
-    this.eventBus?.publishEvent('testcase.deleted', { suiteId: id }, { requestId, projectId: String(projectId) }).catch(() => {});
+    this.eventBus
+      ?.publishEvent('testcase.deleted', { suiteId: id }, { requestId, projectId: String(projectId) })
+      .catch(() => {});
     fetch(`${TESTRUN_SERVICE_URL}/sync/suite/${id}`, { method: 'DELETE' }).catch(() => {});
   }
 

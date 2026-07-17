@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { FormData, ModalState, TabType } from '../types/admin.types';
 
 interface DeleteModalState {
@@ -100,7 +100,7 @@ export function useAdminForms(_configSchema?: any, projectId?: string, mutations
       type: item.type || 'text',
       required: item.required || false,
       options: item.options || [],
-      permissions: (item.permissions || []).map((p: any) => typeof p === 'string' ? p : p.action),
+      permissions: (item.permissions || []).map((p: any) => (typeof p === 'string' ? p : p.action)),
       color: item.color,
       description: item.description,
       level: item.level,
@@ -121,108 +121,111 @@ export function useAdminForms(_configSchema?: any, projectId?: string, mutations
   }, []);
 
   // Handle form submit
-  const handleFormSubmit = useCallback((e: React.FormEvent) => {
-    e.preventDefault();
+  const handleFormSubmit = useCallback(
+    (e: React.FormEvent) => {
+      e.preventDefault();
 
-    if (!formData.name.trim()) {
-      return;
-    }
-
-    if (!projectId) {
-      console.error('No project ID available');
-      return;
-    }
-
-    if (!mutations) {
-      console.error('No mutations available');
-      return;
-    }
-
-    if (modalState.isEditing && modalState.editingItem) {
-      // Update existing item
-      let updateMutation: any;
-      if (activeTab === 'types') updateMutation = mutations.updateTypeMutation;
-      else if (activeTab === 'priorities') updateMutation = mutations.updatePriorityMutation;
-      else if (activeTab === 'fields') updateMutation = mutations.updateFieldMutation;
-      else if (activeTab === 'roles') updateMutation = mutations.updateRoleMutation;
-
-      if (updateMutation) {
-        // Build update data based on tab type
-        let updateData: any = { name: formData.name };
-        if (activeTab === 'types') {
-          updateData = {
-            name: formData.name,
-            description: formData.description,
-            color: formData.color,
-          };
-        } else if (activeTab === 'priorities') {
-          updateData = {
-            name: formData.name,
-            level: formData.level,
-            color: formData.color,
-          };
-        } else if (activeTab === 'fields') {
-          updateData = {
-            name: formData.name,
-            type: formData.type,
-            required: formData.required,
-            options: formData.options,
-          };
-        } else if (activeTab === 'roles') {
-          updateData = {
-            name: formData.name,
-            permissions: (formData.permissions || []).map((p: any) => typeof p === 'string' ? p : p.action),
-          };
-        }
-        updateMutation.mutate({
-          id: modalState.editingItem.id,
-          data: updateData,
-        });
+      if (!formData.name.trim()) {
+        return;
       }
-    } else {
-      // Create new item
-      let createMutation: any;
-      if (activeTab === 'types') createMutation = mutations.createTypeMutation;
-      else if (activeTab === 'priorities') createMutation = mutations.createPriorityMutation;
-      else if (activeTab === 'fields') createMutation = mutations.createFieldMutation;
-      else if (activeTab === 'roles') createMutation = mutations.createRoleMutation;
 
-      if (createMutation) {
-        // Clean up data for specific types
-        if (activeTab === 'types') {
-          createMutation.mutate({
-            name: formData.name,
-            description: formData.description,
-            color: formData.color,
-            projectId,
-          });
-        } else if (activeTab === 'priorities') {
-          createMutation.mutate({
-            name: formData.name,
-            level: formData.level || 3,
-            color: formData.color,
-            projectId,
-          });
-        } else if (activeTab === 'fields') {
-          createMutation.mutate({
-            name: formData.name,
-            type: formData.type,
-            required: formData.required,
-            options: formData.options,
-            projectId,
-          });
-        } else if (activeTab === 'roles') {
-          createMutation.mutate({
-            name: formData.name,
-            permissions: formData.permissions,
-            projectId,
+      if (!projectId) {
+        console.error('No project ID available');
+        return;
+      }
+
+      if (!mutations) {
+        console.error('No mutations available');
+        return;
+      }
+
+      if (modalState.isEditing && modalState.editingItem) {
+        // Update existing item
+        let updateMutation: any;
+        if (activeTab === 'types') updateMutation = mutations.updateTypeMutation;
+        else if (activeTab === 'priorities') updateMutation = mutations.updatePriorityMutation;
+        else if (activeTab === 'fields') updateMutation = mutations.updateFieldMutation;
+        else if (activeTab === 'roles') updateMutation = mutations.updateRoleMutation;
+
+        if (updateMutation) {
+          // Build update data based on tab type
+          let updateData: any = { name: formData.name };
+          if (activeTab === 'types') {
+            updateData = {
+              name: formData.name,
+              description: formData.description,
+              color: formData.color,
+            };
+          } else if (activeTab === 'priorities') {
+            updateData = {
+              name: formData.name,
+              level: formData.level,
+              color: formData.color,
+            };
+          } else if (activeTab === 'fields') {
+            updateData = {
+              name: formData.name,
+              type: formData.type,
+              required: formData.required,
+              options: formData.options,
+            };
+          } else if (activeTab === 'roles') {
+            updateData = {
+              name: formData.name,
+              permissions: (formData.permissions || []).map((p: any) => (typeof p === 'string' ? p : p.action)),
+            };
+          }
+          updateMutation.mutate({
+            id: modalState.editingItem.id,
+            data: updateData,
           });
         }
-      }
-    }
+      } else {
+        // Create new item
+        let createMutation: any;
+        if (activeTab === 'types') createMutation = mutations.createTypeMutation;
+        else if (activeTab === 'priorities') createMutation = mutations.createPriorityMutation;
+        else if (activeTab === 'fields') createMutation = mutations.createFieldMutation;
+        else if (activeTab === 'roles') createMutation = mutations.createRoleMutation;
 
-    setModalState({ isOpen: false, isEditing: false });
-  }, [formData, modalState, activeTab, projectId, mutations]);
+        if (createMutation) {
+          // Clean up data for specific types
+          if (activeTab === 'types') {
+            createMutation.mutate({
+              name: formData.name,
+              description: formData.description,
+              color: formData.color,
+              projectId,
+            });
+          } else if (activeTab === 'priorities') {
+            createMutation.mutate({
+              name: formData.name,
+              level: formData.level || 3,
+              color: formData.color,
+              projectId,
+            });
+          } else if (activeTab === 'fields') {
+            createMutation.mutate({
+              name: formData.name,
+              type: formData.type,
+              required: formData.required,
+              options: formData.options,
+              projectId,
+            });
+          } else if (activeTab === 'roles') {
+            createMutation.mutate({
+              name: formData.name,
+              permissions: formData.permissions,
+              projectId,
+            });
+          }
+        }
+      }
+
+      setModalState({ isOpen: false, isEditing: false });
+    },
+    [formData, modalState, activeTab, projectId, mutations],
+  );
 
   // Handle confirm delete
   const handleConfirmDelete = useCallback(() => {

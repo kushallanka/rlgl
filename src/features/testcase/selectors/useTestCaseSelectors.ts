@@ -1,7 +1,7 @@
 import { usePermissionStore } from '../../../stores/permission.store';
 
 export function useTestCasePermissions() {
-  const hasPermission = usePermissionStore(s => s.hasPermission);
+  const hasPermission = usePermissionStore((s) => s.hasPermission);
   return {
     canCreateTestCase: hasPermission('testcase.create'),
     canEditTestCase: hasPermission('testcase.edit'),

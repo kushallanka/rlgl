@@ -1,21 +1,21 @@
-import { loadConfig, createLogger, setupProcessHandlers, createEventBus, createHealthChecker } from '@rlgl/shared';
+import { createEventBus, createHealthChecker, createLogger, loadConfig, setupProcessHandlers } from '@rlgl/shared';
 import { PrismaClient } from '../generated/client/index.js';
+import { createApp } from './app.js';
+import { AuthController } from './controllers/auth.controller.js';
+import { OrgController } from './controllers/org.controller.js';
 import { AuthRepository } from './repositories/auth.repository.js';
 import { IAMRepository } from './repositories/iam.repository.js';
 import { OrgRepository } from './repositories/org.repository.js';
+import { startServer } from './server.js';
 import { AuthService } from './services/auth.service.js';
 import { IAMService } from './services/iam.service.js';
 import { OrgService } from './services/org.service.js';
-import { AuthController } from './controllers/auth.controller.js';
-import { OrgController } from './controllers/org.controller.js';
-import { createApp } from './app.js';
-import { startServer } from './server.js';
 
 const config = loadConfig();
-const logger = createLogger({ 
-  service: 'auth-service', 
-  level: config.LOG_LEVEL, 
-  samplingRate: config.LOG_SAMPLING_RATE 
+const logger = createLogger({
+  service: 'auth-service',
+  level: config.LOG_LEVEL,
+  samplingRate: config.LOG_SAMPLING_RATE,
 });
 
 // 1. Process Resilience
@@ -28,9 +28,7 @@ async function main() {
       process.exit(1);
     }
 
-    const prisma = config.DATABASE_URL
-      ? new PrismaClient({ datasourceUrl: config.DATABASE_URL })
-      : new PrismaClient();
+    const prisma = config.DATABASE_URL ? new PrismaClient({ datasourceUrl: config.DATABASE_URL }) : new PrismaClient();
 
     // 2. Startup Guard: Verify Database
     logger.info('🔍 Verifying database connectivity...');
@@ -60,7 +58,7 @@ async function main() {
         redisUrl: config.REDIS_URL,
         serviceName: 'auth-service',
       },
-      logger
+      logger,
     );
 
     // 6. Dependency Injection - Repositories
@@ -78,14 +76,13 @@ async function main() {
     const orgController = new OrgController(orgService);
 
     const app = createApp(config, controller, prisma, healthChecker, orgController);
-    
+
     // 9. Final startup
     startServer(app, config.PORT, async () => {
       await eventBus.shutdown();
       await prisma.$disconnect();
       logger.info('Shutdown complete');
     });
-
   } catch (err: any) {
     logger.error({ err, stack: err.stack }, '❌ Fatal error during startup');
     process.exit(1);

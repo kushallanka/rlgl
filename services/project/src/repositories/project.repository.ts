@@ -6,13 +6,13 @@ export class ProjectRepository {
   async findAllForUser(projectIds: number[]) {
     return this.prisma.project.findMany({
       where: { id: { in: projectIds }, deletedAt: null },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
     });
   }
 
   async findById(id: number) {
     return this.prisma.project.findUnique({
-      where: { id, deletedAt: null }
+      where: { id, deletedAt: null },
     });
   }
 
@@ -25,15 +25,15 @@ export class ProjectRepository {
       where: { id, deletedAt: null },
       data: {
         ...data,
-        updatedAt: new Date()
-      }
+        updatedAt: new Date(),
+      },
     });
   }
 
   async softDelete(id: number) {
     return this.prisma.project.update({
       where: { id, deletedAt: null },
-      data: { deletedAt: new Date() }
+      data: { deletedAt: new Date() },
     });
   }
 
@@ -48,25 +48,25 @@ export class ProjectRepository {
   async createWithAdminRole(name: string, description: string | undefined, userId: number, permissions: string[]) {
     return this.prisma.$transaction(async (tx) => {
       const project = await tx.project.create({
-        data: { name, ...(description !== undefined ? { description } : {}) }
+        data: { name, ...(description !== undefined ? { description } : {}) },
       });
-      
+
       const adminRole = await tx.projectRole.create({
         data: {
           projectId: project.id,
           name: 'Project Admin',
           description: 'Full access to the project',
           permissions: {
-            create: permissions.map(action => ({ projectId: project.id, action }))
-          }
+            create: permissions.map((action) => ({ projectId: project.id, action })),
+          },
         },
-        include: { permissions: true }
+        include: { permissions: true },
       });
-      
+
       await tx.projectUserRole.create({
-        data: { projectId: project.id, userId, roleId: adminRole.id }
+        data: { projectId: project.id, userId, roleId: adminRole.id },
       });
-      
+
       return project;
     });
   }
@@ -78,12 +78,12 @@ export class ProjectRepository {
       this.prisma.customField.findMany({
         where: { projectId },
         include: { options: { orderBy: { order: 'asc' } } },
-        orderBy: { order: 'asc' }
+        orderBy: { order: 'asc' },
       }),
       this.prisma.projectRole.findMany({
         where: { projectId },
-        include: { permissions: true }
-      })
+        include: { permissions: true },
+      }),
     ]);
     return { types, priorities, customFields: fields, roles };
   }
@@ -91,7 +91,7 @@ export class ProjectRepository {
   async getRoles(projectId: number) {
     return this.prisma.projectRole.findMany({
       where: { projectId },
-      include: { permissions: true }
+      include: { permissions: true },
     });
   }
 
@@ -102,27 +102,31 @@ export class ProjectRepository {
         projectId,
         ...roleData,
         permissions: {
-          create: permissions.map(action => ({ projectId, action }))
-        }
+          create: permissions.map((action) => ({ projectId, action })),
+        },
       },
-      include: { permissions: true }
+      include: { permissions: true },
     });
   }
 
-  async updateRole(roleId: number, projectId: number, data: { name?: string; description?: string; permissions?: string[] }) {
+  async updateRole(
+    roleId: number,
+    projectId: number,
+    data: { name?: string; description?: string; permissions?: string[] },
+  ) {
     const { permissions, ...roleData } = data;
-    
+
     if (permissions) {
       await this.prisma.projectPermission.deleteMany({ where: { roleId } });
       await this.prisma.projectPermission.createMany({
-        data: permissions.map(action => ({ projectId, roleId, action }))
+        data: permissions.map((action) => ({ projectId, roleId, action })),
       });
     }
-    
+
     return this.prisma.projectRole.update({
       where: { id: roleId },
       data: roleData,
-      include: { permissions: true }
+      include: { permissions: true },
     });
   }
 
@@ -133,20 +137,20 @@ export class ProjectRepository {
   async getUserRoles(projectId: number) {
     return this.prisma.projectUserRole.findMany({
       where: { projectId },
-      include: { role: { include: { permissions: true } } }
+      include: { role: { include: { permissions: true } } },
     });
   }
 
   async assignUserRole(projectId: number, userId: number, roleId: number) {
     return this.prisma.projectUserRole.create({
       data: { projectId, userId, roleId },
-      include: { role: { include: { permissions: true } } }
+      include: { role: { include: { permissions: true } } },
     });
   }
 
   async removeUserRole(projectId: number, userId: number, roleId: number) {
     return this.prisma.projectUserRole.deleteMany({
-      where: { projectId, userId, roleId }
+      where: { projectId, userId, roleId },
     });
   }
 
@@ -177,11 +181,17 @@ export class ProjectRepository {
   }
 
   // Custom Fields
-  async createCustomField(projectId: number, data: { name: string; fieldType: string; required?: boolean; description?: string }) {
+  async createCustomField(
+    projectId: number,
+    data: { name: string; fieldType: string; required?: boolean; description?: string },
+  ) {
     return this.prisma.customField.create({ data: { projectId, ...data } });
   }
 
-  async updateCustomField(fieldId: number, data: { name?: string; fieldType?: string; required?: boolean; description?: string }) {
+  async updateCustomField(
+    fieldId: number,
+    data: { name?: string; fieldType?: string; required?: boolean; description?: string },
+  ) {
     return this.prisma.customField.update({ where: { id: fieldId }, data });
   }
 

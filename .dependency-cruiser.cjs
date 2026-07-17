@@ -95,14 +95,15 @@ module.exports = {
     {
       name: 'cross-service-import-forbidden',
       severity: 'error',
-      comment: 'Services must not import each other\'s source. Communicate via HTTP through the gateway or through shared packages.',
+      comment:
+        "Services must not import each other's source. Communicate via HTTP through the gateway or through shared packages.",
       from: { path: '^services/([^/]+)/' },
       to: { path: '^services/[^/]+/src/', pathNot: '^services/$1/' },
     },
     {
       name: 'cross-service-prisma-forbidden',
       severity: 'error',
-      comment: 'Services must not import another service\'s Prisma generated client.',
+      comment: "Services must not import another service's Prisma generated client.",
       from: { path: '^services/([^/]+)/' },
       to: { path: '^services/[^/]+/generated/', pathNot: '^services/$1/' },
     },
@@ -175,11 +176,7 @@ module.exports = {
         collapsePattern: 'node_modules/[^/]+',
       },
       archi: {
-        collapsePattern: [
-          'src/(features|shared|stores|hooks)/[^/]+',
-          'services/[^/]+',
-          'packages/[^/]+',
-        ].join('|'),
+        collapsePattern: ['src/(features|shared|stores|hooks)/[^/]+', 'services/[^/]+', 'packages/[^/]+'].join('|'),
       },
     },
     progress: { type: 'performance-log' },

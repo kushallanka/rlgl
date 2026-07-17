@@ -1,6 +1,6 @@
 import axios from 'axios';
-import { TestRunRepository } from '../repositories/testrun.repository.js';
 import { TESTCASE_SERVICE_URL } from '../config/constants.js';
+import { TestRunRepository } from '../repositories/testrun.repository.js';
 import type { JwtUser, PaginationParams } from '../types/index.js';
 
 type SnapshotCase = {
@@ -19,7 +19,7 @@ export class TestRunService {
   constructor(
     private readonly repo: TestRunRepository,
     private readonly eventBus?: any,
-    private readonly logger?: any
+    private readonly logger?: any,
   ) {}
 
   async listRuns(projectId: number, pagination: PaginationParams, userId: number, requestId: string) {
@@ -48,7 +48,7 @@ export class TestRunService {
     user: JwtUser,
     projectId: number,
     requestId: string,
-    _token: string
+    _token: string,
   ) {
     const project = await this.repo.findProject(projectId);
     if (!project) return { error: 'Project not found', status: 404 };
@@ -67,7 +67,11 @@ export class TestRunService {
 
     if (snapshot.missingIds.length > 0) {
       this.logger?.warn({ requestId, projectId, invalidCaseIds: snapshot.missingIds }, 'Test cases not found');
-      return { error: `Test cases not found: ${snapshot.missingIds.join(', ')}`, invalidCaseIds: snapshot.missingIds, status: 400 };
+      return {
+        error: `Test cases not found: ${snapshot.missingIds.join(', ')}`,
+        invalidCaseIds: snapshot.missingIds,
+        status: 400,
+      };
     }
 
     const snapshottedAt = new Date();
@@ -91,12 +95,18 @@ export class TestRunService {
       })),
     });
 
-    this.emitEvent('testrun.started', {
-      testrunId: run.id,
-      projectId: run.projectId,
-      testcaseIds: snapshot.cases.map(c => c.id),
-      startedBy: user.userId,
-    }, requestId, user.userId, projectId);
+    this.emitEvent(
+      'testrun.started',
+      {
+        testrunId: run.id,
+        projectId: run.projectId,
+        testcaseIds: snapshot.cases.map((c) => c.id),
+        startedBy: user.userId,
+      },
+      requestId,
+      user.userId,
+      projectId,
+    );
 
     this.logger?.info({ requestId, userId: user.userId, projectId, runId: run.id }, 'Test run created');
     return { data: run, status: 201 };
@@ -106,7 +116,7 @@ export class TestRunService {
     runId: number,
     projectId: number,
     data: { name?: string | undefined; description?: string | undefined; version?: number | undefined },
-    requestId: string
+    requestId: string,
   ) {
     const { version, ...patch } = data;
     const existing = await this.repo.findRunById(runId);
@@ -114,7 +124,11 @@ export class TestRunService {
     const updated = await this.repo.updateRun(runId, patch, version);
     if (!updated) {
       this.logger?.warn({ requestId, projectId, runId, version }, 'Test run version conflict');
-      return { error: 'Test run was modified by someone else. Refresh and retry.', code: 'VERSION_CONFLICT', status: 409 };
+      return {
+        error: 'Test run was modified by someone else. Refresh and retry.',
+        code: 'VERSION_CONFLICT',
+        status: 409,
+      };
     }
     this.logger?.info({ requestId, projectId, runId }, 'Test run updated');
     return { data: updated, status: 200 };
@@ -134,7 +148,7 @@ export class TestRunService {
     projectId: number,
     data: { status: string; comment?: string | undefined; version?: number | undefined },
     userId: number,
-    requestId: string
+    requestId: string,
   ) {
     const { version, ...patch } = data;
     const result = await this.repo.findResultById(resultId);
@@ -145,25 +159,35 @@ export class TestRunService {
     const updated = await this.repo.updateResult(resultId, patch, version);
     if (!updated) {
       this.logger?.warn({ requestId, projectId, resultId, version }, 'Test result version conflict');
-      return { error: 'Test result was modified by someone else. Refresh and retry.', code: 'VERSION_CONFLICT', status: 409 };
+      return {
+        error: 'Test result was modified by someone else. Refresh and retry.',
+        code: 'VERSION_CONFLICT',
+        status: 409,
+      };
     }
 
     const testRunResults = await this.repo.getResultsForRun(result.testRun.id);
-    const allCompleted = testRunResults.every(r => r.status !== 'Untested');
+    const allCompleted = testRunResults.every((r) => r.status !== 'Untested');
     if (allCompleted) {
-      const passed = testRunResults.filter(r => r.status === 'Passed').length;
-      const failed = testRunResults.filter(r => r.status === 'Failed').length;
-      const blocked = testRunResults.filter(r => r.status === 'Blocked').length;
+      const passed = testRunResults.filter((r) => r.status === 'Passed').length;
+      const failed = testRunResults.filter((r) => r.status === 'Failed').length;
+      const blocked = testRunResults.filter((r) => r.status === 'Blocked').length;
 
-      this.emitEvent('testrun.completed', {
-        testrunId: result.testRun.id,
+      this.emitEvent(
+        'testrun.completed',
+        {
+          testrunId: result.testRun.id,
+          projectId,
+          status: failed > 0 ? 'failed' : 'passed',
+          passed,
+          failed,
+          blocked,
+          completedBy: userId,
+        },
+        requestId,
+        userId,
         projectId,
-        status: failed > 0 ? 'failed' : 'passed',
-        passed,
-        failed,
-        blocked,
-        completedBy: userId,
-      }, requestId, userId, projectId);
+      );
     }
 
     this.logger?.info({ requestId, userId, projectId, resultId, status: data.status }, 'Test result updated');
@@ -233,13 +257,15 @@ export class TestRunService {
     const res = await axios.post(
       `${TESTCASE_SERVICE_URL}/internal/cases/batch`,
       { ids: caseIds, projectId },
-      { headers: { 'x-request-id': requestId }, timeout: 10000 }
+      { headers: { 'x-request-id': requestId }, timeout: 10000 },
     );
     return { cases: res.data?.data ?? [], missingIds: res.data?.missingIds ?? [] };
   }
 
   private emitEvent(eventName: string, payload: any, requestId: string, userId: number, projectId: number) {
     if (!this.eventBus) return;
-    this.eventBus.publishEvent(eventName, payload, { requestId, userId: userId.toString(), projectId: projectId.toString() }).catch(() => {});
+    this.eventBus
+      .publishEvent(eventName, payload, { requestId, userId: userId.toString(), projectId: projectId.toString() })
+      .catch(() => {});
   }
 }

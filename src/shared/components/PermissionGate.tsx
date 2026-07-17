@@ -8,11 +8,11 @@ interface PermissionGateProps {
   children: ReactNode;
 }
 
-export const PermissionGate: React.FC<PermissionGateProps> = ({ 
-  permission, 
+export const PermissionGate: React.FC<PermissionGateProps> = ({
+  permission,
   systemPermission,
-  fallback = null, 
-  children 
+  fallback = null,
+  children,
 }) => {
   const projPerm = usePermission(permission ?? '');
   const sysPerm = useSystemPermission(systemPermission ?? '');
@@ -20,15 +20,15 @@ export const PermissionGate: React.FC<PermissionGateProps> = ({
   const hasSysPerm = systemPermission ? sysPerm : true;
 
   if (permission && systemPermission) {
-    return hasProjPerm && hasSysPerm ? <>{children}</> : <>{fallback}</>;
+    return hasProjPerm && hasSysPerm ? children : fallback;
   }
-  
+
   if (permission) {
-    return hasProjPerm ? <>{children}</> : <>{fallback}</>;
+    return hasProjPerm ? children : fallback;
   }
 
   if (systemPermission) {
-    return hasSysPerm ? <>{children}</> : <>{fallback}</>;
+    return hasSysPerm ? children : fallback;
   }
 
   return <>{children}</>;

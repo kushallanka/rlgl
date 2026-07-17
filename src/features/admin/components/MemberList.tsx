@@ -1,5 +1,5 @@
+import { Pencil, Trash2 } from 'lucide-react';
 import { motion } from 'motion/react';
-import { Trash2, Pencil } from 'lucide-react';
 
 interface MemberListProps {
   members: any[];
@@ -22,16 +22,29 @@ export function MemberList({ members, onEditClick, onRemoveRole, getUserDisplayN
   return (
     <div className="space-y-3">
       {members.map((member) => (
-        <motion.div key={member.id} className="liquid-glass p-4 rounded-xl border border-gray-200 dark:border-white/10 flex justify-between items-center">
+        <motion.div
+          key={member.id}
+          className="liquid-glass p-4 rounded-xl border border-gray-200 dark:border-white/10 flex justify-between items-center"
+        >
           <div>
             <p className="text-gray-900 dark:text-white font-bold">{getUserDisplayName(member.userId)}</p>
             <p className="text-sm text-gray-400 dark:text-white/50">{member.role?.name}</p>
           </div>
           <div className="flex gap-2">
-            <button onClick={() => onEditClick(member)} className="p-2 text-blue-400 hover:bg-blue-500/10 rounded-lg transition-ui" title="Edit role">
+            <button
+              type="button"
+              onClick={() => onEditClick(member)}
+              className="p-2 text-blue-400 hover:bg-blue-500/10 rounded-lg transition-ui"
+              title="Edit role"
+            >
               <Pencil className="w-4 h-4" />
             </button>
-            <button onClick={() => onRemoveRole(member.userId, member.roleId)} className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-ui" title="Remove role">
+            <button
+              type="button"
+              onClick={() => onRemoveRole(member.userId, member.roleId)}
+              className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-ui"
+              title="Remove role"
+            >
               <Trash2 className="w-4 h-4" />
             </button>
           </div>

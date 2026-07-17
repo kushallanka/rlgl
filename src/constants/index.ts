@@ -3,14 +3,15 @@
  */
 export const CLASS_CONSTANTS = {
   // Input styling
-  INPUT_BASE: 'w-full px-4 py-3 bg-white/5 border border-white/10 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all text-white',
-  
+  INPUT_BASE:
+    'w-full px-4 py-3 bg-white/5 border border-white/10 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all text-white',
+
   // Label styling
   LABEL: 'text-[10px] font-bold text-gray-400 uppercase tracking-widest',
-  
+
   // Button base
   BUTTON_BASE: 'font-bold rounded-2xl transition-all active:scale-95',
-  
+
   // Status colors
   STATUS_COLORS: {
     Passed: 'text-green-500 bg-green-500/10 border-green-500/20',
@@ -27,7 +28,7 @@ export const CLASS_CONSTANTS = {
 export const API_ENDPOINTS = {
   // Projects
   PROJECTS: '/projects',
-  
+
   // Test Cases
   TEST_RUNS: '/testruns',
   TEST_CASES: '/testcases',
@@ -35,7 +36,7 @@ export const API_ENDPOINTS = {
   SECTIONS: '/testcases/sections',
   CASES: '/testcases/cases',
   RESULTS: '/testruns/results',
-  
+
   // Admin Configuration
   CONFIG_SCHEMA: (projectId: string) => `/projects/${projectId}/config/schema`,
   CONFIG_TYPES: (projectId: string) => `/projects/${projectId}/config/types`,
@@ -55,7 +56,7 @@ export const STATUS_COLORS_HEX: Record<string, string> = {
 } as const;
 
 export const getStatusBg = (status: string, opacity: number): string => {
-  const hex = STATUS_COLORS_HEX[status] ?? STATUS_COLORS_HEX['Untested'] ?? '#3b82f6';
+  const hex = STATUS_COLORS_HEX[status] ?? STATUS_COLORS_HEX.Untested ?? '#3b82f6';
   const r = parseInt(hex.slice(1, 3), 16);
   const g = parseInt(hex.slice(3, 5), 16);
   const b = parseInt(hex.slice(5, 7), 16);
@@ -65,24 +66,18 @@ export const getStatusBg = (status: string, opacity: number): string => {
 /**
  * Test run result status options
  */
-export const RESULT_STATUSES = [
-  'Untested',
-  'Passed',
-  'Failed',
-  'Blocked',
-  'NotApplicable',
-] as const;
+export const RESULT_STATUSES = ['Untested', 'Passed', 'Failed', 'Blocked', 'NotApplicable'] as const;
 
-export type ResultStatus = typeof RESULT_STATUSES[number];
+export type ResultStatus = (typeof RESULT_STATUSES)[number];
 
 /**
  * Test case priority options
  */
 export const PRIORITIES = ['Low', 'Medium', 'High'] as const;
-export type Priority = typeof PRIORITIES[number];
+export type Priority = (typeof PRIORITIES)[number];
 
 /**
  * Test case type options
  */
 export const TEST_CASE_TYPES = ['Functional', 'Performance', 'Security', 'Regression'] as const;
-export type TestCaseType = typeof TEST_CASE_TYPES[number];
+export type TestCaseType = (typeof TEST_CASE_TYPES)[number];

@@ -1,6 +1,6 @@
+import { CircuitBreaker, createLogger, logAudit } from '@rlgl/shared';
 import axios from 'axios';
 import { IAMRepository } from '../repositories/iam.repository.js';
-import { CircuitBreaker, createLogger, logAudit } from '@rlgl/shared';
 
 const logger = createLogger({ service: 'auth-iam-service' });
 
@@ -9,7 +9,7 @@ export class IAMService {
 
   constructor(
     private readonly repo: IAMRepository,
-    private readonly projectServiceUrl: string
+    private readonly projectServiceUrl: string,
   ) {
     this.breaker = new CircuitBreaker('project-service-fallback', {
       failureThreshold: 5,
@@ -35,7 +35,7 @@ export class IAMService {
       try {
         const legacyPerms = await this.breaker.execute(async () => {
           const resp = await axios.get(`${this.projectServiceUrl}/${projectId}/permissions/mine`, {
-            headers: { 'x-user-id': userId.toString() } // Internal call simulation
+            headers: { 'x-user-id': userId.toString() }, // Internal call simulation
           });
           return resp.data.permissions as string[];
         });
@@ -43,9 +43,12 @@ export class IAMService {
         // Consistency Check (Shadow Read)
         if (iamPerms && JSON.stringify(iamPerms.sort()) !== JSON.stringify(legacyPerms.sort())) {
           logAudit(logger, 'IAM_CONSISTENCY_MISMATCH', {
-            userId, projectId, iamPerms, legacyPerms
+            userId,
+            projectId,
+            iamPerms,
+            legacyPerms,
           });
-          
+
           // Auto-Heal Trigger (Optional but Elite)
           // In a real system, you'd queue a sync job here
         }

@@ -1,13 +1,13 @@
-import { loadConfig, createLogger, setupProcessHandlers } from '@rlgl/shared';
+import { createLogger, loadConfig, setupProcessHandlers } from '@rlgl/shared';
 import Redis from 'ioredis';
 import { createApp } from './app.js';
 import { startServer } from './server.js';
 
 const config = loadConfig();
-const logger = createLogger({ 
-  service: 'api-gateway', 
-  level: config.LOG_LEVEL, 
-  samplingRate: config.LOG_SAMPLING_RATE 
+const logger = createLogger({
+  service: 'api-gateway',
+  level: config.LOG_LEVEL,
+  samplingRate: config.LOG_SAMPLING_RATE,
 });
 
 // 1. Process Resilience
@@ -47,7 +47,7 @@ async function main() {
         lastRedisSocketWarnAt = now;
         logger.warn(
           { error: formatRedisErr(err) },
-          'Redis unavailable — rate limiting disabled until Redis is reachable (start Redis or docker-compose)'
+          'Redis unavailable — rate limiting disabled until Redis is reachable (start Redis or docker-compose)',
         );
       }
     });
@@ -63,13 +63,13 @@ async function main() {
       }
       logger.warn(
         { err: formatRedisErr(err) },
-        'Redis not reachable in dev — rate limiting will fail-open until Redis is running'
+        'Redis not reachable in dev — rate limiting will fail-open until Redis is running',
       );
     }
 
     // 3. Dependency Injection
     const app = createApp(config, redis);
-    
+
     // 4. Final startup
     startServer(app, config.PORT, async () => {
       try {
@@ -79,7 +79,6 @@ async function main() {
         logger.warn({ err: e?.message }, 'Redis quit warning');
       }
     });
-
   } catch (err: any) {
     logger.error({ error: err.message }, 'Fatal error during startup');
     process.exit(1);

@@ -10,7 +10,10 @@ const before = await prisma.testRun.count();
 
 const res = await service.createRun(
   { name: 'SMOKE unreachable', projectId: 1, caseIds: [4] },
-  { userId: 1, email: 's@t.local' } as any, 1, 'smoke-down-1', 'unused'
+  { userId: 1, email: 's@t.local' } as any,
+  1,
+  'smoke-down-1',
+  'unused',
 );
 if (res.status !== 503) throw new Error(`expected 503 when testcase service is down, got ${res.status}`);
 

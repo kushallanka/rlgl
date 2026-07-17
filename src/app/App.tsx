@@ -1,11 +1,11 @@
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { Suspense, type ReactNode } from 'react';
-import { useAuthStore } from '../stores/auth.store';
-import { useToastStore } from '../stores/toast.store';
+import { type ReactNode, Suspense } from 'react';
+import { Navigate, Route, BrowserRouter as Router, Routes, useLocation } from 'react-router-dom';
 import { usePermission } from '../hooks/usePermission';
 import { GlobalRequestBar } from '../shared/components/GlobalRequestBar';
 import { FullPageSpinner } from '../shared/components/loading/FullPageSpinner';
 import { ToastContainer } from '../shared/components/Toast';
+import { useAuthStore } from '../stores/auth.store';
+import { useToastStore } from '../stores/toast.store';
 import { AppShell } from './layout/AppShell';
 import { routes } from './routes';
 

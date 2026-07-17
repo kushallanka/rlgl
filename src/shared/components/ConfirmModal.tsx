@@ -1,5 +1,5 @@
-import { motion, AnimatePresence } from 'motion/react';
-import { Trash2, Check } from 'lucide-react';
+import { Check, Trash2 } from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
 
 interface ConfirmModalProps {
   isOpen: boolean;
@@ -53,26 +53,31 @@ export function ConfirmModal({
                 transition={{ duration: 0.25, ease: [0.25, 0.46, 0.45, 0.94] }}
                 className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6"
                 style={{
-                  background: variant === 'danger'
-                    ? 'linear-gradient(135deg, #FF3B30 0%, #DC2626 100%)'
-                    : 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
-                  boxShadow: variant === 'danger'
-                    ? '0 4px 20px rgba(255, 59, 48, 0.5), 0 0 40px rgba(255, 59, 48, 0.2)'
-                    : '0 4px 20px rgba(16, 185, 129, 0.5), 0 0 40px rgba(16, 185, 129, 0.2)',
+                  background:
+                    variant === 'danger'
+                      ? 'linear-gradient(135deg, #FF3B30 0%, #DC2626 100%)'
+                      : 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+                  boxShadow:
+                    variant === 'danger'
+                      ? '0 4px 20px rgba(255, 59, 48, 0.5), 0 0 40px rgba(255, 59, 48, 0.2)'
+                      : '0 4px 20px rgba(16, 185, 129, 0.5), 0 0 40px rgba(16, 185, 129, 0.2)',
                 }}
               >
-                {variant === 'danger' ? <Trash2 className="w-8 h-8 text-white" /> : <Check className="w-8 h-8 text-white" />}
+                {variant === 'danger' ? (
+                  <Trash2 className="w-8 h-8 text-white" />
+                ) : (
+                  <Check className="w-8 h-8 text-white" />
+                )}
               </motion.div>
 
               <h2 className="text-2xl font-heading font-semibold text-gray-900 dark:text-white mb-2">{title}</h2>
               {itemName && (
                 <p className="text-gray-500 dark:text-white/60 font-body mb-2">
-                  Are you sure you want to delete <span className="text-gray-900 dark:text-white font-medium">{itemName}</span>?
+                  Are you sure you want to delete{' '}
+                  <span className="text-gray-900 dark:text-white font-medium">{itemName}</span>?
                 </p>
               )}
-              {description && (
-                <p className="text-red-500 dark:text-red-400/80 font-body text-sm mb-6">{description}</p>
-              )}
+              {description && <p className="text-red-500 dark:text-red-400/80 font-body text-sm mb-6">{description}</p>}
 
               {error && (
                 <motion.div
@@ -101,12 +106,12 @@ export function ConfirmModal({
                   disabled={isLoading}
                   className="flex-1 py-3 rounded-xl text-white font-body font-medium transition-ui disabled:opacity-50"
                   style={{
-                    background: variant === 'danger'
-                      ? 'linear-gradient(135deg, #FF3B30 0%, #DC2626 100%)'
-                      : 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
-                    boxShadow: variant === 'danger'
-                      ? '0 4px 20px rgba(255, 59, 48, 0.4)'
-                      : '0 4px 20px rgba(16, 185, 129, 0.4)',
+                    background:
+                      variant === 'danger'
+                        ? 'linear-gradient(135deg, #FF3B30 0%, #DC2626 100%)'
+                        : 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+                    boxShadow:
+                      variant === 'danger' ? '0 4px 20px rgba(255, 59, 48, 0.4)' : '0 4px 20px rgba(16, 185, 129, 0.4)',
                   }}
                 >
                   {isLoading ? 'Processing...' : variant === 'danger' ? 'Delete' : 'Confirm'}
@@ -127,7 +132,9 @@ export function ConfirmModal({
               >
                 <Check className="w-8 h-8 text-white" />
               </motion.div>
-              <p className="text-gray-900 dark:text-white font-body">{title.replace('Delete ', '').replace('?', '')} deleted successfully!</p>
+              <p className="text-gray-900 dark:text-white font-body">
+                {title.replace('Delete ', '').replace('?', '')} deleted successfully!
+              </p>
             </motion.div>
           )}
         </motion.div>

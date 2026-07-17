@@ -76,9 +76,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "name"
-        ],
+        "required": ["name"],
         "type": "object"
       },
       "Organization": {
@@ -143,10 +141,7 @@
             "type": "integer"
           }
         },
-        "required": [
-          "name",
-          "suiteId"
-        ],
+        "required": ["name", "suiteId"],
         "type": "object"
       },
       "Suite": {
@@ -180,10 +175,7 @@
             "type": "integer"
           }
         },
-        "required": [
-          "name",
-          "projectId"
-        ],
+        "required": ["name", "projectId"],
         "type": "object"
       },
       "TestCaseInput": {
@@ -231,13 +223,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "title",
-          "steps",
-          "sectionId",
-          "suiteId",
-          "projectId"
-        ],
+        "required": ["title", "steps", "sectionId", "suiteId", "projectId"],
         "type": "object"
       },
       "TestResult": {
@@ -249,13 +235,7 @@
             "type": "integer"
           },
           "status": {
-            "enum": [
-              "passed",
-              "failed",
-              "blocked",
-              "skipped",
-              "untested"
-            ],
+            "enum": ["passed", "failed", "blocked", "skipped", "untested"],
             "type": "string"
           }
         },
@@ -276,10 +256,7 @@
             "type": "integer"
           },
           "status": {
-            "enum": [
-              "open",
-              "closed"
-            ],
+            "enum": ["open", "closed"],
             "type": "string"
           }
         },
@@ -309,11 +286,7 @@
             "type": "integer"
           }
         },
-        "required": [
-          "name",
-          "projectId",
-          "caseIds"
-        ],
+        "required": ["name", "projectId", "caseIds"],
         "type": "object"
       },
       "UpdateResultInput": {
@@ -323,12 +296,7 @@
             "type": "string"
           },
           "status": {
-            "enum": [
-              "Passed",
-              "Failed",
-              "Blocked",
-              "Untested"
-            ],
+            "enum": ["Passed", "Failed", "Blocked", "Untested"],
             "type": "string"
           },
           "version": {
@@ -336,9 +304,7 @@
             "type": "integer"
           }
         },
-        "required": [
-          "status"
-        ],
+        "required": ["status"],
         "type": "object"
       },
       "UpdateTestRunInput": {
@@ -423,9 +389,7 @@
           }
         },
         "summary": "Initialize project admin (Internal)",
-        "tags": [
-          "IAM"
-        ]
+        "tags": ["IAM"]
       }
     },
     "/api/v1/auth/login": {
@@ -442,10 +406,7 @@
                     "type": "string"
                   }
                 },
-                "required": [
-                  "email",
-                  "password"
-                ],
+                "required": ["email", "password"],
                 "type": "object"
               }
             }
@@ -469,9 +430,7 @@
         },
         "security": [],
         "summary": "Authenticate user and return tokens",
-        "tags": [
-          "Auth"
-        ]
+        "tags": ["Auth"]
       }
     },
     "/api/v1/auth/logout": {
@@ -482,9 +441,7 @@
           }
         },
         "summary": "Log out user and clear cookies",
-        "tags": [
-          "Auth"
-        ]
+        "tags": ["Auth"]
       }
     },
     "/api/v1/auth/me": {
@@ -510,9 +467,7 @@
           }
         },
         "summary": "Get current user context",
-        "tags": [
-          "Auth"
-        ]
+        "tags": ["Auth"]
       }
     },
     "/api/v1/auth/orgs": {
@@ -526,9 +481,7 @@
           }
         },
         "summary": "List organizations the current user belongs to",
-        "tags": [
-          "Organizations"
-        ]
+        "tags": ["Organizations"]
       },
       "post": {
         "requestBody": {
@@ -543,9 +496,7 @@
                     "type": "string"
                   }
                 },
-                "required": [
-                  "name"
-                ],
+                "required": ["name"],
                 "type": "object"
               }
             }
@@ -564,9 +515,7 @@
           }
         },
         "summary": "Create a new organization (creator becomes owner)",
-        "tags": [
-          "Organizations"
-        ]
+        "tags": ["Organizations"]
       }
     },
     "/api/v1/auth/orgs/{orgId}": {
@@ -593,9 +542,7 @@
           }
         },
         "summary": "Get an organization (members only)",
-        "tags": [
-          "Organizations"
-        ]
+        "tags": ["Organizations"]
       },
       "patch": {
         "parameters": [
@@ -624,9 +571,7 @@
                     "type": "integer"
                   }
                 },
-                "required": [
-                  "version"
-                ],
+                "required": ["version"],
                 "type": "object"
               }
             }
@@ -645,9 +590,7 @@
           }
         },
         "summary": "Update an organization (owner/admin, optimistic concurrency)",
-        "tags": [
-          "Organizations"
-        ]
+        "tags": ["Organizations"]
       }
     },
     "/api/v1/auth/orgs/{orgId}/audit-log": {
@@ -685,9 +628,7 @@
           }
         },
         "summary": "Read the append-only audit log (owner/admin only)",
-        "tags": [
-          "Organizations"
-        ]
+        "tags": ["Organizations"]
       }
     },
     "/api/v1/auth/orgs/{orgId}/members": {
@@ -708,21 +649,14 @@
               "schema": {
                 "properties": {
                   "role": {
-                    "enum": [
-                      "owner",
-                      "admin",
-                      "member",
-                      "viewer"
-                    ],
+                    "enum": ["owner", "admin", "member", "viewer"],
                     "type": "string"
                   },
                   "userId": {
                     "type": "integer"
                   }
                 },
-                "required": [
-                  "userId"
-                ],
+                "required": ["userId"],
                 "type": "object"
               }
             }
@@ -738,9 +672,7 @@
           }
         },
         "summary": "Add or update a member (owner/admin; only owners assign owner)",
-        "tags": [
-          "Organizations"
-        ]
+        "tags": ["Organizations"]
       }
     },
     "/api/v1/auth/orgs/{orgId}/members/{userId}": {
@@ -775,9 +707,7 @@
           }
         },
         "summary": "Remove a member (owner/admin; last owner protected)",
-        "tags": [
-          "Organizations"
-        ]
+        "tags": ["Organizations"]
       }
     },
     "/api/v1/auth/refresh": {
@@ -792,9 +722,7 @@
         },
         "security": [],
         "summary": "Refresh access token using refresh token cookie",
-        "tags": [
-          "Auth"
-        ]
+        "tags": ["Auth"]
       }
     },
     "/api/v1/auth/signup": {
@@ -817,10 +745,7 @@
                     "type": "string"
                   }
                 },
-                "required": [
-                  "email",
-                  "password"
-                ],
+                "required": ["email", "password"],
                 "type": "object"
               }
             }
@@ -844,9 +769,7 @@
         },
         "security": [],
         "summary": "Create a new user account",
-        "tags": [
-          "Auth"
-        ]
+        "tags": ["Auth"]
       }
     },
     "/api/v1/auth/users": {
@@ -867,9 +790,7 @@
           }
         },
         "summary": "List all users",
-        "tags": [
-          "Users"
-        ]
+        "tags": ["Users"]
       }
     },
     "/api/v1/auth/users/{userId}/projects": {
@@ -890,9 +811,7 @@
           }
         },
         "summary": "List project IDs for a user (IAM)",
-        "tags": [
-          "IAM"
-        ]
+        "tags": ["IAM"]
       }
     },
     "/api/v1/auth/users/{userId}/projects/{projectId}/permissions": {
@@ -921,9 +840,7 @@
           }
         },
         "summary": "Get permissions for a user in a project (IAM)",
-        "tags": [
-          "IAM"
-        ]
+        "tags": ["IAM"]
       }
     },
     "/api/v1/projects": {
@@ -949,9 +866,7 @@
           }
         },
         "summary": "List projects for current user",
-        "tags": [
-          "Projects"
-        ]
+        "tags": ["Projects"]
       },
       "post": {
         "requestBody": {
@@ -980,9 +895,7 @@
           }
         },
         "summary": "Create a new project",
-        "tags": [
-          "Projects"
-        ]
+        "tags": ["Projects"]
       }
     },
     "/api/v1/projects/{id}": {
@@ -1006,9 +919,7 @@
           }
         },
         "summary": "Delete a project",
-        "tags": [
-          "Projects"
-        ]
+        "tags": ["Projects"]
       },
       "get": {
         "parameters": [
@@ -1037,9 +948,7 @@
           }
         },
         "summary": "Get a single project by ID",
-        "tags": [
-          "Projects"
-        ]
+        "tags": ["Projects"]
       },
       "put": {
         "parameters": [
@@ -1071,9 +980,7 @@
           }
         },
         "summary": "Update a project",
-        "tags": [
-          "Projects"
-        ]
+        "tags": ["Projects"]
       }
     },
     "/api/v1/projects/{projectId}/activities": {
@@ -1094,9 +1001,7 @@
           }
         },
         "summary": "List recent activity / audit entries for a project",
-        "tags": [
-          "Project Config"
-        ]
+        "tags": ["Project Config"]
       }
     },
     "/api/v1/projects/{projectId}/config/audit": {
@@ -1117,9 +1022,7 @@
           }
         },
         "summary": "List config audit entries for a project (alias of /activities)",
-        "tags": [
-          "Project Config"
-        ]
+        "tags": ["Project Config"]
       }
     },
     "/api/v1/projects/{projectId}/config/fields": {
@@ -1152,10 +1055,7 @@
                     "type": "string"
                   }
                 },
-                "required": [
-                  "name",
-                  "type"
-                ],
+                "required": ["name", "type"],
                 "type": "object"
               }
             }
@@ -1168,9 +1068,7 @@
           }
         },
         "summary": "Create a custom field",
-        "tags": [
-          "Project Config"
-        ]
+        "tags": ["Project Config"]
       }
     },
     "/api/v1/projects/{projectId}/config/fields/{fieldId}": {
@@ -1199,9 +1097,7 @@
           }
         },
         "summary": "Delete a custom field",
-        "tags": [
-          "Project Config"
-        ]
+        "tags": ["Project Config"]
       },
       "put": {
         "parameters": [
@@ -1228,9 +1124,7 @@
           }
         },
         "summary": "Update a custom field",
-        "tags": [
-          "Project Config"
-        ]
+        "tags": ["Project Config"]
       }
     },
     "/api/v1/projects/{projectId}/config/priorities": {
@@ -1260,9 +1154,7 @@
                     "type": "string"
                   }
                 },
-                "required": [
-                  "name"
-                ],
+                "required": ["name"],
                 "type": "object"
               }
             }
@@ -1275,9 +1167,7 @@
           }
         },
         "summary": "Create a priority",
-        "tags": [
-          "Project Config"
-        ]
+        "tags": ["Project Config"]
       }
     },
     "/api/v1/projects/{projectId}/config/priorities/{priorityId}": {
@@ -1306,9 +1196,7 @@
           }
         },
         "summary": "Delete a priority",
-        "tags": [
-          "Project Config"
-        ]
+        "tags": ["Project Config"]
       },
       "put": {
         "parameters": [
@@ -1335,9 +1223,7 @@
           }
         },
         "summary": "Update a priority",
-        "tags": [
-          "Project Config"
-        ]
+        "tags": ["Project Config"]
       }
     },
     "/api/v1/projects/{projectId}/config/schema": {
@@ -1358,9 +1244,7 @@
           }
         },
         "summary": "Get the resolved config schema (types, priorities, fields) for a project",
-        "tags": [
-          "Project Config"
-        ]
+        "tags": ["Project Config"]
       }
     },
     "/api/v1/projects/{projectId}/config/types": {
@@ -1390,9 +1274,7 @@
                     "type": "string"
                   }
                 },
-                "required": [
-                  "name"
-                ],
+                "required": ["name"],
                 "type": "object"
               }
             }
@@ -1405,9 +1287,7 @@
           }
         },
         "summary": "Create a test-case type",
-        "tags": [
-          "Project Config"
-        ]
+        "tags": ["Project Config"]
       }
     },
     "/api/v1/projects/{projectId}/config/types/{typeId}": {
@@ -1436,9 +1316,7 @@
           }
         },
         "summary": "Delete a test-case type",
-        "tags": [
-          "Project Config"
-        ]
+        "tags": ["Project Config"]
       },
       "put": {
         "parameters": [
@@ -1465,9 +1343,7 @@
           }
         },
         "summary": "Update a test-case type",
-        "tags": [
-          "Project Config"
-        ]
+        "tags": ["Project Config"]
       }
     },
     "/api/v1/projects/{projectId}/permissions/mine": {
@@ -1503,9 +1379,7 @@
           }
         },
         "summary": "Get the calling user's effective permissions for a project",
-        "tags": [
-          "Project Access"
-        ]
+        "tags": ["Project Access"]
       }
     },
     "/api/v1/projects/{projectId}/roles": {
@@ -1526,9 +1400,7 @@
           }
         },
         "summary": "List roles defined in a project",
-        "tags": [
-          "Project Access"
-        ]
+        "tags": ["Project Access"]
       },
       "post": {
         "parameters": [
@@ -1559,9 +1431,7 @@
                     "type": "array"
                   }
                 },
-                "required": [
-                  "name"
-                ],
+                "required": ["name"],
                 "type": "object"
               }
             }
@@ -1574,9 +1444,7 @@
           }
         },
         "summary": "Create a role in a project",
-        "tags": [
-          "Project Access"
-        ]
+        "tags": ["Project Access"]
       }
     },
     "/api/v1/projects/{projectId}/roles/{roleId}": {
@@ -1605,9 +1473,7 @@
           }
         },
         "summary": "Delete a role",
-        "tags": [
-          "Project Access"
-        ]
+        "tags": ["Project Access"]
       },
       "put": {
         "parameters": [
@@ -1634,9 +1500,7 @@
           }
         },
         "summary": "Update a role",
-        "tags": [
-          "Project Access"
-        ]
+        "tags": ["Project Access"]
       }
     },
     "/api/v1/projects/{projectId}/users/roles": {
@@ -1657,9 +1521,7 @@
           }
         },
         "summary": "List users and their assigned roles in a project",
-        "tags": [
-          "Project Access"
-        ]
+        "tags": ["Project Access"]
       }
     },
     "/api/v1/projects/{projectId}/users/{userId}/roles": {
@@ -1691,9 +1553,7 @@
                     "type": "integer"
                   }
                 },
-                "required": [
-                  "roleId"
-                ],
+                "required": ["roleId"],
                 "type": "object"
               }
             }
@@ -1709,9 +1569,7 @@
           }
         },
         "summary": "Assign a role to a user in a project",
-        "tags": [
-          "Project Access"
-        ]
+        "tags": ["Project Access"]
       }
     },
     "/api/v1/projects/{projectId}/users/{userId}/roles/{roleId}": {
@@ -1748,9 +1606,7 @@
           }
         },
         "summary": "Remove a role assignment from a user",
-        "tags": [
-          "Project Access"
-        ]
+        "tags": ["Project Access"]
       }
     },
     "/api/v1/testcases/cases": {
@@ -1785,9 +1641,7 @@
           }
         },
         "summary": "List test cases in a project (optionally filtered by suite or section)",
-        "tags": [
-          "TestCases"
-        ]
+        "tags": ["TestCases"]
       },
       "post": {
         "requestBody": {
@@ -1806,9 +1660,7 @@
           }
         },
         "summary": "Create a new test case",
-        "tags": [
-          "TestCases"
-        ]
+        "tags": ["TestCases"]
       }
     },
     "/api/v1/testcases/cases/{id}": {
@@ -1840,9 +1692,7 @@
           }
         },
         "summary": "Soft-delete a test case",
-        "tags": [
-          "TestCases"
-        ]
+        "tags": ["TestCases"]
       },
       "get": {
         "parameters": [
@@ -1864,9 +1714,7 @@
           }
         },
         "summary": "Get a single test case by ID",
-        "tags": [
-          "TestCases"
-        ]
+        "tags": ["TestCases"]
       },
       "put": {
         "parameters": [
@@ -1909,9 +1757,7 @@
           }
         },
         "summary": "Update a test case",
-        "tags": [
-          "TestCases"
-        ]
+        "tags": ["TestCases"]
       }
     },
     "/api/v1/testcases/sections": {
@@ -1949,9 +1795,7 @@
           }
         },
         "summary": "List sections in a project (optionally filtered by suite)",
-        "tags": [
-          "TestCases"
-        ]
+        "tags": ["TestCases"]
       },
       "post": {
         "parameters": [
@@ -1994,9 +1838,7 @@
           }
         },
         "summary": "Create a new section",
-        "tags": [
-          "TestCases"
-        ]
+        "tags": ["TestCases"]
       }
     },
     "/api/v1/testcases/sections/{id}": {
@@ -2028,9 +1870,7 @@
           }
         },
         "summary": "Delete a section (cascades to its cases)",
-        "tags": [
-          "TestCases"
-        ]
+        "tags": ["TestCases"]
       },
       "put": {
         "parameters": [
@@ -2060,9 +1900,7 @@
           }
         },
         "summary": "Update a section",
-        "tags": [
-          "TestCases"
-        ]
+        "tags": ["TestCases"]
       }
     },
     "/api/v1/testcases/suites": {
@@ -2112,9 +1950,7 @@
           }
         },
         "summary": "List all test suites in a project",
-        "tags": [
-          "TestCases"
-        ]
+        "tags": ["TestCases"]
       },
       "post": {
         "parameters": [
@@ -2160,9 +1996,7 @@
           }
         },
         "summary": "Create a new test suite",
-        "tags": [
-          "TestCases"
-        ]
+        "tags": ["TestCases"]
       }
     },
     "/api/v1/testcases/suites/{id}": {
@@ -2194,9 +2028,7 @@
           }
         },
         "summary": "Delete a test suite (cascades to its sections and cases)",
-        "tags": [
-          "TestCases"
-        ]
+        "tags": ["TestCases"]
       },
       "put": {
         "parameters": [
@@ -2226,9 +2058,7 @@
           }
         },
         "summary": "Update a test suite",
-        "tags": [
-          "TestCases"
-        ]
+        "tags": ["TestCases"]
       }
     },
     "/api/v1/testruns": {
@@ -2259,9 +2089,7 @@
           }
         },
         "summary": "List all test runs in a project",
-        "tags": [
-          "TestRuns"
-        ]
+        "tags": ["TestRuns"]
       },
       "post": {
         "parameters": [
@@ -2311,9 +2139,7 @@
           }
         },
         "summary": "Create a new test run",
-        "tags": [
-          "TestRuns"
-        ]
+        "tags": ["TestRuns"]
       }
     },
     "/api/v1/testruns/results/{resultId}": {
@@ -2365,9 +2191,7 @@
           }
         },
         "summary": "Record or update the outcome of a single test result",
-        "tags": [
-          "TestRuns"
-        ]
+        "tags": ["TestRuns"]
       }
     },
     "/api/v1/testruns/{id}": {
@@ -2399,9 +2223,7 @@
           }
         },
         "summary": "Delete a test run",
-        "tags": [
-          "TestRuns"
-        ]
+        "tags": ["TestRuns"]
       },
       "get": {
         "parameters": [
@@ -2438,9 +2260,7 @@
           }
         },
         "summary": "Get a single test run (with its results) by ID",
-        "tags": [
-          "TestRuns"
-        ]
+        "tags": ["TestRuns"]
       },
       "put": {
         "parameters": [
@@ -2483,9 +2303,7 @@
           }
         },
         "summary": "Update a test run's metadata",
-        "tags": [
-          "TestRuns"
-        ]
+        "tags": ["TestRuns"]
       }
     }
   }
