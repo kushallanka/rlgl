@@ -11,6 +11,9 @@ export class AuthService {
   ) {}
 
   async signup(data: any) {
+    if (typeof data?.email !== 'string' || !data.email || typeof data?.password !== 'string' || !data.password) {
+      throw new AppError(400, 'Email and password are required');
+    }
     const hashedPassword = await bcrypt.hash(data.password, 12);
 
     // Split name into firstName and lastName
@@ -35,8 +38,13 @@ export class AuthService {
   }
 
   async login(credentials: any) {
-    const user = await this.repo.findUserByEmail(credentials.email);
-    if (!user || !(await bcrypt.compare(credentials.password, user.password))) {
+    const email = credentials?.email;
+    const password = credentials?.password;
+    if (typeof email !== 'string' || !email || typeof password !== 'string' || !password) {
+      throw new AppError(400, 'Email and password are required');
+    }
+    const user = await this.repo.findUserByEmail(email);
+    if (!user || !(await bcrypt.compare(password, user.password))) {
       throw new AppError(401, 'Invalid credentials');
     }
     return user;
