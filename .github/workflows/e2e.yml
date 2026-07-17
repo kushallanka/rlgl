@@ -48,6 +48,14 @@ jobs:
           VITE_API_URL: http://localhost:3000
         run: npm run build
 
+      - name: Build backend services
+        run: |
+          for svc in auth project gateway testcase testrun; do
+            cd services/$svc
+            npx tsc --project tsconfig.json --outDir dist --noEmit false
+            cd -
+          done
+
       - name: Run database migrations (all services)
         run: |
           # Provision per-service SQLite databases under ./data

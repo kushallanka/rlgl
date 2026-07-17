@@ -125,12 +125,20 @@ jobs:
           TESTRUN_DATABASE_URL: file:./data/testrun/testrun.db
         run: |
           npm run build --workspace=@rlgl/shared
+          # Build all service binaries so dist/main.js exists
+          for svc in auth project gateway testcase testrun; do
+            cd services/$svc
+            npx tsc --project tsconfig.json --outDir dist --noEmit false
+            cd -
+          done
+
           # Provision per-service SQLite databases under ./data
           for svc in auth project testcase testrun; do
             mkdir -p "data/$svc"
             DATABASE_URL="file:$PWD/data/$svc/$svc.db" \
               npx prisma migrate deploy --schema="services/$svc/prisma/schema.prisma"
           done
+
           npm run start &
           npx wait-on http://localhost:3000/health --timeout 60000
 
@@ -205,6 +213,11 @@ jobs:
 
       - name: Install Lighthouse CI
         run: npm install -g @lhci/cli
+
+      - name: Start HTTP server
+        run: |
+          npx http-server dist/ -p 3000 -c-1 &
+          npx wait-on http://localhost:3000 --timeout 10000
 
       - name: Run Lighthouse
         run: |
