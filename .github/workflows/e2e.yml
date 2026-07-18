@@ -53,12 +53,13 @@ jobs:
 
       - name: Run database migrations (all services)
         run: |
-          # Provision per-service SQLite databases under ./data
+          # Provision per-service SQLite databases under ./data (absolute paths so
+          # migrations and the services agree on the exact same DB files).
           for svc in auth project testcase testrun; do
             if [ -d "services/$svc/prisma" ]; then
               echo "Migrating $svc..."
               mkdir -p "data/$svc"
-              DATABASE_URL="file:$PWD/data/$svc/$svc.db" \
+              DATABASE_URL="file:${{ github.workspace }}/data/$svc/$svc.db" \
                 npx prisma migrate deploy --schema=services/$svc/prisma/schema.prisma
             fi
           done
@@ -68,10 +69,12 @@ jobs:
           NODE_ENV: test
           JWT_SECRET: e2e-test-jwt-secret
           REDIS_URL: redis://localhost:6379
-          AUTH_DATABASE_URL: file:./data/auth/auth.db
-          PROJECT_DATABASE_URL: file:./data/project/project.db
-          TESTCASE_DATABASE_URL: file:./data/testcase/testcase.db
-          TESTRUN_DATABASE_URL: file:./data/testrun/testrun.db
+          # Absolute file: URLs — must match the migration step exactly. loadConfig
+          # maps <PREFIX>_DATABASE_URL -> DATABASE_URL per service via SERVICE_NAME.
+          AUTH_DATABASE_URL: file:${{ github.workspace }}/data/auth/auth.db
+          PROJECT_DATABASE_URL: file:${{ github.workspace }}/data/project/project.db
+          TESTCASE_DATABASE_URL: file:${{ github.workspace }}/data/testcase/testcase.db
+          TESTRUN_DATABASE_URL: file:${{ github.workspace }}/data/testrun/testrun.db
         run: |
           npm run start &
           npx wait-on http://localhost:3000/health http://localhost:3001/health \

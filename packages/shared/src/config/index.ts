@@ -27,9 +27,11 @@ const configSchema = z.object({
   TESTCASE_SERVICE_URL: z.string().url().default('http://localhost:3003'),
   TESTRUN_SERVICE_URL: z.string().url().default('http://localhost:3004'),
 
-  // Database Aliases
+  // Per-service database aliases (mapped to DATABASE_URL via SERVICE_NAME above)
   AUTH_DATABASE_URL: z.string().optional(),
   PROJECT_DATABASE_URL: z.string().optional(),
+  TESTCASE_DATABASE_URL: z.string().optional(),
+  TESTRUN_DATABASE_URL: z.string().optional(),
 
   LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']).default('info'),
   LOG_SAMPLING_RATE: z.coerce.number().min(0).max(1).default(0.2),
@@ -57,11 +59,19 @@ export const loadConfig = (overrides: Partial<Config> = {}): Config => {
     currentPath = path.join(currentPath, '..');
   }
 
-  // 3. Map service-specific database URLs
+  // 3. Map the service-specific database URL from <PREFIX>_DATABASE_URL, keyed
+  //    off SERVICE_NAME (e.g. 'auth-service' -> AUTH_DATABASE_URL,
+  //    'testrun-service' -> TESTRUN_DATABASE_URL). Deriving the prefix instead
+  //    of hard-coding each service means a new service can never silently miss
+  //    its DB wiring.
   const serviceName = process.env.SERVICE_NAME || '';
-  if (!process.env.DATABASE_URL) {
-    if (serviceName === 'auth-service') process.env.DATABASE_URL = process.env.AUTH_DATABASE_URL;
-    if (serviceName === 'project-service') process.env.DATABASE_URL = process.env.PROJECT_DATABASE_URL;
+  if (!process.env.DATABASE_URL && serviceName) {
+    const prefix = serviceName
+      .replace(/-service$/, '')
+      .replace(/-/g, '_')
+      .toUpperCase();
+    const aliased = process.env[`${prefix}_DATABASE_URL`];
+    if (aliased) process.env.DATABASE_URL = aliased;
   }
 
   // 4. Resolve SQLite paths to be absolute from Root
