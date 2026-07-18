@@ -83,7 +83,13 @@ jobs:
                       --timeout 60000
           echo "All services ready"
 
-      - name: Run Playwright tests
+      # Runs the whole tests/e2e/ tree, which INCLUDES the cross-org isolation
+      # permission suite (tests/e2e/permissions/). No separate permissions job:
+      # those specs drive the same gateway + services + frontend, so a second
+      # job would only duplicate this fully-provisioned setup (and re-run the
+      # same tests) — the previous standalone job had no build/services/Redis
+      # and could only time out.
+      - name: Run Playwright tests (incl. permission flows)
         env:
           PLAYWRIGHT_BASE_URL: http://localhost:5173
           API_BASE_URL: http://localhost:3000
@@ -107,39 +113,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: e2e-test-results
-          path: test-results/
-          retention-days: 14
-
-  # ─── Permission Flow Tests ────────────────────────────────────────────────────
-  e2e-permissions:
-    name: Permission flows (cross-org isolation)
-    runs-on: ubuntu-latest
-    needs: e2e
-    timeout-minutes: 20
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: ./.github/actions/setup-workspace
-        with:
-          generate-prisma: 'false'
-          build-shared: 'false'
-
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium
-
-      - name: Run permission E2E tests
-        run: |
-          if [ -d "tests/e2e/permissions" ]; then
-            npx playwright test tests/e2e/permissions/
-          else
-            echo "::warning::No permission E2E tests at tests/e2e/permissions/"
-          fi
-
-      - name: Upload permission test results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: permission-e2e-results
           path: test-results/
           retention-days: 14
